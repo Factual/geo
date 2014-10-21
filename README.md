@@ -10,9 +10,9 @@ information](http://developer.factual.com/).
 We unify three open-source JVM geospatial libraries: The [JTS topology
 library](http://www.vividsolutions.com/jts/JTSHome.htm),
 [spatial4j](https://github.com/spatial4j/spatial4j), and
-[geohash-java](https://clojars.org/la.tomoj/geohash-java). A single Clojure
-protocol allows these library's disparate representations of points and shapes
-to interoperate, so you can, for instance, ask whether a JTS point is within a
+[geohash-java](https://clojars.org/la.tomoj/geohash-java). Clojure protocols
+allow these libraries' disparate representations of points and shapes to
+interoperate, so you can, for instance, ask whether a JTS point is within a
 geohash, or whether a geohash intersects a spatial4j multipolygon.
 
 In addition, we provide common scales and translation functions for unit
