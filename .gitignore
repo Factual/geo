@@ -1,0 +1,12 @@
+pom.xml
+*~
+.*.swp
+*.log
+.lein-repl-history
+.nrepl-port
+lib
+classes
+build
+.lein-deps-sum
+.lein-failures
+target/**
