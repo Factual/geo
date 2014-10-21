@@ -1,6 +1,11 @@
 (defproject
   factual/geo "1.0.0"
-  :description "Geospatial operations over points, lines, polys, geohashes, etc."
+  :url     "https://github.com/factual/geo"
+  :license {:name "Eclipse Public License - v 1.0"
+            :url  "http://www.eclipse.org/legal/epl-v10.html"
+            :distribution :repo
+            :comments "same as Clojure"}
+  :description "Geospatial operations over points, lines, polys, geohashes, etc.o"
   :dependencies
   [[org.clojure/math.numeric-tower "0.0.2"]
    [la.tomoj/geohash-java "1.0.6"]

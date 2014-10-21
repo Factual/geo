@@ -1,7 +1,28 @@
 # Geo
 
-Lots of code for working with geographical stuff: points, distances, regions,
-geohashes, etc.
+At Factual, we process a lot of spatial data. We're open-sourcing one of our
+internal libraries for working with geospatial information, especially
+geohashes. We want all Clojure programmers to be able to answer questions about
+coordinates, distances, and polygon intersections. We think this library will
+be particularly useful in concert with our [rich API of geospatial
+information](http://developer.factual.com/).
+
+We unify three open-source JVM geospatial libraries: The [JTS topology
+library](http://www.vividsolutions.com/jts/JTSHome.htm),
+[spatial4j](https://github.com/spatial4j/spatial4j), and
+[geohash-java](https://clojars.org/la.tomoj/geohash-java). A single Clojure
+protocol allows these library's disparate representations of points and shapes
+to interoperate, so you can, for instance, ask whether a JTS point is within a
+geohash, or whether a geohash intersects a spatial4j multipolygon.
+
+In addition, we provide common scales and translation functions for unit
+conversion: converting between steradians and surface areas; finding the radius
+along the geoid, and some basic properties.
+
+This library is incomplete; in particular, it is not as fast as it could be,
+encounters bounded errors when translating between various geoid
+representations, and is subject to singularities at the poles. Nonetheless, we
+hope that it can be a canonical resource for geospatial computation in Clojure.
 
 ## geo.spatial
 
@@ -44,7 +65,7 @@ Given a geohash, can find neighbors in each directions, and compute concentric
 square rings around that geohash. Extract centerpoints and dimensions, either
 via horizontal/vertical extent or estimated areas. Estimate errors for specific
 geohashes--error is largest at the equator and smallest at the poles.
-Round-trip gephashes to and from base32.
+Round-trip geohashes to and from base32.
 
 Given a target shape on the geoid, can tell you how many bits of precision are
 necessary to get geohashes on roughly that scale. Can compute all geohashes
