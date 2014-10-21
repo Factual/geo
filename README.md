@@ -24,6 +24,10 @@ encounters bounded errors when translating between various geoid
 representations, and is subject to singularities at the poles. Nonetheless, we
 hope that it can be a canonical resource for geospatial computation in Clojure.
 
+# Installation
+
+Install via [clojars](https://clojars.org/factual/geo)
+
 # Examples
 
 ```clj
