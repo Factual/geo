@@ -169,7 +169,7 @@
   [bits]
   (geohash-error (geohash 0 0 bits)))
 
-(defn geohash-string
+(defn string
   "Returns the base32 encoded string value of a geohash."
   [^GeoHash geohash]
   (.toBase32 geohash))
@@ -204,10 +204,10 @@
   (let [start (geohash (center shape) precision)]
 ;    (prn "Shape is" (to-shape shape))
 ;    (prn "Initial geohash is" (to-shape start))
-    (if (= SpatialRelation/CONTAINS (relate start shape))
+    (if (= :contains (relate start shape))
       ; Optimization: if we start out by containing the geohash, there's
       ; no need to expand.
-      (do 
+      (do
 ;        (prn "Ha! Got it in the first try")
         (list start))
       ; Otherwise, expand outward in rings.
@@ -233,12 +233,12 @@
   [shape precision ^GeoHash geohash]
   (let [relationship (relate shape geohash)]
     (cond
-      (= relationship SpatialRelation/CONTAINS)
+      (= relationship :contains)
       (do
 ;        (print "X")
         (subdivide geohash precision))
 
-      (not= relationship SpatialRelation/DISJOINT)
+      (not= relationship :disjoint)
       (let [current-precision (.significantBits geohash)
             delta (- precision current-precision)]
 ;        (print ".")

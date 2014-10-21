@@ -16,7 +16,7 @@
        (fact (map #(.longValue %) (subdivide (geohash "")))
              => [0 (dec (- (long (Math/pow 2 63))))])
 
-       (fact (map geohash-string (subdivide (geohash "scu2") 25))
+       (fact (map string (subdivide (geohash "scu2") 25))
              => ["scu20" "scu21" "scu22" "scu23" "scu24" "scu25" "scu26"
                  "scu27" "scu28" "scu29" "scu2b" "scu2c" "scu2d" "scu2e"
                  "scu2f" "scu2g" "scu2h" "scu2j" "scu2k" "scu2m" "scu2n"
@@ -103,18 +103,18 @@
 
 (facts "geohashes-near"
        (fact "10 meter radius around 1,1 with 35 bits precision"
-             (map geohash-string (geohashes-near (geohash-point 1 1) 10 35))
+             (map string (geohashes-near (geohash-point 1 1) 10 35))
              => ["s00twy0"])
        (fact "100 meter radius with 35 bits precision"
-             (map geohash-string
+             (map string
                   (geohashes-near (geohash-point 37.613834 -119.088062) 100 35))
              => (just ["9qemfp6" "9qemfpe" "9qemfp7" "9qemfp5" "9qemfp4" "9qemfp3"
                        "9qemfpd"] :in-any-order))
        (fact "10 meter radius around 1,1 with 40 bits precision"
-             (map geohash-string (geohashes-near (geohash-point 1 1) 10 40))
+             (map string (geohashes-near (geohash-point 1 1) 10 40))
              => (just ["s00twy01" "s00twy00"] :in-any-order))
        (fact "100 meter radius with 40 bits precision"
-             (map geohash-string
+             (map string
                   (geohashes-near (geohash-point -50.675351 166.191226) 100 40))
              => (just ["pwyptybf" "pwyptyc5" "pwyptyc4" "pwyptyc1" "pwyptybc"
                        "pwyptyb9" "pwyptybd" "pwyptybe" "pwyptybg" "pwyptyck"
@@ -135,7 +135,7 @@
                        "pwyptwze" "pwyptybp" "pwyptybr" "pwyptybx" "pwyptybz"
                        "pwyptycp" "pwyptycr"] :in-any-order))
        (fact "10 meter radius with 45 bits precision"
-             (map geohash-string 
+             (map string 
                   (geohashes-near (geohash-point 35.971411 -121.453086) 10 45))
              => (just ["9q3ssk2s9" "9q3ssk2sf" "9q3ssk2sd" "9q3ssk2s6"
                        "9q3ssk2s3" "9q3ssk2s2" "9q3ssk2s8" "9q3ssk2sb"
@@ -154,5 +154,5 @@
 
 (facts "alaska"
        (let [evil (multi-polygon-wkt [[[179 0, 179 1, -179 1, -179 0, 179 0]]])]
-         (fact (map geohash-string (geohashes-intersecting evil 15))
+         (fact (map string (geohashes-intersecting evil 15))
                => (just ["xbp" "800" "2pb" "rzz"] :in-any-order))))

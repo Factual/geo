@@ -272,10 +272,18 @@
       steradians->area)))
 
 (defn relate
-  "The relationship between two shapes."
+  "The relationship between two shapes. Returns a keyword:
+
+  :contains    a contains b
+  :within      a falls within b
+  :intersects  a and b have at least one point in common
+  :disjoint    a and b have no points in common"
   [a b]
-  (.relate (to-shape a)
-           (to-shape b)))
+  (condp = (.relate (to-shape a) (to-shape b))
+    SpatialRelation/DISJOINT    :disjoint
+    SpatialRelation/INTERSECTS  :intersects
+    SpatialRelation/WITHIN      :within
+    SpatialRelation/CONTAINS    :contains))
 
 (defn intersects?
   "Do two shapes intersect in any way? Note that spatial4j's relate() considers
@@ -284,4 +292,4 @@
   relations (the one used here) which considers two shapes intersecting if
   their intersection is non-empty; i.e. they are not disjoint."
   [a b]
-  (.intersects (relate a b)))
+  (.intersects (.relate (to-shape a) (to-shape b))))

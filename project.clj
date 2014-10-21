@@ -1,12 +1,6 @@
 (defproject
-  geo "1.0.0"
-  :repositories
-  {"factual" "http://maven.corp.factual.com/nexus/content/groups/public"
-   "releases" {:url "http://maven.corp.factual.com/nexus/content/repositories/releases"
-               :sign-releases false}
-   "snapshots" {:url "http://maven.corp.factual.com/nexus/content/repositories/snapshots"
-                :snapshots {:update :always}}}
-  :description "Geohashing places, addresses, and geopulse data with cascalog."
+  factual/geo "1.0.0"
+  :description "Geospatial operations over points, lines, polys, geohashes, etc."
   :dependencies
   [[org.clojure/math.numeric-tower "0.0.2"]
    [la.tomoj/geohash-java "1.0.6"]

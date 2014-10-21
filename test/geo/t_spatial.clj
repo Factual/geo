@@ -103,7 +103,12 @@
                (intersects? sfo (circle oak (- (distance sfo oak) 12)))
                => truthy
                (intersects? sfo (circle oak (- (distance sfo oak) 14)))
-               => falsey)))
+               => falsey))
+
+  (facts "relationships"
+         (fact "relate returns keywords"
+               (relate (circle oak 10) (circle oak 10))
+               => :contains)))
 
 (facts "JTS multi-polygons"
        (let [a (multi-polygon-wkt [[[0 0, 2 0, 2 2, 0 0]]])
