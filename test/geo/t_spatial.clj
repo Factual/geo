@@ -125,3 +125,14 @@
          (fact (area (bounding-box evil)) => (roughly 2.4727e10))
          (fact (center (bounding-box evil)) => (point 0.5 180.0))
          (fact (center evil) => (point 0.5 180.0))))
+
+(facts "centroid"
+       (fact (-> [[0 0, 10 0, 10 10, 0 10, 0 0]]
+                  ; A little weird: centroids ignore holes in polygons
+                  ; Maybe someday, try holes?
+                  ; [1 1, 5 1,  5 9,   1 9,  1 1]]
+                 jts/polygon-wkt
+                 center)
+             => (spatial4j-point 5 5)))
+
+                  

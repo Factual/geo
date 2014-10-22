@@ -107,7 +107,7 @@
   (longitude [this] (.getLongitude this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] this)
-                   
+
   com.spatial4j.core.shape.Point
   (latitude [this] (.getY this))
   (longitude [this] (.getX this))
@@ -234,9 +234,9 @@
   (.getBoundingBox (to-shape shape)))
 
 (defn center
-  "Returns the center of a spatial4j shape. Note that .getCenter does bad things
-  for JTS shapes that cross the international dateline, so we use use (center
-  (bounding-box x)) for JTS stuff."
+  "Returns the centroid of a spatial4j shape. Note that .getCenter does bad
+  things for JTS shapes that cross the international dateline, so we use use
+  (center (bounding-box x)) for JTS stuff."
   [shape]
   (let [shape (to-shape shape)]
     (if (instance? JtsGeometry shape)
