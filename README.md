@@ -167,3 +167,33 @@ The project uses [Midje](https://github.com/marick/Midje/).
 `lein midje :autotest` will run all the tests indefinitely. It sets up a
 watcher on the code files. If they change, only the relevant tests will be
 run again.
+
+# License
+
+Licensing is complicated; this is my best effort at interpreting the legal
+issues involved. If you think this is incorrect, please let me know.
+
+This project and many of its dependencies are licensed under the Eclipse Public
+License version 1.0. It has a runtime dependency on, but is not distributed
+with, the LGPL-licensed [JTS Topology
+Suite](http://www.vividsolutions.com/jts/JTSHome.htm). The
+[LGPL](http://www.gnu.org/licenses/lgpl.html).
+
+This library and JAR on Clojars are not AOT-compiled; they are distributed as
+source code which is compiled by Clojure at runtime. It is not linked with JTS
+but *does* make use of its interfaces, which makes it an "Application" under
+the terms of the LGPL. Since the JAR is distributed as source, it does not
+convey "object code".
+
+When this library is compiled by Clojure (e.g. when AOT-compiled, or when a
+program requiring this library is run), it will call functions on JTS
+LGPL-licensed classes. This is, as I understand the LGPL, a "Combined Work". If
+you wish to convey a combined work, you may, provided, as per the LGPL section
+4, that:
+
+a.) You give prominent notice that the LGPL is used (e.g. this license section)
+b.) You accompany the combined work with a copy of the GNU GPL and this license
+document (see LGPL.txt and GPL.txt)
+c.) You display copyright notices during execution (not applicable here)
+d.) Convey the minimal corresponding source, or use a suitable shared library mechanism (e.g. jars)
+e.) Provide installation information (trivial; via Leiningen, Maven, etc)
