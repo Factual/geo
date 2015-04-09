@@ -57,7 +57,7 @@
    (let [number (Math/pow 2 (- precision
                                (.significantBits geohash)))]
      (->> (GeoHash/fromLongValue (.longValue geohash) precision)
-       (iterate #(.next %))
+       (iterate #(.next ^GeoHash %))
        (take number)))))
 
 (defn square-ring

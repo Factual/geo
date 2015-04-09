@@ -9,7 +9,7 @@
                                         PrecisionModel
                                         GeometryFactory)))
 
-(def gf
+(def ^GeometryFactory gf
   (GeometryFactory.))
 
 (defn coordinate
@@ -21,7 +21,7 @@
   "Creates a Point from a Coordinate, or an x,y pair."
   ([x y]
    (point (coordinate x y)))
-  ([coordinate]
+  ([^Coordinate coordinate]
    (.createPoint gf coordinate)))
 
 (defn coordinate-sequence
