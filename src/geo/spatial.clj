@@ -230,7 +230,7 @@
 
 (defn bounding-box
   "Returns the bounding box of any shape."
-  [shape]
+  ^com.spatial4j.core.shape.Rectangle [shape]
   (.getBoundingBox (to-shape shape)))
 
 (defn center
