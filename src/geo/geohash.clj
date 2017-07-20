@@ -7,9 +7,9 @@
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
-           (com.spatial4j.core.shape SpatialRelation)
-           (com.spatial4j.core.distance DistanceUtils)
-           (com.spatial4j.core.context SpatialContextFactory)))
+           (org.locationtech.spatial4j.shape SpatialRelation)
+           (org.locationtech.spatial4j.distance DistanceUtils)
+           (org.locationtech.spatial4j.context SpatialContextFactory)))
 
 (defn geohash
   "Creates a geohash from a string, or at the given point with the given bit
@@ -81,7 +81,7 @@
                      +-----+
 
   If n is one, returns [origin].
-  
+
   This algorithm is undefined at the poles."
   [origin n]
   (assert (odd? n))

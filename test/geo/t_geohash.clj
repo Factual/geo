@@ -1,10 +1,14 @@
 (ns geo.t-geohash
+  (:require [geo.spatial :as spatial])
   (:use midje.sweet
         [geo.jts :only [multi-polygon-wkt]]
         [geo.spatial :only [geohash-point area]]
         geo.geohash)
   (:import (ch.hsr.geohash GeoHash)
-           (com.spatial4j.core.context SpatialContext)))
+           (org.locationtech.spatial4j.context SpatialContext)
+           (com.vividsolutions.jts.geom PrecisionModel
+                                        Envelope
+                                        GeometryFactory)))
 
 (facts "geohash"
        (fact (geohash 50 20 64) => (partial instance? GeoHash))
@@ -70,7 +74,7 @@
          (fact "eighth earth"
                (area (geohash 45 0 3)) => (roughly (/ a 8)))
          ; As we start digging down, the skew becomes more pronounced.
-         (fact "1/256ths" (area (geohash 45 0 8)) 
+         (fact "1/256ths" (area (geohash 45 0 8))
                => (roughly (/ a (Math/pow 2 8)) (/ a (Math/pow 2 15))))
          (fact "1/65536ths" (area (geohash 45 0 16))
                => (roughly (/ a (Math/pow 2 16)) (/ a (Math/pow 2 19))))
@@ -135,7 +139,7 @@
                        "pwyptwze" "pwyptybp" "pwyptybr" "pwyptybx" "pwyptybz"
                        "pwyptycp" "pwyptycr"] :in-any-order))
        (fact "10 meter radius with 45 bits precision"
-             (map string 
+             (map string
                   (geohashes-near (geohash-point 35.971411 -121.453086) 10 45))
              => (just ["9q3ssk2s9" "9q3ssk2sf" "9q3ssk2sd" "9q3ssk2s6"
                        "9q3ssk2s3" "9q3ssk2s2" "9q3ssk2s8" "9q3ssk2sb"

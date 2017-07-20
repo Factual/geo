@@ -3,7 +3,7 @@
         geo.spatial
         [geo.jts :only [multi-polygon-wkt]])
   (:require [geo.jts :as jts])
-  (:import (com.spatial4j.core.context SpatialContext)))
+  (:import (org.locationtech.spatial4j.context SpatialContext)))
 
 (facts "earth"
        (fact earth => (partial instance? SpatialContext)))
@@ -134,5 +134,3 @@
                  jts/polygon-wkt
                  center)
              => (spatial4j-point 5 5)))
-
-                  
