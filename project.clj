@@ -8,7 +8,7 @@
   :description "Geospatial operations over points, lines, polys, geohashes, etc.o"
   :dependencies
   [[org.clojure/math.numeric-tower "0.0.4"]
-   [la.tomoj/geohash-java "1.0.6"]
+   [ch.hsr/geohash "1.3.0"]
    [org.locationtech.spatial4j/spatial4j "0.6"]
    [com.vividsolutions/jts "1.13"]]
   :profiles {:dev {:plugins [[lein-midje "3.1.1"]]
