@@ -41,16 +41,18 @@
 (def ^SpatialContext earth
   "The SpatialContext of the earth, as according to spatial4j."
   (SpatialContextFactory/makeSpatialContext
-    {"geo" "true" ; *any* string is true
-     "distCalculator" "vincentySphere"}
-    ; Optional classloader arg
-    nil))
+   {"geo" "true"
+    "datelineRule" "width180"
+    "spatialContextFactory" "org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory"
+    "distCalculator" "vincentySphere"}
+   (.getClassLoader JtsSpatialContext)))
 
 (def ^ShapeFactory jts-earth
   "ShapeFactory for producing spatial4j Shapes from JTSGeometries based"
   (->> (.getClassLoader JtsSpatialContext)
        (SpatialContextFactory/makeSpatialContext
         {"geo" "true"
+         "datelineRule" "width180"
          "spatialContextFactory" "org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory"
          "distCalculator" "vincentySphere"})
        (.getShapeFactory)))
@@ -94,7 +96,11 @@
 
   com.vividsolutions.jts.geom.Geometry
   (to-shape [this]
-    (.makeShape jts-earth this)))
+    (.makeShape jts-earth
+                (.clone this)
+                true ;; dateline180Check
+                false ;; allowMultiOverlap
+                )))
 
 (defprotocol Point
   (latitude [this])
