@@ -4,9 +4,13 @@
 
   "
   (:use geo.spatial)
+  (:require [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
+           (org.locationtech.spatial4j.shape.impl RectangleImpl)
+           (org.locationtech.spatial4j.context.jts JtsSpatialContext)
+           (org.locationtech.spatial4j.io GeohashUtils)
            (org.locationtech.spatial4j.shape SpatialRelation)
            (org.locationtech.spatial4j.distance DistanceUtils)
            (org.locationtech.spatial4j.context SpatialContextFactory)))
@@ -33,21 +37,10 @@
                               (.getMinLat box)
                               (.getMaxLat box)))))
 
-(defn northern-neighbor
-  [^GeoHash h]
-  (.getNorthernNeighbour h))
-
-(defn eastern-neighbor
-  [^GeoHash h]
-  (.getEasternNeighbour h))
-
-(defn western-neighbor
-  [^GeoHash h]
-  (.getWesternNeighbour h))
-
-(defn southern-neighbor
-  [^GeoHash h]
-  (.getSouthernNeighbour h))
+(defn northern-neighbor [^GeoHash h] (.getNorthernNeighbour h))
+(defn eastern-neighbor [^GeoHash h] (.getEasternNeighbour h))
+(defn western-neighbor [^GeoHash h] (.getWesternNeighbour h))
+(defn southern-neighbor [^GeoHash h] (.getSouthernNeighbour h))
 
 (defn subdivide
   "Given a geohash, returns all geohashes inside it, of a given precision."
@@ -174,6 +167,9 @@
   [^GeoHash geohash]
   (.toBase32 geohash))
 
+(defn significant-bits [^GeoHash geohash] (.significantBits geohash))
+(defn character-precision [^GeoHash geohash] (.getCharacterPrecision geohash))
+
 (def degrees-precision-long-cache
   (map (comp width (partial geohash 45 45)) (range 0 64)))
 (def degrees-precision-lat-cache
@@ -261,13 +257,63 @@
    (let [initial-precision (max 0 (- (shape->precision shape) 6))]
 ;     (println "Starting with precision " initial-precision " ("
 ;              (nth degrees-precision-lat-cache  initial-precision) " x "
-;              (nth degrees-precision-long-cache initial-precision) 
+;              (nth degrees-precision-long-cache initial-precision)
 ;              ") enclosing "
 ;              (height shape) " x " (width shape))
      (geohashes-intersecting shape precision initial-precision)))
   ([shape precision initial-precision]
    (mapcat (partial geohashes-intersecting-recursive shape precision)
            (geohashes-intersecting-rings shape initial-precision))))
+
+(defn children [gh]
+  (->> gh string GeohashUtils/getSubGeohashes (map geohash)))
+
+(defn bbox-geom [geohash]
+  (let [bbox (.getBoundingBox geohash)
+        rect (RectangleImpl. (.getMinLon bbox)
+                             (.getMaxLon bbox)
+                             (.getMinLat bbox)
+                             (.getMaxLat bbox)
+                             JtsSpatialContext/GEO)]
+    (.getGeometryFrom JtsSpatialContext/GEO rect)))
+
+(defn covering-geohashes
+  ([shape desired-level] (covering-geohashes shape desired-level desired-level))
+  ([shape min-level max-level] (covering-geohashes shape min-level max-level (geohash "")))
+  ([shape min-level max-level _]
+   (loop [matches #{}
+         queue (list (geohash ""))]
+     (if (empty? queue) matches
+         (let [current (first queue)
+               level (significant-bits current)]
+
+           (if (and (<= level max-level) (intersects? shape current))
+             (if (= level max-level) (recur (conj matches (string current))
+                                            (rest queue))
+                 (if (>= level min-level)
+                     (recur (conj matches (string current))
+                            (into (rest queue)
+                                  (children current)))
+                     (recur matches
+                            (into (rest queue)
+                                  (children current)))))
+             (recur matches (rest queue))))))))
+
+(defn covering-geohashes-recursive
+  [shape min-level max-level current-gh]
+  (let [current-level (significant-bits current-gh)
+        current (if (and (intersects? current-gh shape)
+                         (>= current-level min-level)
+                         (<= current-level max-level))
+                  #{(string current-gh)}
+                  #{})]
+    (if (and (< current-level max-level) (intersects? current-gh shape))
+      (->> (GeohashUtils/getSubGeohashes (string current-gh))
+           (map geohash)
+           (map (fn [gh]
+                  (covering-geohashes shape min-level max-level gh)))
+           (reduce clojure.set/union current))
+      current)))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of
