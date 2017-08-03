@@ -73,7 +73,7 @@ user=> (geohash/geohash-midline-dimensions h)
 [152.7895756415971 95.34671939564083]
 
 ; As a base32-encoded string, this hash is:
-user=> (geohash/sstring h)
+user=> (geohash/string h)
 "u10j4bs"
 
 ; We can drop characters off a geohash to get strict supersets of that hash.
@@ -101,7 +101,6 @@ user=> (-> (iterate geohash/northern-neighbor h) (nth 5) (spatial/relate h))
 ; Or more directly
 user=> (map geohash/string (geohash/geohashes-near lhr 1000 30))
 ("gcpsv3" "gcpsv4" "gcpsv5" "gcpsv6" "gcpsv7" "gcpsv9" "gcpsvd" "gcpsve" "gcpsvf" "gcpsvg" "gcpsvh" "gcpsvk" "gcpsvs" "gcpsvu")
-
 ```
 
 # Namespace overview
