@@ -87,6 +87,10 @@
   "Earth's circumference around a meridian, in meters."
   (* 1000 40008))
 
+(defn crosses-dateline? [jts-geom]
+  (>= (.getWidth (.getEnvelopeInternal jts-geom))
+      180))
+
 (defprotocol Shapelike
   (^Shape to-shape [this] "Convert anything to a Shape."))
 
@@ -96,11 +100,16 @@
 
   com.vividsolutions.jts.geom.Geometry
   (to-shape [this]
-    (.makeShape jts-earth
-                (.clone this)
-                true ;; dateline180Check
-                false ;; allowMultiOverlap
-                )))
+    ;; Cloning geometries that cross dateline to workaround
+    ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
+    (let [geom (if (crosses-dateline? this)
+                 (.clone this)
+                 this)]
+      (.makeShape jts-earth
+                  geom
+                  true ;; dateline180Check
+                  false ;; allowMultiOverlap
+                  ))))
 
 (defprotocol Point
   (latitude [this])

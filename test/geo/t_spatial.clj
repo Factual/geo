@@ -125,11 +125,12 @@
          (fact (-> [poly-wkt] jts/multi-polygon-wkt s/width) => 2.0)
          (fact (-> poly-wkt jts/polygon-wkt s/bounding-box s/area) => (roughly 2.4727e10))))
 
-(facts "BUG: Multiple to-shape calls breaks dateline handling without cloning"
+(facts "Dateline-crossing geom handled properly with multiple to-shape calls"
+       ;; Protecting against a previous bug
+       ;; https://github.com/locationtech/spatial4j/issues/150
        (let [polygon (jts/polygon-wkt [[179 0 179 1 -179 1 -179 0 179 0]])]
          (fact (s/width polygon) => 2.0)
-         (fact (s/width polygon) => 2.0)
-         (fact (s/width bbox-1) => (s/width bbox-2))))
+         (fact (s/width polygon) => 2.0)))
 
 (facts "centroid"
        (fact (-> [[0 0, 10 0, 10 10, 0 10, 0 0]]
