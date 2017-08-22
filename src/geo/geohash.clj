@@ -4,8 +4,6 @@
 
   "
   (:use geo.spatial)
-  (:require [geo.jts :as jts]
-            [clojure.set])
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
