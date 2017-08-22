@@ -28,6 +28,8 @@ hope that it can be a canonical resource for geospatial computation in Clojure.
 
 Install via [clojars](https://clojars.org/factual/geo)
 
+[![Clojars Project](https://img.shields.io/clojars/v/factual/geo.svg)](https://clojars.org/factual/geo)
+
 Leiningen Dependency Vector:
 
 ```
