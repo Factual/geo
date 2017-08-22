@@ -32,7 +32,7 @@ Install via [clojars](https://clojars.org/factual/geo)
 
 ```clj
 ; Load library
-(require '[geo [geohash :as geohash] [jts :as jts] [spatial :as spatial]])
+(require '[geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [io :as gio]])
 
 ; Find the earth's radius at the pole, in meters
 user=> (spatial/earth-radius spatial/south-pole)
@@ -101,6 +101,25 @@ user=> (-> (iterate geohash/northern-neighbor h) (nth 5) (spatial/relate h))
 ; Or more directly
 user=> (map geohash/string (geohash/geohashes-near lhr 1000 30))
 ("gcpsv3" "gcpsv4" "gcpsv5" "gcpsv6" "gcpsv7" "gcpsv9" "gcpsvd" "gcpsve" "gcpsvf" "gcpsvg" "gcpsvh" "gcpsvk" "gcpsvs" "gcpsvu")
+
+; Reading JTS Geometries to/from common geo formats
+user=> (gio/read-wkt "POLYGON ((-70 30, -70 30, -70 30, -70 30, -70 30))")
+#object[com.vividsolutions.jts.geom.Polygon 0x675302a "POLYGON ((-70 30, -70 30, -70 30, -70 30, -70 30))"]
+
+user=> (gio/to-wkt (gio/read-wkt "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"))
+"POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"
+
+user=> (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}")
+#object[com.vividsolutions.jts.geom.Polygon 0x57a1c5f5 "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
+
+user=> (gio/to-geojson (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"))
+"{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"
+
+user=> (gio/to-wkb (gio/read-wkt "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"))
+#object["[B" 0xe62e731 "[B@e62e731"]
+
+user=> (gio/read-wkb *1)
+#object[com.vividsolutions.jts.geom.Polygon 0x6f85711c "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
 ```
 
 # Namespace overview
@@ -152,6 +171,12 @@ Given a target shape on the geoid, can tell you how many bits of precision are
 necessary to get geohashes on roughly that scale. Can compute all geohashes
 intersecting a shape in general, and all geohashes within a radius of a point
 in specific.
+
+## geo.io
+
+Helper functions for dealing with common geospatial serialization formats. Use these to read and write from WKT, GeoJSON, and WKB.
+
+IO functions return and accept JTS Geometries.
 
 # Tests
 
