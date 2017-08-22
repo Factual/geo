@@ -28,6 +28,12 @@ hope that it can be a canonical resource for geospatial computation in Clojure.
 
 Install via [clojars](https://clojars.org/factual/geo)
 
+Leiningen Dependency Vector:
+
+```
+[factual/geo "1.1.0"]
+```
+
 # Examples
 
 ```clj
@@ -176,7 +182,7 @@ in specific.
 
 Helper functions for dealing with common geospatial serialization formats. Use these to read and write from WKT, GeoJSON, and WKB.
 
-IO functions return and accept JTS Geometries.
+IO functions return JTS Geometries.
 
 # Tests
 
