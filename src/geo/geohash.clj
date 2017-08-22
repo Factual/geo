@@ -190,83 +190,6 @@
   (min (least-upper-bound-index degrees-precision-lat-cache (height shape))
        (least-upper-bound-index degrees-precision-long-cache (height shape))))
 
-(defn geohashes-intersecting-rings
-  "Returns a list of geohashes of the given precision, intersecting the given
-  shape. Works by checking a geohash at the center of the shape, then a ring
-  around that hash, then a ring around *that* ring, and so on, until
-  we have a ring which does not intersect the shape."
-  [shape precision]
-  ; We can't expand our search at the poles
-  (assert (not (intersects? south-pole shape)))
-  (assert (not (intersects? north-pole shape)))
-  (let [start (geohash (center shape) precision)]
-;    (prn "Shape is" (to-shape shape))
-;    (prn "Initial geohash is" (to-shape start))
-    (if (= :contains (relate start shape))
-      ; Optimization: if we start out by containing the geohash, there's
-      ; no need to expand.
-      (do
-;        (prn "Ha! Got it in the first try")
-        (list start))
-      ; Otherwise, expand outward in rings.
-      (cons start
-            (->> start
-              concentric-square-rings
-              rest
-              (map (fn [ring]
-;                     (prn "Expanding to ring of " (count ring))
-                     (let [valid (doall (filter (fn [geohash]
-;                               (print "O")
-                               (intersects? shape geohash))
-                             ring))]
-;                       (prn "Valid hashes:" valid)
-                       valid)))
-              (take-while not-empty)
-              (apply concat))))))
-
-(defn geohashes-intersecting-recursive
-  "Starting with the given geohash which completely encloses the target shape,
-  recursively subdivides and filters to compute a set of geohashes of the given
-  resolution which intersect that shape."
-  [shape precision ^GeoHash geohash]
-  (let [relationship (relate shape geohash)]
-    (cond
-      (= relationship :contains)
-      (do
-;        (print "X")
-        (subdivide geohash precision))
-
-      (not= relationship :disjoint)
-      (let [current-precision (.significantBits geohash)
-            delta (- precision current-precision)]
-;        (print ".")
-        (if (zero? delta)
-          ; Done
-          (list geohash)
-          ; Keep going
-          (mapcat (partial geohashes-intersecting-recursive shape precision)
-                  ; Split each geohash into quads (or halves if necessary.
-                  (subdivide geohash (+ (.significantBits geohash)
-                                        (min 2 delta)))))))))
-
-(defn geohashes-intersecting
-  "A hybrid algorithm to find all the geohashes of a given resolution which
-  intersect a given shape. Finds an initial set of hashes with concentric
-  rings, then refines those hashes by subdividing them. If given,
-  initial-precision specifies the size of the geohashes used with the slow,
-  concentric-rings algorithm to identify geohashes to subdivide."
-  ([shape precision]
-   (let [initial-precision (max 0 (- (shape->precision shape) 6))]
-;     (println "Starting with precision " initial-precision " ("
-;              (nth degrees-precision-lat-cache  initial-precision) " x "
-;              (nth degrees-precision-long-cache initial-precision)
-;              ") enclosing "
-;              (height shape) " x " (width shape))
-     (geohashes-intersecting shape precision initial-precision)))
-  ([shape precision initial-precision]
-   (mapcat (partial geohashes-intersecting-recursive shape precision)
-           (geohashes-intersecting-rings shape initial-precision))))
-
 (defn children [gh]
   (->> gh string GeohashUtils/getSubGeohashes (map geohash)))
 
@@ -279,9 +202,9 @@
                              JtsSpatialContext/GEO)]
     (.getGeometryFrom JtsSpatialContext/GEO rect)))
 
-(defn covering-geohashes
-  ([shape desired-level] (covering-geohashes shape desired-level desired-level))
-  ([shape min-level max-level] (covering-geohashes shape min-level max-level (geohash "")))
+(defn geohashes-intersecting
+  ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
+  ([shape min-level max-level] (geohashes-intersecting shape min-level max-level (geohash "")))
   ([shape min-level max-level _]
    (loop [matches #{}
          queue (list (geohash ""))]
@@ -290,32 +213,16 @@
                level (significant-bits current)]
 
            (if (and (<= level max-level) (intersects? shape current))
-             (if (= level max-level) (recur (conj matches (string current))
+             (if (= level max-level) (recur (conj matches current)
                                             (rest queue))
                  (if (>= level min-level)
-                     (recur (conj matches (string current))
+                     (recur (conj matches current)
                             (into (rest queue)
                                   (children current)))
                      (recur matches
                             (into (rest queue)
                                   (children current)))))
              (recur matches (rest queue))))))))
-
-(defn covering-geohashes-recursive
-  [shape min-level max-level current-gh]
-  (let [current-level (significant-bits current-gh)
-        current (if (and (intersects? current-gh shape)
-                         (>= current-level min-level)
-                         (<= current-level max-level))
-                  #{(string current-gh)}
-                  #{})]
-    (if (and (< current-level max-level) (intersects? current-gh shape))
-      (->> (GeohashUtils/getSubGeohashes (string current-gh))
-           (map geohash)
-           (map (fn [gh]
-                  (covering-geohashes shape min-level max-level gh)))
-           (reduce clojure.set/union current))
-      current)))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of

@@ -155,15 +155,13 @@
        (fact (shape->precision (geohash 45 45 64)) => 63))
 
 (facts "Geohashes covering a shape"
-       (let [wkt [[70 30, 70 31, 71, 31, 71 30, 70 30]]]
-         (time (-> wkt jts/polygon-wkt (covering-geohashes 25)))
-         (time (map string (-> wkt jts/polygon-wkt (geohashes-intersecting 25))))
-         (fact (-> wkt jts/polygon-wkt (covering-geohashes 15)) => #{"tt6" "tt9" "tt3" "ttd"})))
+       (let [wkt [[70 30, 70 31, 71, 31, 71 30, 70 30]]
+             geom (jts/polygon-wkt wkt)]
+         (fact (map string (geohashes-intersecting geom 15)) => (just ["tt6" "tt9" "tt3" "ttd"]
+                                                                      :in-any-order))))
 
 (facts "Geohashes for dateline-crossing polygons"
        (let [polygon (jts/polygon-wkt [[179 0, 179 1, -179 1, -179 0, 179 0]])]
-         (fact (covering-geohashes polygon 15)
-               => (just ["xbp" "800" "2pb" "rzz"] :in-any-order))
          (fact (map string (geohashes-intersecting polygon 15))
                => (just ["xbp" "800" "2pb" "rzz"] :in-any-order))))
 
@@ -173,6 +171,12 @@
              geom (.toGeometry factory envelope)]
          (fact (map string (geohashes-intersecting geom 10))
                => (just ["s0" "kp" "7z" "eb"] :in-any-order))))
+
+(facts "Intersecting geohashes for multipolygon"
+       (let [geom (jts/multi-polygon-wkt [[[70 30, 70 31, 71, 31, 71 30, 70 30]]
+                                          [[-50 20, -50 21, -51, 21, -51 20, -50 20]]])]
+         (fact (map string (geohashes-intersecting geom 15))
+               => (just ["dgs" "tt6" "dge" "ttd" "tt3" "tt9"] :in-any-order))))
 
 (facts "Neighbors"
        (map string (neighbors (geohash "u4pruyd"))) => ["u4pruyf" "u4pruyg" "u4pruye"
