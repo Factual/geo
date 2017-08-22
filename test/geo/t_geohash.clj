@@ -173,3 +173,8 @@
              geom (.toGeometry factory envelope)]
          (fact (map string (geohashes-intersecting geom 10))
                => (just ["s0" "kp" "7z" "eb"] :in-any-order))))
+
+(facts "Neighbors"
+       (map string (neighbors (geohash "u4pruyd"))) => ["u4pruyf" "u4pruyg" "u4pruye"
+                                                        "u4pruy7" "u4pruy6" "u4pruy3"
+                                                        "u4pruy9" "u4pruyc"])

@@ -4,7 +4,8 @@
 
   "
   (:use geo.spatial)
-  (:require [geo.jts :as jts])
+  (:require [geo.jts :as jts]
+            [clojure.set])
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
@@ -41,6 +42,7 @@
 (defn eastern-neighbor [^GeoHash h] (.getEasternNeighbour h))
 (defn western-neighbor [^GeoHash h] (.getWesternNeighbour h))
 (defn southern-neighbor [^GeoHash h] (.getSouthernNeighbour h))
+(defn neighbors [^GeoHash h] (vec (.getAdjacent h)))
 
 (defn subdivide
   "Given a geohash, returns all geohashes inside it, of a given precision."
