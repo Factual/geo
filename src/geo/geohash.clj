@@ -9,7 +9,6 @@
            (ch.hsr.geohash.util VincentyGeodesy)
            (org.locationtech.spatial4j.shape.impl RectangleImpl)
            (org.locationtech.spatial4j.context.jts JtsSpatialContext)
-           (org.locationtech.spatial4j.io GeohashUtils)
            (org.locationtech.spatial4j.shape SpatialRelation)
            (org.locationtech.spatial4j.distance DistanceUtils)
            (org.locationtech.spatial4j.context SpatialContextFactory)))
@@ -188,9 +187,6 @@
   (min (least-upper-bound-index degrees-precision-lat-cache (height shape))
        (least-upper-bound-index degrees-precision-long-cache (height shape))))
 
-(defn children [gh]
-  (->> gh string GeohashUtils/getSubGeohashes (map geohash)))
-
 (defn bbox-geom [geohash]
   (let [bbox (.getBoundingBox geohash)
         rect (RectangleImpl. (.getMinLon bbox)
@@ -215,10 +211,10 @@
                  (if (>= level min-level)
                    (recur (conj matches current)
                           (into (rest queue)
-                                (children current)))
+                                (subdivide current)))
                    (recur matches
                           (into (rest queue)
-                                (children current)))))
+                                (subdivide current)))))
              (recur matches (rest queue))))))))
 
 (defn geohashes-near
