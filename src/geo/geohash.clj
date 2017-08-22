@@ -202,10 +202,9 @@
 
 (defn geohashes-intersecting
   ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
-  ([shape min-level max-level] (geohashes-intersecting shape min-level max-level (geohash "")))
-  ([shape min-level max-level _]
+  ([shape min-level max-level]
    (loop [matches #{}
-         queue (list (geohash ""))]
+          queue (list (geohash ""))]
      (if (empty? queue) matches
          (let [current (first queue)
                level (significant-bits current)]
@@ -214,12 +213,12 @@
              (if (= level max-level) (recur (conj matches current)
                                             (rest queue))
                  (if (>= level min-level)
-                     (recur (conj matches current)
-                            (into (rest queue)
-                                  (children current)))
-                     (recur matches
-                            (into (rest queue)
-                                  (children current)))))
+                   (recur (conj matches current)
+                          (into (rest queue)
+                                (children current)))
+                   (recur matches
+                          (into (rest queue)
+                                (children current)))))
              (recur matches (rest queue))))))))
 
 (defn geohashes-near
