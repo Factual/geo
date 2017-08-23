@@ -15,4 +15,5 @@
    [org.noggit/noggit "0.8"]]
   :profiles {:dev {:plugins [[lein-midje "3.1.1"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
+                                  [criterium "0.4.4"]
                                   [midje "1.6.3"]]}})
