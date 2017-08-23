@@ -27,7 +27,7 @@
 
 (extend-protocol Shapelike
   GeoHash
-  (to-shape [geohash]
+  (to-shape [^GeoHash geohash]
             (let [box (.getBoundingBox geohash)]
               (.makeRectangle earth
                               (.getMinLon box)
@@ -187,7 +187,7 @@
   (min (least-upper-bound-index degrees-precision-lat-cache (height shape))
        (least-upper-bound-index degrees-precision-long-cache (height shape))))
 
-(defn bbox-geom [geohash]
+(defn bbox-geom [^GeoHash geohash]
   (let [bbox (.getBoundingBox geohash)
         rect (RectangleImpl. (.getMinLon bbox)
                              (.getMaxLon bbox)

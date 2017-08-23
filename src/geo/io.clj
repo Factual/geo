@@ -2,22 +2,23 @@
   (:require [geo.spatial :as s]
             [clojure.data])
   (:import (com.vividsolutions.jts.io WKTReader WKTWriter WKBReader WKBWriter)
+           (com.vividsolutions.jts.geom Geometry)
            (org.wololo.jts2geojson GeoJSONReader GeoJSONWriter)))
 
-(def wkt-reader (WKTReader.))
-(def wkt-writer (WKTWriter.))
+(def ^WKTReader wkt-reader (WKTReader.))
+(def ^WKTWriter wkt-writer (WKTWriter.))
 
-(def wkb-reader (WKBReader.))
-(def wkb-writer (WKBWriter.))
+(def ^WKBReader wkb-reader (WKBReader.))
+(def ^WKBWriter wkb-writer (WKBWriter.))
 
-(def geojson-reader (GeoJSONReader.))
-(def geojson-writer (GeoJSONWriter.))
+(def ^GeoJSONReader geojson-reader (GeoJSONReader.))
+(def ^GeoJSONWriter geojson-writer (GeoJSONWriter.))
 
-(defn read-wkt [wkt] (.read wkt-reader wkt))
-(defn to-wkt [geom] (.write wkt-writer geom))
+(defn read-wkt [^String wkt] (.read wkt-reader wkt))
+(defn to-wkt [^Geometry geom] (.write wkt-writer geom))
 
-(defn read-wkb [bytes] (.read wkb-reader bytes))
-(defn to-wkb [geom] (.write wkb-writer geom))
+(defn read-wkb [^bytes bytes] (.read wkb-reader bytes))
+(defn to-wkb [^Geometry geom] (.write wkb-writer geom))
 
-(defn read-geojson [geojson] (.read geojson-reader geojson))
-(defn to-geojson [geom] (.toString (.write geojson-writer geom)))
+(defn read-geojson [^String geojson] (.read geojson-reader geojson))
+(defn to-geojson [^Geometry geom] (.toString (.write geojson-writer geom)))
