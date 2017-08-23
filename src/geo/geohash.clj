@@ -201,21 +201,23 @@
   ([shape min-level max-level]
    (loop [matches #{}
           queue (list (geohash ""))]
-     (if (empty? queue) matches
-         (let [current (first queue)
-               level (significant-bits current)]
-
-           (if (and (<= level max-level) (intersects? shape current))
-             (if (= level max-level) (recur (conj matches current)
-                                            (rest queue))
-                 (if (>= level min-level)
-                   (recur (conj matches current)
-                          (into (rest queue)
-                                (subdivide current)))
-                   (recur matches
-                          (into (rest queue)
-                                (subdivide current)))))
-             (recur matches (rest queue))))))))
+     (if (empty? queue)
+       matches
+       (let [current (first queue)
+             remaining (rest queue)
+             level (significant-bits current)]
+         (if (and (<= level max-level) (intersects? shape current))
+           (if (= level max-level)
+             (recur (conj matches current)
+                    remaining)
+             (if (>= level min-level)
+               (recur (conj matches current)
+                      (into remaining
+                            (subdivide current)))
+               (recur matches
+                      (into remaining
+                            (subdivide current)))))
+           (recur matches (rest queue))))))))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of
