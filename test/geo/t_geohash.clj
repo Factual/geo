@@ -183,19 +183,3 @@
        (map string (neighbors (geohash "u4pruyd"))) => ["u4pruyf" "u4pruyg" "u4pruye"
                                                         "u4pruy7" "u4pruy6" "u4pruy3"
                                                         "u4pruy9" "u4pruyc"])
-
-(facts "Geohash benchmarks"
-       (let [wkt [[70 30, 70 31, 71, 31, 71 30, 70 30]]
-             geom (jts/polygon-wkt wkt)
-             times 20]
-         (println "*** 1")
-         (crit/with-progress-reporting (crit/bench (geohashes-intersecting geom 25)))
-         (println "*** 2")
-         (crit/with-progress-reporting (crit/bench (geohashes-intersecting-2 geom 25)))
-         (println "*** 3")
-         (crit/with-progress-reporting (crit/bench (geohashes-intersecting-3 geom 25)))
-         (println "*** 4")
-         (crit/with-progress-reporting (crit/bench (geohashes-intersecting-4 geom 25)))
-         (println "*** 5")
-         (crit/with-progress-reporting (crit/bench (geohashes-intersecting-5 geom 25)))
-         ))
