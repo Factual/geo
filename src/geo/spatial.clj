@@ -104,12 +104,10 @@
     ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
     (let [geom (if (crosses-dateline? this)
                  (.clone this)
-                 this)]
-      (.makeShape jts-earth
-                  geom
-                  true ;; dateline180Check
-                  false ;; allowMultiOverlap
-                  ))))
+                 this)
+          dateline-180-check? true
+          allow-multi-overlap? true]
+      (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?))))
 
 (defprotocol Point
   (latitude [this])
