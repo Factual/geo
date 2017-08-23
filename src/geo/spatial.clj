@@ -25,6 +25,7 @@
                                              Shape
                                              ShapeFactory
                                              Rectangle)
+           (com.vividsolutions.jts.geom Geometry)
            (org.locationtech.spatial4j.shape.jts JtsGeometry)
            (org.locationtech.spatial4j.distance DistanceUtils
                                                 DistanceCalculator)
@@ -87,7 +88,7 @@
   "Earth's circumference around a meridian, in meters."
   (* 1000 40008))
 
-(defn crosses-dateline? [jts-geom]
+(defn crosses-dateline? [^Geometry jts-geom]
   (>= (.getWidth (.getEnvelopeInternal jts-geom))
       180))
 
@@ -98,7 +99,7 @@
   Shape
   (to-shape [this] this)
 
-  com.vividsolutions.jts.geom.Geometry
+  Geometry
   (to-shape [this]
     ;; Cloning geometries that cross dateline to workaround
     ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150

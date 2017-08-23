@@ -13,7 +13,6 @@
            (org.locationtech.spatial4j.distance DistanceUtils)
            (org.locationtech.spatial4j.context SpatialContextFactory)))
 
-(set! *warn-on-reflection* true)
 (defn geohash
   "Creates a geohash from a string, or at the given point with the given bit
   precision."
