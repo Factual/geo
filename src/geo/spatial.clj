@@ -21,15 +21,17 @@
            (ch.hsr.geohash.util VincentyGeodesy)
            (ch.hsr.geohash.queries GeoHashCircleQuery
                                    GeoHashQuery)
-           (com.spatial4j.core.shape SpatialRelation
-                                     Shape
-                                     Rectangle)
-           (com.spatial4j.core.shape.jts JtsGeometry)
-           (com.spatial4j.core.distance DistanceUtils
-                                        DistanceCalculator)
-           (com.spatial4j.core.context SpatialContextFactory
-                                       SpatialContext)
-           (com.spatial4j.core.context.jts JtsSpatialContext)))
+           (org.locationtech.spatial4j.shape SpatialRelation
+                                             Shape
+                                             ShapeFactory
+                                             Rectangle)
+           (com.vividsolutions.jts.geom Geometry)
+           (org.locationtech.spatial4j.shape.jts JtsGeometry)
+           (org.locationtech.spatial4j.distance DistanceUtils
+                                                DistanceCalculator)
+           (org.locationtech.spatial4j.context SpatialContextFactory
+                                               SpatialContext)
+           (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
 
 (declare spatial4j-point)
 (declare geohash-point)
@@ -40,19 +42,21 @@
 (def ^SpatialContext earth
   "The SpatialContext of the earth, as according to spatial4j."
   (SpatialContextFactory/makeSpatialContext
-    {"geo" "true" ; *any* string is true
-     "distCalculator" "vincentySphere"}
-    ; Optional classloader arg
-    nil))
+   {"geo" "true"
+    "datelineRule" "width180"
+    "spatialContextFactory" "org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory"
+    "distCalculator" "vincentySphere"}
+   (.getClassLoader JtsSpatialContext)))
 
-(def ^JtsSpatialContext jts-earth
-  "The SpatialContext of the earth, used by JTS stuff."
-  (SpatialContextFactory/makeSpatialContext
-    {"geo" "true"
-     "spatialContextFactory"
-     "com.spatial4j.core.context.jts.JtsSpatialContextFactory"
-     "distCalculator" "vincentySphere"}
-    (.getClassLoader JtsSpatialContext)))
+(def ^ShapeFactory jts-earth
+  "ShapeFactory for producing spatial4j Shapes from JTSGeometries based"
+  (->> (.getClassLoader JtsSpatialContext)
+       (SpatialContextFactory/makeSpatialContext
+        {"geo" "true"
+         "datelineRule" "width180"
+         "spatialContextFactory" "org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory"
+         "distCalculator" "vincentySphere"})
+       (.getShapeFactory)))
 
 (def earth-mean-radius
   "Earth's mean radius, in meters."
@@ -84,6 +88,10 @@
   "Earth's circumference around a meridian, in meters."
   (* 1000 40008))
 
+(defn crosses-dateline? [^Geometry jts-geom]
+  (>= (.getWidth (.getEnvelopeInternal jts-geom))
+      180))
+
 (defprotocol Shapelike
   (^Shape to-shape [this] "Convert anything to a Shape."))
 
@@ -91,9 +99,16 @@
   Shape
   (to-shape [this] this)
 
-  com.vividsolutions.jts.geom.Geometry
+  Geometry
   (to-shape [this]
-           (JtsGeometry. this jts-earth true)))
+    ;; Cloning geometries that cross dateline to workaround
+    ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
+    (let [geom (if (crosses-dateline? this)
+                 (.clone this)
+                 this)
+          dateline-180-check? true
+          allow-multi-overlap? true]
+      (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?))))
 
 (defprotocol Point
   (latitude [this])
@@ -108,7 +123,7 @@
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] this)
 
-  com.spatial4j.core.shape.Point
+  org.locationtech.spatial4j.shape.Point
   (latitude [this] (.getY this))
   (longitude [this] (.getX this))
   (to-spatial4j-point [this] this)
@@ -171,7 +186,7 @@
 (defn steradians->area
   "Converts steradians to square meters on the surface of the earth. Assumes
   earth mean radius."
-  ([steradians] 
+  ([steradians]
    (steradians->area steradians earth-mean-radius))
   ([steradians radius]
    (* steradians (square radius))))
@@ -230,7 +245,7 @@
 
 (defn bounding-box
   "Returns the bounding box of any shape."
-  ^com.spatial4j.core.shape.Rectangle [shape]
+  ^org.locationtech.spatial4j.shape.Rectangle [shape]
   (.getBoundingBox (to-shape shape)))
 
 (defn center

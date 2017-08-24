@@ -7,9 +7,11 @@
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
-           (com.spatial4j.core.shape SpatialRelation)
-           (com.spatial4j.core.distance DistanceUtils)
-           (com.spatial4j.core.context SpatialContextFactory)))
+           (org.locationtech.spatial4j.shape.impl RectangleImpl)
+           (org.locationtech.spatial4j.context.jts JtsSpatialContext)
+           (org.locationtech.spatial4j.shape SpatialRelation)
+           (org.locationtech.spatial4j.distance DistanceUtils)
+           (org.locationtech.spatial4j.context SpatialContextFactory)))
 
 (defn geohash
   "Creates a geohash from a string, or at the given point with the given bit
@@ -25,7 +27,7 @@
 
 (extend-protocol Shapelike
   GeoHash
-  (to-shape [geohash]
+  (to-shape [^GeoHash geohash]
             (let [box (.getBoundingBox geohash)]
               (.makeRectangle earth
                               (.getMinLon box)
@@ -33,32 +35,21 @@
                               (.getMinLat box)
                               (.getMaxLat box)))))
 
-(defn northern-neighbor
-  [^GeoHash h]
-  (.getNorthernNeighbour h))
-
-(defn eastern-neighbor
-  [^GeoHash h]
-  (.getEasternNeighbour h))
-
-(defn western-neighbor
-  [^GeoHash h]
-  (.getWesternNeighbour h))
-
-(defn southern-neighbor
-  [^GeoHash h]
-  (.getSouthernNeighbour h))
+(defn northern-neighbor [^GeoHash h] (.getNorthernNeighbour h))
+(defn eastern-neighbor [^GeoHash h] (.getEasternNeighbour h))
+(defn western-neighbor [^GeoHash h] (.getWesternNeighbour h))
+(defn southern-neighbor [^GeoHash h] (.getSouthernNeighbour h))
+(defn neighbors [^GeoHash h] (vec (.getAdjacent h)))
 
 (defn subdivide
   "Given a geohash, returns all geohashes inside it, of a given precision."
   ([^GeoHash geohash]
    (subdivide geohash (inc (.significantBits geohash))))
   ([^GeoHash geohash precision]
-   (let [number (Math/pow 2 (- precision
-                               (.significantBits geohash)))]
+   (let [number (Math/pow 2 (- precision (.significantBits geohash)))]
      (->> (GeoHash/fromLongValue (.longValue geohash) precision)
-       (iterate #(.next ^GeoHash %))
-       (take number)))))
+          (iterate #(.next ^GeoHash %))
+          (take number)))))
 
 (defn square-ring
   "Given a geohash at the northeast corner of a square (n-2) geohashes on a
@@ -81,7 +72,7 @@
                      +-----+
 
   If n is one, returns [origin].
-  
+
   This algorithm is undefined at the poles."
   [origin n]
   (assert (odd? n))
@@ -174,6 +165,9 @@
   [^GeoHash geohash]
   (.toBase32 geohash))
 
+(defn significant-bits [^GeoHash geohash] (.significantBits geohash))
+(defn character-precision [^GeoHash geohash] (.getCharacterPrecision geohash))
+
 (def degrees-precision-long-cache
   (map (comp width (partial geohash 45 45)) (range 0 64)))
 (def degrees-precision-lat-cache
@@ -192,82 +186,32 @@
   (min (least-upper-bound-index degrees-precision-lat-cache (height shape))
        (least-upper-bound-index degrees-precision-long-cache (height shape))))
 
-(defn geohashes-intersecting-rings
-  "Returns a list of geohashes of the given precision, intersecting the given
-  shape. Works by checking a geohash at the center of the shape, then a ring
-  around that hash, then a ring around *that* ring, and so on, until
-  we have a ring which does not intersect the shape."
-  [shape precision]
-  ; We can't expand our search at the poles
-  (assert (not (intersects? south-pole shape)))
-  (assert (not (intersects? north-pole shape)))
-  (let [start (geohash (center shape) precision)]
-;    (prn "Shape is" (to-shape shape))
-;    (prn "Initial geohash is" (to-shape start))
-    (if (= :contains (relate start shape))
-      ; Optimization: if we start out by containing the geohash, there's
-      ; no need to expand.
-      (do
-;        (prn "Ha! Got it in the first try")
-        (list start))
-      ; Otherwise, expand outward in rings.
-      (cons start
-            (->> start
-              concentric-square-rings
-              rest
-              (map (fn [ring]
-;                     (prn "Expanding to ring of " (count ring))
-                     (let [valid (doall (filter (fn [geohash]
-;                               (print "O")
-                               (intersects? shape geohash))
-                             ring))]
-;                       (prn "Valid hashes:" valid)
-                       valid)))
-              (take-while not-empty)
-              (apply concat))))))
+(defn bbox-geom [^GeoHash geohash]
+  (let [bbox (.getBoundingBox geohash)
+        rect (RectangleImpl. (.getMinLon bbox)
+                             (.getMaxLon bbox)
+                             (.getMinLat bbox)
+                             (.getMaxLat bbox)
+                             JtsSpatialContext/GEO)]
+    (.getGeometryFrom JtsSpatialContext/GEO rect)))
 
-(defn geohashes-intersecting-recursive
-  "Starting with the given geohash which completely encloses the target shape,
-  recursively subdivides and filters to compute a set of geohashes of the given
-  resolution which intersect that shape."
-  [shape precision ^GeoHash geohash]
-  (let [relationship (relate shape geohash)]
-    (cond
-      (= relationship :contains)
-      (do
-;        (print "X")
-        (subdivide geohash precision))
-
-      (not= relationship :disjoint)
-      (let [current-precision (.significantBits geohash)
-            delta (- precision current-precision)]
-;        (print ".")
-        (if (zero? delta)
-          ; Done
-          (list geohash)
-          ; Keep going
-          (mapcat (partial geohashes-intersecting-recursive shape precision)
-                  ; Split each geohash into quads (or halves if necessary.
-                  (subdivide geohash (+ (.significantBits geohash)
-                                        (min 2 delta)))))))))
+(defn- queue [] clojure.lang.PersistentQueue/EMPTY)
 
 (defn geohashes-intersecting
-  "A hybrid algorithm to find all the geohashes of a given resolution which
-  intersect a given shape. Finds an initial set of hashes with concentric
-  rings, then refines those hashes by subdividing them. If given,
-  initial-precision specifies the size of the geohashes used with the slow,
-  concentric-rings algorithm to identify geohashes to subdivide."
-  ([shape precision]
-   (let [initial-precision (max 0 (- (shape->precision shape) 6))]
-;     (println "Starting with precision " initial-precision " ("
-;              (nth degrees-precision-lat-cache  initial-precision) " x "
-;              (nth degrees-precision-long-cache initial-precision) 
-;              ") enclosing "
-;              (height shape) " x " (width shape))
-     (geohashes-intersecting shape precision initial-precision)))
-  ([shape precision initial-precision]
-   (mapcat (partial geohashes-intersecting-recursive shape precision)
-           (geohashes-intersecting-rings shape initial-precision))))
+  ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
+  ([shape min-level max-level]
+   (loop [matches (transient [])
+          queue (conj (queue) (geohash ""))]
+     (if (empty? queue)
+       (persistent! matches)
+       (let [^GeoHash current (peek queue)
+             level (significant-bits current)
+             intersects (and (<= level max-level) (intersects? shape current))]
+         (cond
+           (not intersects) (recur matches (pop queue))
+           (= level max-level) (recur (conj! matches current) (pop queue))
+           (>= level min-level) (recur (conj! matches current) (into (pop queue) (subdivide current)))
+           :else (recur matches (into (pop queue) (subdivide current)))))))))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of
