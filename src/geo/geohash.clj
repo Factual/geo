@@ -195,21 +195,23 @@
                              JtsSpatialContext/GEO)]
     (.getGeometryFrom JtsSpatialContext/GEO rect)))
 
+(defn- queue [] clojure.lang.PersistentQueue/EMPTY)
+
 (defn geohashes-intersecting
   ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
   ([shape min-level max-level]
-   (loop [matches (list)
-          queue (list (geohash ""))]
+   (loop [matches (transient [])
+          queue (conj (queue) (geohash ""))]
      (if (empty? queue)
-       matches
-       (let [current (first queue)
+       (persistent! matches)
+       (let [^GeoHash current (peek queue)
              level (significant-bits current)
              intersects (and (<= level max-level) (intersects? shape current))]
          (cond
-           (not intersects) (recur matches (rest queue))
-           (= level max-level) (recur (conj matches current) (rest queue))
-           (>= level min-level) (recur (conj matches current) (into (rest queue) (subdivide current)))
-           :else (recur matches (into (rest queue) (subdivide current)))))))))
+           (not intersects) (recur matches (pop queue))
+           (= level max-level) (recur (conj! matches current) (pop queue))
+           (>= level min-level) (recur (conj! matches current) (into (pop queue) (subdivide current)))
+           :else (recur matches (into (pop queue) (subdivide current)))))))))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of

@@ -1,6 +1,7 @@
 (ns geo.t-geohash
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts]
+            [geo.io :as gio]
             [criterium.core :as crit])
   (:use midje.sweet geo.geohash)
   (:import (ch.hsr.geohash GeoHash)
@@ -183,3 +184,13 @@
        (map string (neighbors (geohash "u4pruyd"))) => ["u4pruyf" "u4pruyg" "u4pruye"
                                                         "u4pruy7" "u4pruy6" "u4pruy3"
                                                         "u4pruy9" "u4pruyc"])
+(comment
+  "intersecting-geohashes benchmarking"
+  (let [sample-wkt "POLYGON((-107.814331054688 33.9746840624585,-107.63786315918 34.2560813847164,-107.405776977539 33.9991657910092,-107.814331054688 33.9746840624585))"
+        sample-wkt-2 "POLYGON((-117.904586791992 34.9164815742019,-117.887420654297 34.9242230169058,-117.89201259613 34.9413219789948,-117.885317802429 34.9604925010402,-117.870254516602 34.9942850112354,-117.788200378418 34.9906286382738,-117.746658325195 34.9624972324491,-117.837295532227 34.9264749358464,-117.861843109131 34.9218302853154,-117.852573394775 34.918170678527,-117.869567871094 34.9083170799602,-117.850341796875 34.9004333495724,-117.862014770508 34.8802982472034,-117.86598443985 34.8796645450209,-117.87469625473 34.886265369791,-117.884159088135 34.8933936650348,-117.885360717773 34.9005741371092,-117.907333374023 34.8908592309128,-117.915058135986 34.8995886192834,-117.904586791992 34.9069093264736,-117.912397384644 34.9043049188956,-117.916774749756 34.9074724307645,-117.904586791992 34.9164815742019))"
+        sample-geom (gio/read-wkt sample-wkt)
+        sample-geom-2 (gio/read-wkt sample-wkt-2)
+        big-geom (jts/polygon-wkt [[70 30, 70 31, 71, 31, 71 30, 70 30]])])
+  (crit/with-progress-reporting (crit/bench (geohashes-intersecting sample-geom 35)))
+  (crit/with-progress-reporting (crit/bench (geohashes-intersecting sample-geom-2 35)))
+  (crit/with-progress-reporting (crit/bench (geohashes-intersecting big-geom 35))))
