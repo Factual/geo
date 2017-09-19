@@ -1,7 +1,6 @@
 (ns geo.t-spatial
   (:use midje.sweet)
   (:require [geo.jts :as jts]
-            [geo.io :as gio]
             [geo.spatial :as s])
   (:import (org.locationtech.spatial4j.context SpatialContext)))
 
