@@ -33,7 +33,7 @@ Install via [clojars](https://clojars.org/factual/geo)
 Leiningen Dependency Vector:
 
 ```
-[factual/geo "1.1.0"]
+[factual/geo "1.2.0"]
 ```
 
 # Examples
