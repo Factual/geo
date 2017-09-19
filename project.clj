@@ -13,7 +13,10 @@
    [com.vividsolutions/jts "1.13"]
    [org.wololo/jts2geojson "0.10.0"]
    [org.noggit/noggit "0.8"]]
-  :profiles {:dev {:plugins [[lein-midje "3.1.1"]]
+  :codox {:themes [:rdash]}
+  :profiles {:dev {:plugins [[lein-midje "3.1.1"]
+                             [lein-codox "0.10.3"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
+                                  [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
                                   [midje "1.6.3"]]}})

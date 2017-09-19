@@ -1,4 +1,6 @@
 (ns geo.io
+  "Helper functions for converting JTS geometries to and from various
+   geospatial IO formats (geojson, wkt, wkb)."
   (:require [geo.spatial :as s]
             [clojure.data])
   (:import (com.vividsolutions.jts.io WKTReader WKTWriter WKBReader WKBWriter)

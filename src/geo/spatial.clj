@@ -366,7 +366,7 @@
   "Repartitions a JTS LineString into multiple contiguous linestrings, each up to the
    provided length (in meters). Final segment may be less than the requested length.
    Length of individual segments may vary a bit but total length should remain the same."
-  [linestring cap]
+  [linestring segment-length]
   (loop [coords (jts/coords linestring)
          segments []
          current []]
@@ -374,8 +374,8 @@
       (cond
         (empty? coords) (map jts/linestring (conj segments current))
         (empty? current) (recur remaining segments (conj current next))
-        (under-cap-with-next-point? current next cap) (recur remaining segments (conj current next))
-        :else (let [cut-point (cut-point current next cap)]
+        (under-cap-with-next-point? current next segment-length) (recur remaining segments (conj current next))
+        :else (let [cut-point (cut-point current next segment-length)]
                 (recur coords
                        (conj segments (conj current cut-point))
                        [cut-point]))))))
