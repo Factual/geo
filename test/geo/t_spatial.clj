@@ -1,6 +1,7 @@
 (ns geo.t-spatial
   (:use midje.sweet)
   (:require [geo.jts :as jts]
+            [geo.io :as gio]
             [geo.spatial :as s])
   (:import (org.locationtech.spatial4j.context SpatialContext)))
 
@@ -140,3 +141,63 @@
                  jts/polygon-wkt
                  s/center)
              => (s/spatial4j-point 5 5)))
+
+(facts "linestring length"
+       (s/length (jts/line-string-wkt [0 0 0 1])) => 110574.3885571743
+       (s/length (jts/line-string-wkt [0 0 0 2])) => 221149.4533708848
+       (s/length (jts/line-string-wkt [0 0 0 1 0 2])) => 221149.4533708848)
+
+(facts "linestring splitting basic case"
+       (let [ls (jts/line-string-wkt [0 0 0 2])
+             resegmented (s/resegment ls 10000)]
+         (s/length ls) => 221149.4533708848
+         (count resegmented) => 23
+         (reduce + (map s/length resegmented)) => (roughly 221149)
+         (reduce + (map s/length (s/resegment sample-ls 100))) => (roughly 221149.4533708848)))
+
+(let [ls (jts/line-string-wkt [0 0 0 1 0 2])
+      d1 (s/dist-at-idx ls 0)
+      segment-max 10000.0
+      segment-over (> d1 segment-max)
+      ratio (/ segment-max d1)
+      segment-1 (s/segment-at-idx ls 0)
+      next-point (.pointAlongOffset (s/segment-at-idx sample-ls 0) ratio 0)
+      adjusted-dist (s/distance (s/point-n ls 0) next-point)]
+  (println "Distance at first segment: " d1)
+  (println "First segment over max length: " segment-over)
+  (println "Ratio: " ratio)
+  (println "Next point with distance would be: " next-point)
+  (println "Chopped distance: " adjusted-dist)
+  )
+
+;; Scenarios
+;; Line length is < max dist -- good
+;; else:
+;; take first point
+;; if dist from first point -> second point < max dist:
+;;   add second point to segment
+;; else:
+;;   make a point in direction of next point
+;;   of length: (max dist - total length of segment so far)
+;; then:
+;;   continue for next segment starting from current "cut" point
+
+
+(def long-sample [-54.4482421875 23.946096014998382 -53.9208984375 24.467150664739002 -52.27294921875 24.926294766395593 -50.60302734375 24.487148563173424 -50.42724609375 23.704894502324912 -50.20751953125 22.63429269379353 -51.17431640625 22.51255695405145 -51.943359375 22.755920681486405 -51.85546874999999 23.443088931121785 -52.55859375 23.865745352647956 -53.23974609375 23.301901124188877 -53.3935546875 22.51255695405145 -54.07470703125 22.471954507739227 -54.29443359375 23.160563309048314])
+
+(facts "splitting more complex linestring"
+       (let [ls (jts/line-string-wkt long-sample)
+             rs (s/resegment ls 100000)]
+         (s/length ls) => 1316265.356651721
+         (->> rs (map s/length) (reduce +)) => (roughly 1316265)
+         (->> rs
+              (drop-last 1) ;; last segment just has remaining distance
+              (map s/length)
+              (map (roughly 100000))) => (n-of true 13)
+         (-> rs last s/length) => (roughly 16265 50)
+         (-> rs count) => 14))
+
+;; tests
+;; linestring under max
+;; many points under max
+;; many points over max

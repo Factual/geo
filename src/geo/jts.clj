@@ -4,13 +4,16 @@
   (:import (com.vividsolutions.jts.geom Coordinate
                                         Point
                                         LinearRing
+                                        PrecisionModel
                                         Polygon
                                         MultiPolygon
                                         PrecisionModel
                                         GeometryFactory)))
 
+(def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
+
 (def ^GeometryFactory gf
-  (GeometryFactory.))
+  (GeometryFactory. pm 4326))
 
 (defn coordinate
   "Creates a Cooordinate."
@@ -30,6 +33,23 @@
   (.. gf getCoordinateSequenceFactory create
     (into-array Coordinate coordinates)))
 
+(defn wkt->coords-array
+  [flat-coord-list]
+  (->> flat-coord-list
+       (partition 2)
+       (map (partial apply coordinate))))
+
+(defn line-string
+  "Given a list of Coordinates, creates a LineString"
+  [coordinates]
+  (.createLineString gf (into-array Coordinate coordinates)))
+
+(defn line-string-wkt
+  "Makes a LineString from a WKT-style data structure: a flat sequence of
+  coordinate pairs, e.g. [0 0, 1 0, 0 2, 0 0]"
+  [coordinates]
+  (-> coordinates wkt->coords-array line-string))
+
 (defn linear-ring
   "Given a list of Coordinates, creates a LinearRing."
   [coordinates]
@@ -39,10 +59,7 @@
   "Makes a LinearRing from a WKT-style data structure: a flat sequence of
   coordinate pairs, e.g. [0 0, 1 0, 0 2, 0 0]"
   [coordinates]
-  (->> coordinates
-    (partition 2)
-    (map (partial apply coordinate))
-    linear-ring))
+  (-> coordinates wkt->coords-array linear-ring))
 
 (defn polygon
   "Given a LinearRing shell, and a list of LinearRing holes, generates a

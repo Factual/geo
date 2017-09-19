@@ -16,6 +16,7 @@
   compute relationships between shapes: their intersections, contains, disjoint
   statuses, etc."
   (:use [clojure.math.numeric-tower :only [abs]])
+  (:require [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
@@ -25,7 +26,7 @@
                                              Shape
                                              ShapeFactory
                                              Rectangle)
-           (com.vividsolutions.jts.geom Geometry)
+           (com.vividsolutions.jts.geom Geometry Coordinate)
            (org.locationtech.spatial4j.shape.jts JtsGeometry)
            (org.locationtech.spatial4j.distance DistanceUtils
                                                 DistanceCalculator)
@@ -122,6 +123,18 @@
   (longitude [this] (.getLongitude this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] this)
+
+  com.vividsolutions.jts.geom.Point
+  (latitude [this] (.getY this))
+  (longitude [this] (.getX this))
+  (to-spatial4j-point [this] (spatial4j-point this))
+  (to-geohash-point [this] (geohash-point this))
+
+  com.vividsolutions.jts.geom.Coordinate
+  (latitude [this] (.y this))
+  (longitude [this] (.x this))
+  (to-spatial4j-point [this] (spatial4j-point this))
+  (to-geohash-point [this] (geohash-point this))
 
   org.locationtech.spatial4j.shape.Point
   (latitude [this] (.getY this))
@@ -308,3 +321,75 @@
   their intersection is non-empty; i.e. they are not disjoint."
   [a b]
   (.intersects (.relate (to-shape a) (to-shape b))))
+
+(defn coord [^com.vividsolutions.jts.geom.Point point] (.getCoordinate point))
+
+(defn point-n [^com.vividsolutions.jts.geom.LineString linestring n]
+  (.getPointN linestring n))
+
+(defn segment-at-idx
+  "LineSegment from a LineString's point at index to index + 1."
+  [^com.vividsolutions.jts.geom.LineString linestring idx]
+  (com.vividsolutions.jts.geom.LineSegment. (coord (point-n linestring idx))
+                                            (coord (point-n linestring (inc idx)))))
+(defn dist-at-idx
+  "Distance between the linestring's point at the given index and the subsequent point."
+  [linestring idx]
+  (distance (point-n linestring idx)
+            (point-n linestring (inc idx))))
+
+(defn length
+  "Get geodesic length of a (jts) linestring by summing lengths of successive points"
+  [^com.vividsolutions.jts.geom.LineString linestring]
+  (let [num-points (.getNumPoints linestring)]
+    (if (= 0 num-points)
+      0
+      (loop [length 0
+             idx 0]
+        (if (= idx (dec num-points))
+          length
+          (recur (+ length (dist-at-idx linestring idx))
+                 (inc idx)))))))
+
+(defn coords
+  [^com.vividsolutions.jts.geom.LineString ls]
+  (-> ls .getCoordinateSequence .toCoordinateArray))
+
+(defn within-dist? [p1 p2 dist]
+  (<= (distance p1 p2) dist))
+
+(defn point-toward [^Coordinate c1 ^Coordinate c2 dist]
+  (let [ratio (/ dist (distance c1 c2))
+        segment (com.vividsolutions.jts.geom.LineSegment. c1 c2)]
+    (.pointAlongOffset segment ratio 0)))
+
+(defmethod print-method com.vividsolutions.jts.geom.Coordinate
+  [coord ^java.io.Writer w] (.write w (str "<Coord: " (.y coord) "," (.x coord) ">")))
+
+(defn resegment
+  "Repartitions a JTS LineString into multiple contiguous linestrings of the
+   provided length (in meters). Final segment may be less than the requested length."
+  [linestring segment-length]
+  (loop [coords (coords linestring)
+         segments []
+         current-segment []]
+    (cond
+      (empty? coords) (conj segments (jts/line-string current-segment))
+      (empty? current-segment) (recur (rest coords) segments (conj current-segment (first coords)))
+      (< (length (jts/line-string (conj current-segment (first coords))))
+         segment-length) (do (last current-segment) (recur (rest coords)
+                                                           segments
+                                                           (conj current-segment
+                                                                 (first coords))))
+      :else (let [current-length (if (< (count current-segment) 2)
+                                   0
+                                   (length (jts/line-string current-segment)))
+                  length-with-next (length (jts/line-string (conj current-segment (first coords))))
+                  cut-point (point-toward (last current-segment)
+                                          (first coords)
+                                          (- segment-length current-length))]
+              (recur coords
+                     (conj segments (jts/line-string (conj current-segment cut-point)))
+                     [cut-point]))
+      )
+    ))
