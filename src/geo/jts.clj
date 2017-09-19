@@ -39,17 +39,35 @@
        (partition 2)
        (map (partial apply coordinate))))
 
-(defn line-string
+(defn linestring
   "Given a list of Coordinates, creates a LineString"
   [coordinates]
   (.createLineString gf (into-array Coordinate coordinates)))
 
-(defn line-string-wkt
+(defn linestring-wkt
   "Makes a LineString from a WKT-style data structure: a flat sequence of
   coordinate pairs, e.g. [0 0, 1 0, 0 2, 0 0]"
   [coordinates]
-  (-> coordinates wkt->coords-array line-string))
+  (-> coordinates wkt->coords-array linestring))
 
+(defn coords
+  [^com.vividsolutions.jts.geom.LineString linestring]
+  (-> linestring .getCoordinateSequence .toCoordinateArray))
+
+(defn coord
+  [^com.vividsolutions.jts.geom.Point point]
+  (.getCoordinate point))
+
+(defn point-n
+  "Get the point for a linestring at the specified index."
+  [^com.vividsolutions.jts.geom.LineString linestring idx]
+  (.getPointN linestring idx))
+
+(defn segment-at-idx
+  "LineSegment from a LineString's point at index to index + 1."
+  [^com.vividsolutions.jts.geom.LineString linestring idx]
+  (com.vividsolutions.jts.geom.LineSegment. (coord (point-n linestring idx))
+                                            (coord (point-n linestring (inc idx)))))
 (defn linear-ring
   "Given a list of Coordinates, creates a LinearRing."
   [coordinates]

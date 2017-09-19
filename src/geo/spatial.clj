@@ -322,21 +322,11 @@
   [a b]
   (.intersects (.relate (to-shape a) (to-shape b))))
 
-(defn coord [^com.vividsolutions.jts.geom.Point point] (.getCoordinate point))
-
-(defn point-n [^com.vividsolutions.jts.geom.LineString linestring n]
-  (.getPointN linestring n))
-
-(defn segment-at-idx
-  "LineSegment from a LineString's point at index to index + 1."
-  [^com.vividsolutions.jts.geom.LineString linestring idx]
-  (com.vividsolutions.jts.geom.LineSegment. (coord (point-n linestring idx))
-                                            (coord (point-n linestring (inc idx)))))
 (defn dist-at-idx
   "Distance between the linestring's point at the given index and the subsequent point."
   [linestring idx]
-  (distance (point-n linestring idx)
-            (point-n linestring (inc idx))))
+  (distance (jts/point-n linestring idx)
+            (jts/point-n linestring (inc idx))))
 
 (defn length
   "Get geodesic length of a (jts) linestring by summing lengths of successive points"
@@ -351,45 +341,41 @@
           (recur (+ length (dist-at-idx linestring idx))
                  (inc idx)))))))
 
-(defn coords
-  [^com.vividsolutions.jts.geom.LineString ls]
-  (-> ls .getCoordinateSequence .toCoordinateArray))
-
 (defn within-dist? [p1 p2 dist]
   (<= (distance p1 p2) dist))
 
-(defn point-toward [^Coordinate c1 ^Coordinate c2 dist]
+(defn point-between [^Coordinate c1 ^Coordinate c2 dist]
   (let [ratio (/ dist (distance c1 c2))
         segment (com.vividsolutions.jts.geom.LineSegment. c1 c2)]
     (.pointAlongOffset segment ratio 0)))
 
-(defmethod print-method com.vividsolutions.jts.geom.Coordinate
-  [coord ^java.io.Writer w] (.write w (str "<Coord: " (.y coord) "," (.x coord) ">")))
+(defn- coord-list-length [coords]
+  (if (< (count coords) 2)
+    0
+    (length (jts/linestring coords))))
+
+(defn- cut-point [current-segment next-coord segment-length]
+  (let [current-length (coord-list-length current-segment)
+        shortfall (- segment-length current-length)]
+    (point-between (last current-segment) next-coord shortfall)))
+
+(defn- under-cap-with-next-point? [coords next-coord dist]
+  (< (length (jts/linestring (conj coords next-coord))) dist))
 
 (defn resegment
-  "Repartitions a JTS LineString into multiple contiguous linestrings of the
-   provided length (in meters). Final segment may be less than the requested length."
-  [linestring segment-length]
-  (loop [coords (coords linestring)
+  "Repartitions a JTS LineString into multiple contiguous linestrings, each up to the
+   provided length (in meters). Final segment may be less than the requested length.
+   Length of individual segments may vary a bit but total length should remain the same."
+  [linestring cap]
+  (loop [coords (jts/coords linestring)
          segments []
-         current-segment []]
-    (cond
-      (empty? coords) (conj segments (jts/line-string current-segment))
-      (empty? current-segment) (recur (rest coords) segments (conj current-segment (first coords)))
-      (< (length (jts/line-string (conj current-segment (first coords))))
-         segment-length) (do (last current-segment) (recur (rest coords)
-                                                           segments
-                                                           (conj current-segment
-                                                                 (first coords))))
-      :else (let [current-length (if (< (count current-segment) 2)
-                                   0
-                                   (length (jts/line-string current-segment)))
-                  length-with-next (length (jts/line-string (conj current-segment (first coords))))
-                  cut-point (point-toward (last current-segment)
-                                          (first coords)
-                                          (- segment-length current-length))]
-              (recur coords
-                     (conj segments (jts/line-string (conj current-segment cut-point)))
-                     [cut-point]))
-      )
-    ))
+         current []]
+    (let [[next & remaining] coords]
+      (cond
+        (empty? coords) (map jts/linestring (conj segments current))
+        (empty? current) (recur remaining segments (conj current next))
+        (under-cap-with-next-point? current next cap) (recur remaining segments (conj current next))
+        :else (let [cut-point (cut-point current next cap)]
+                (recur coords
+                       (conj segments (conj current cut-point))
+                       [cut-point]))))))
