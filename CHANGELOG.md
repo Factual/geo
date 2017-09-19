@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 to 1.2.0
+
+* Added new spatial function for splitting JTS linestrings into sub-strings based on a desired maximum segment length
+* Added JTS functions for working with linestrings more conveniently
+
 ## 1.0.0 to 1.1.0
 
 * Update dependencies, including JTS to 1.13 and Spatial4J to 0.6
