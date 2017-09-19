@@ -170,19 +170,6 @@
   (println "Chopped distance: " adjusted-dist)
   )
 
-;; Scenarios
-;; Line length is < max dist -- good
-;; else:
-;; take first point
-;; if dist from first point -> second point < max dist:
-;;   add second point to segment
-;; else:
-;;   make a point in direction of next point
-;;   of length: (max dist - total length of segment so far)
-;; then:
-;;   continue for next segment starting from current "cut" point
-
-
 (def long-sample [-54.4482421875 23.946096014998382 -53.9208984375 24.467150664739002 -52.27294921875 24.926294766395593 -50.60302734375 24.487148563173424 -50.42724609375 23.704894502324912 -50.20751953125 22.63429269379353 -51.17431640625 22.51255695405145 -51.943359375 22.755920681486405 -51.85546874999999 23.443088931121785 -52.55859375 23.865745352647956 -53.23974609375 23.301901124188877 -53.3935546875 22.51255695405145 -54.07470703125 22.471954507739227 -54.29443359375 23.160563309048314])
 
 (facts "splitting more complex linestring"
@@ -195,9 +182,9 @@
               (map s/length)
               (map (roughly 100000))) => (n-of true 13)
          (-> rs last s/length) => (roughly 16265 50)
-         (-> rs count) => 14))
-
-;; tests
-;; linestring under max
-;; many points under max
-;; many points over max
+         (-> rs count) => 14)
+       (fact "Splitting linestring under max gives single segment"
+             (let [ls (jts/line-string-wkt [0 0 0.0001 0.0001 0.0002 0.0002])]
+               (s/length ls) => (roughly 31.38)
+               (count (s/resegment ls 1000)) => 1
+               (s/length (first (s/resegment ls 1000))) => (roughly 31.38))))
