@@ -36,7 +36,11 @@ Leiningen Dependency Vector:
 [factual/geo "1.2.0"]
 ```
 
-# Examples
+## Documentation
+
+Available on Github Pages here: http://factual.github.io/geo/index.html
+
+## Examples
 
 ```clj
 ; Load library
