@@ -27,7 +27,8 @@
                                              ShapeFactory
                                              Rectangle)
            (com.vividsolutions.jts.geom Geometry Coordinate)
-           (org.locationtech.spatial4j.shape.jts JtsGeometry)
+           (org.locationtech.spatial4j.shape.jts JtsGeometry
+                                                 JtsShapeFactory)
            (org.locationtech.spatial4j.distance DistanceUtils
                                                 DistanceCalculator)
            (org.locationtech.spatial4j.context SpatialContextFactory
@@ -49,7 +50,7 @@
     "distCalculator" "vincentySphere"}
    (.getClassLoader JtsSpatialContext)))
 
-(def ^ShapeFactory jts-earth
+(def ^JtsShapeFactory jts-earth
   "ShapeFactory for producing spatial4j Shapes from JTSGeometries based"
   (->> (.getClassLoader JtsSpatialContext)
        (SpatialContextFactory/makeSpatialContext
@@ -105,8 +106,8 @@
     ;; Cloning geometries that cross dateline to workaround
     ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
     (let [geom (if (crosses-dateline? this)
-                 (.clone this)
-                 this)
+                           (.clone this)
+                           this)
           dateline-180-check? true
           allow-multi-overlap? true]
       (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?))))
@@ -245,8 +246,8 @@
   (assert (not= 90.0 (abs (latitude a))))
   (assert (not= 90.0 (abs (latitude b))))
   (VincentyGeodesy/distanceInMeters
-    (to-geohash-point a)
-    (to-geohash-point b)))
+   (to-geohash-point a)
+   (to-geohash-point b)))
 
 (defn distance-in-degrees
   "Distance between two points, in degrees."
@@ -334,7 +335,7 @@
   (let [num-points (.getNumPoints linestring)]
     (if (= 0 num-points)
       0
-      (loop [length 0
+      (loop [length 0.0
              idx 0]
         (if (= idx (dec num-points))
           length

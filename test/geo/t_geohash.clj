@@ -17,7 +17,7 @@
              => (spatial/geohash-point 57.64911063015461 10.407439693808556)))
 
 (facts "subdivide"
-       (fact (map #(.longValue %) (subdivide (geohash "")))
+       (fact (map #(.longValue ^GeoHash %) (subdivide (geohash "")))
              => [0 (dec (- (long (Math/pow 2 63))))])
 
        (fact (map string (subdivide (geohash "scu2") 25))
