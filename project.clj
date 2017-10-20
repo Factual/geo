@@ -1,5 +1,5 @@
 (defproject
-  factual/geo "1.2.0"
+  factual/geo "1.2.1"
   :url     "https://github.com/factual/geo"
   :license {:name "Eclipse Public License - v 1.0"
             :url  "http://www.eclipse.org/legal/epl-v10.html"
