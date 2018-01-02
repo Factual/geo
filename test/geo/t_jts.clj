@@ -1,7 +1,7 @@
 (ns geo.t-jts
   (:use midje.sweet
         geo.jts)
-  (:import (com.vividsolutions.jts.geom Coordinate)))
+  (:import (org.locationtech.jts.geom Coordinate)))
 
 (facts "coordinate"
        (fact (coordinate 1 2) => (Coordinate. 1 2)))
@@ -23,13 +23,13 @@
 
 (facts "linestrings"
        (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3
-       (type (first (coords (linestring-wkt [0 0 0 1 0 2])))) => com.vividsolutions.jts.geom.Coordinate
+       (type (first (coords (linestring-wkt [0 0 0 1 0 2])))) => org.locationtech.jts.geom.Coordinate
        (count (coords (linestring-wkt [0 0 0 1 0 2]))) => 3
        (.getNumPoints (linestring (coords (linestring-wkt [0 0 0 1 0 2])))) => 3
        (.getX (point-n (linestring-wkt [0 0 0 1 0 2]) 1)) => 0.0
        (.getY (point-n (linestring-wkt [0 0 0 1 0 2]) 1)) => 1.0
        (let [segment (segment-at-idx (linestring-wkt [0 -1 1 2]) 0)]
-         (type segment) => com.vividsolutions.jts.geom.LineSegment
+         (type segment) => org.locationtech.jts.geom.LineSegment
          (-> segment .p0 .x) => 0.0
          (-> segment .p0 .y) => -1.0
          (-> segment .p1 .x) => 1.0

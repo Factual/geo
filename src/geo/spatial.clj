@@ -26,7 +26,7 @@
                                              Shape
                                              ShapeFactory
                                              Rectangle)
-           (com.vividsolutions.jts.geom Geometry Coordinate)
+           (org.locationtech.jts.geom Geometry Coordinate)
            (org.locationtech.spatial4j.shape.jts JtsGeometry
                                                  JtsShapeFactory)
            (org.locationtech.spatial4j.distance DistanceUtils
@@ -125,13 +125,13 @@
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] this)
 
-  com.vividsolutions.jts.geom.Point
+  org.locationtech.jts.geom.Point
   (latitude [this] (.getY this))
   (longitude [this] (.getX this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
 
-  com.vividsolutions.jts.geom.Coordinate
+  org.locationtech.jts.geom.Coordinate
   (latitude [this] (.y this))
   (longitude [this] (.x this))
   (to-spatial4j-point [this] (spatial4j-point this))
@@ -331,7 +331,7 @@
 
 (defn length
   "Get geodesic length of a (jts) linestring by summing lengths of successive points"
-  [^com.vividsolutions.jts.geom.LineString linestring]
+  [^org.locationtech.jts.geom.LineString linestring]
   (let [num-points (.getNumPoints linestring)]
     (if (= 0 num-points)
       0
@@ -347,7 +347,7 @@
 
 (defn point-between [^Coordinate c1 ^Coordinate c2 dist]
   (let [ratio (/ dist (distance c1 c2))
-        segment (com.vividsolutions.jts.geom.LineSegment. c1 c2)]
+        segment (org.locationtech.jts.geom.LineSegment. c1 c2)]
     (.pointAlongOffset segment ratio 0)))
 
 (defn- coord-list-length [coords]
