@@ -419,6 +419,20 @@
 
 (def vincenty-distance-calculator (org.locationtech.spatial4j.distance.GeodesicSphereDistCalc$Vincenty.))
 
+(defn make-circle-points [center-lat center-lon radius-meters num-points]
+  (let [])
+  (let [center (point center-lat center-lon)
+        offset (radians->degrees (distance-at-point->radians radius-meters center))
+        angles (map (fn [i] (* (/ 360.0 num-points) i)) (range num-points))]
+    (map (fn [angle] (.pointOnBearing vincenty-distance-calculator
+                                      center
+                                      offset
+                                      angle
+                                      earth
+                                      nil))
+         angles))
+  )
+
 (defn rand-point-in-radius [center-lat center-lon radius-meters]
   (let [center (point center-lat center-lon)
         offset (Math/sqrt (rand))
