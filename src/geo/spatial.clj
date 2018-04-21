@@ -37,6 +37,7 @@
 
 (declare spatial4j-point)
 (declare geohash-point)
+(declare jts-point)
 
 (defn square [x]
   (Math/pow x 2))
@@ -106,8 +107,8 @@
     ;; Cloning geometries that cross dateline to workaround
     ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
     (let [geom (if (crosses-dateline? this)
-                           (.clone this)
-                           this)
+                   (.clone this)
+                   this)
           dateline-180-check? true
           allow-multi-overlap? true]
       (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?))))
@@ -116,7 +117,8 @@
   (latitude [this])
   (longitude [this])
   (to-spatial4j-point [this])
-  (to-geohash-point [this]))
+  (to-geohash-point [this])
+  (to-jts-point [this]))
 
 (extend-protocol Point
   WGS84Point
@@ -124,24 +126,28 @@
   (longitude [this] (.getLongitude this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] this)
+  (to-jts-point [this] (jts-point this))
 
   org.locationtech.jts.geom.Point
   (latitude [this] (.getY this))
   (longitude [this] (.getX this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
+  (to-jts-point [this] this)
 
   org.locationtech.jts.geom.Coordinate
   (latitude [this] (.y this))
   (longitude [this] (.x this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
+  (to-jts-point [this] (jts-point this))
 
   org.locationtech.spatial4j.shape.Point
   (latitude [this] (.getY this))
   (longitude [this] (.getX this))
   (to-spatial4j-point [this] this)
-  (to-geohash-point [this] (geohash-point this)))
+  (to-geohash-point [this] (geohash-point this))
+  (to-jts-point [this] (jts-point this)))
 
 (defn degrees->radians
   [degrees]
@@ -188,7 +194,7 @@
   ([radians]
    (radians->distance radians earth-mean-radius))
   ([radians radius]
-    (DistanceUtils/radians2Dist radians radius)))
+   (DistanceUtils/radians2Dist radians radius)))
 
 (def square-degree-in-steradians
   (/ (* 180 180) (* Math/PI Math/PI)))
@@ -218,6 +224,13 @@
    (WGS84Point. (latitude point) (longitude point)))
   ([lat long]
    (WGS84Point. lat long)))
+
+(defn jts-point
+  "Returns a Point used by JTS."
+  ([point]
+   (jts/point (longitude point) (latitude point)))
+  ([lat long]
+   (jts/point long lat)))
 
 (def point spatial4j-point)
 
