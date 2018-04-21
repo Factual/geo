@@ -3,9 +3,9 @@
    geospatial IO formats (geojson, wkt, wkb)."
   (:require [geo.spatial :as s]
             [clojure.data])
-  (:import (com.vividsolutions.jts.io WKTReader WKTWriter WKBReader WKBWriter)
-           (com.vividsolutions.jts.geom Geometry)
-           (org.wololo.jts2geojson GeoJSONReader GeoJSONWriter)))
+  (:import (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
+           (org.locationtech.jts.geom Geometry)
+           (org.locationtech.jts.io.geojson GeoJsonReader GeoJsonWriter)))
 
 (def ^WKTReader wkt-reader (WKTReader.))
 (def ^WKTWriter wkt-writer (WKTWriter.))
@@ -13,8 +13,10 @@
 (def ^WKBReader wkb-reader (WKBReader.))
 (def ^WKBWriter wkb-writer (WKBWriter.))
 
-(def ^GeoJSONReader geojson-reader (GeoJSONReader.))
-(def ^GeoJSONWriter geojson-writer (GeoJSONWriter.))
+(def ^GeoJsonReader geojson-reader (GeoJsonReader.))
+(def ^GeoJsonWriter geojson-writer (GeoJsonWriter.))
+
+(.setEncodeCRS geojson-writer false)
 
 (defn read-wkt [^String wkt] (.read wkt-reader wkt))
 (defn to-wkt [^Geometry geom] (.write wkt-writer geom))

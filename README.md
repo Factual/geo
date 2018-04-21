@@ -8,7 +8,7 @@ be particularly useful in concert with our [rich API of geospatial
 information](http://developer.factual.com/).
 
 We unify three open-source JVM geospatial libraries: The [JTS topology
-library](http://www.vividsolutions.com/jts/JTSHome.htm),
+library](https://github.com/locationtech/jts),
 [spatial4j](https://github.com/spatial4j/spatial4j), and
 [geohash-java](https://clojars.org/la.tomoj/geohash-java). Clojure protocols
 allow these libraries' disparate representations of points and shapes to
@@ -116,13 +116,13 @@ user=> (map geohash/string (geohash/geohashes-near lhr 1000 30))
 
 ; Reading JTS Geometries to/from common geo formats
 user=> (gio/read-wkt "POLYGON ((-70 30, -70 30, -70 30, -70 30, -70 30))")
-#object[com.vividsolutions.jts.geom.Polygon 0x675302a "POLYGON ((-70 30, -70 30, -70 30, -70 30, -70 30))"]
+#object[org.locationtech.jts.geom.Polygon 0x675302a "POLYGON ((-70 30, -70 30, -70 30, -70 30, -70 30))"]
 
 user=> (gio/to-wkt (gio/read-wkt "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"))
 "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"
 
-user=> (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}")
-#object[com.vividsolutions.jts.geom.Polygon 0x57a1c5f5 "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
+user=> (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70,30],[-70,31],[-71,31],[-71,30],[-70,30]]]}")
+#object[org.locationtech.jts.geom.Polygon 0x57a1c5f5 "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
 
 user=> (gio/to-geojson (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"))
 "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"
@@ -131,7 +131,7 @@ user=> (gio/to-wkb (gio/read-wkt "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 
 #object["[B" 0xe62e731 "[B@e62e731"]
 
 user=> (gio/read-wkb *1)
-#object[com.vividsolutions.jts.geom.Polygon 0x6f85711c "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
+#object[org.locationtech.jts.geom.Polygon 0x6f85711c "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
 ```
 
 # Namespace overview
@@ -164,7 +164,7 @@ box intersections, bounded-space partitioning, and so on.
 
 ## geo.jts
 
-Wrapper for the vividsolutions JTS spatial library. Constructors for points,
+Wrapper for the locationtech JTS spatial library. Constructors for points,
 coordinate sequences, rings, polygons, multipolygons, and so on.
 
 ## geo.geohash
@@ -206,30 +206,5 @@ run again.
 
 # License
 
-Licensing is complicated; this is my best effort at interpreting the legal
-issues involved. If you think this is incorrect, please let me know.
-
 This project and many of its dependencies are licensed under the Eclipse Public
-License version 1.0. It has a runtime dependency on, but is not distributed
-with, the LGPL-licensed [JTS Topology
-Suite](http://www.vividsolutions.com/jts/JTSHome.htm). The
-[LGPL](http://www.gnu.org/licenses/lgpl.html).
-
-This library and JAR on Clojars are not AOT-compiled; they are distributed as
-source code which is compiled by Clojure at runtime. It is not linked with JTS
-but *does* make use of its interfaces, which makes it an "Application" under
-the terms of the LGPL. Since the JAR is distributed as source, it does not
-convey "object code".
-
-When this library is compiled by Clojure (e.g. when AOT-compiled, or when a
-program requiring this library is run), it will call functions on JTS
-LGPL-licensed classes. This is, as I understand the LGPL, a "Combined Work". If
-you wish to convey a combined work, you may, provided, as per the LGPL section
-4, that:
-
-a.) You give prominent notice that the LGPL is used (e.g. this license section)
-b.) You accompany the combined work with a copy of the GNU GPL and this license
-document (see LGPL.txt and GPL.txt)
-c.) You display copyright notices during execution (not applicable here)
-d.) Convey the minimal corresponding source, or use a suitable shared library mechanism (e.g. jars)
-e.) Provide installation information (trivial; via Leiningen, Maven, etc)
+License version 1.0.

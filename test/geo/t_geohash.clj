@@ -6,9 +6,9 @@
   (:use midje.sweet geo.geohash)
   (:import (ch.hsr.geohash GeoHash)
            (org.locationtech.spatial4j.context SpatialContext)
-           (com.vividsolutions.jts.geom PrecisionModel
-                                        Envelope
-                                        GeometryFactory)))
+           (org.locationtech.jts.geom PrecisionModel
+                                      Envelope
+                                      GeometryFactory)))
 
 (facts "geohash"
        (fact (geohash 50 20 64) => (partial instance? GeoHash))

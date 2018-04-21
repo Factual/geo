@@ -13,7 +13,7 @@
              [-70.0024 30.0019]])
 
 (fact "reads and writes wkt"
-      (type (sut/read-wkt wkt)) => com.vividsolutions.jts.geom.Polygon
+      (type (sut/read-wkt wkt)) => org.locationtech.jts.geom.Polygon
       (.getNumPoints (sut/read-wkt wkt)) => 5
       (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-wkt wkt))) => coords
       (-> wkt sut/read-wkt sut/to-wkt) => wkt)
@@ -27,7 +27,7 @@
         (-> wkt sut/read-wkt sut/to-wkb sut/read-wkb sut/to-wkt) => wkt))
 
 (fact "reads and writes geojson"
-      (type (sut/read-geojson geojson)) => com.vividsolutions.jts.geom.Polygon
+      (type (sut/read-geojson geojson)) => org.locationtech.jts.geom.Polygon
       (.getNumPoints (sut/read-geojson geojson)) => 5
       (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-geojson geojson))) => coords
       (-> geojson sut/read-geojson sut/to-geojson) => geojson)

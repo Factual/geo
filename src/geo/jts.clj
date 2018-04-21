@@ -1,14 +1,14 @@
 (ns geo.jts
-  "Wrapper for the vividsolutions JTS spatial library. Constructors for points,
+  "Wrapper for the locationtech JTS spatial library. Constructors for points,
   coordinate sequences, rings, polygons, multipolygons, and so on."
-  (:import (com.vividsolutions.jts.geom Coordinate
-                                        Point
-                                        LinearRing
-                                        PrecisionModel
-                                        Polygon
-                                        MultiPolygon
-                                        PrecisionModel
-                                        GeometryFactory)))
+  (:import (org.locationtech.jts.geom Coordinate
+                                      Point
+                                      LinearRing
+                                      PrecisionModel
+                                      Polygon
+                                      MultiPolygon
+                                      PrecisionModel
+                                      GeometryFactory)))
 
 (def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
@@ -51,23 +51,23 @@
   (-> coordinates wkt->coords-array linestring))
 
 (defn coords
-  [^com.vividsolutions.jts.geom.LineString linestring]
+  [^org.locationtech.jts.geom.LineString linestring]
   (-> linestring .getCoordinateSequence .toCoordinateArray))
 
 (defn coord
-  [^com.vividsolutions.jts.geom.Point point]
+  [^org.locationtech.jts.geom.Point point]
   (.getCoordinate point))
 
 (defn point-n
   "Get the point for a linestring at the specified index."
-  [^com.vividsolutions.jts.geom.LineString linestring idx]
+  [^org.locationtech.jts.geom.LineString linestring idx]
   (.getPointN linestring idx))
 
 (defn segment-at-idx
   "LineSegment from a LineString's point at index to index + 1."
-  [^com.vividsolutions.jts.geom.LineString linestring idx]
-  (com.vividsolutions.jts.geom.LineSegment. (coord (point-n linestring idx))
-                                            (coord (point-n linestring (inc idx)))))
+  [^org.locationtech.jts.geom.LineString linestring idx]
+  (org.locationtech.jts.geom.LineSegment. (coord (point-n linestring idx))
+                                          (coord (point-n linestring (inc idx)))))
 (defn linear-ring
   "Given a list of Coordinates, creates a LinearRing."
   [coordinates]
