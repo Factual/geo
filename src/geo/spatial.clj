@@ -420,7 +420,6 @@
 (def vincenty-distance-calculator (org.locationtech.spatial4j.distance.GeodesicSphereDistCalc$Vincenty.))
 
 (defn make-circle-points [center-lat center-lon radius-meters num-points]
-  (let [])
   (let [center (point center-lat center-lon)
         offset (radians->degrees (distance-at-point->radians radius-meters center))
         angles (map (fn [i] (* (/ 360.0 num-points) i)) (range num-points))]
@@ -430,22 +429,29 @@
                                       angle
                                       earth
                                       nil))
-         angles))
-  )
+         angles)))
 
-(defn rand-point-in-radius [center-lat center-lon radius-meters]
-  (let [center (point center-lat center-lon)
-        offset (Math/sqrt (rand))
-        radius (* offset radius-meters)
-        offset-degrees (-> radius
-                           (distance-at-point->radians center)
-                           (radians->degrees))
-        angle-degrees (rand 360)]
-    (.pointOnBearing vincenty-distance-calculator
-                     center
-                     offset-degrees
-                     angle-degrees
-                     earth
-                     nil)
-    #_{:latitude (.getY point)
-     :longitude (.getX point)}))
+(defn rand-point-in-radius
+  ([center-lat center-lon radius-meters]
+   (rand-point-in-radius center-lat center-lon radius-meters :uniform))
+  ([center-lat center-lon radius-meters distribution]
+   (assert (or (= :uniform distribution)
+               (= :clustered distribution)
+               (fn? distribution))
+           "distribution must be :uniform, :clustered, or fn")
+   (let [center (point center-lat center-lon)
+         offset-fn (case distribution
+                     :uniform (fn [] (Math/sqrt (rand)))
+                     :clustered rand
+                     distribution)
+         radius (* (offset-fn) radius-meters)
+         offset-degrees (-> radius
+                            (distance-at-point->radians center)
+                            (radians->degrees))
+         angle-degrees (rand 360)]
+     (.pointOnBearing vincenty-distance-calculator
+                      center
+                      offset-degrees
+                      angle-degrees
+                      earth
+                      nil))))
