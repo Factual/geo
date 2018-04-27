@@ -63,6 +63,15 @@
   [^org.locationtech.jts.geom.LineString linestring idx]
   (.getPointN linestring idx))
 
+(defn num-points
+  "Return number of points in a linestring."
+  [^org.locationtech.jts.geom.LineString linestring]
+  (.getNumPoints linestring))
+
+(defn points
+  [^org.locationtech.jts.geom.LineString linestring]
+  (map (fn [i] (point-n linestring i)) (range (num-points linestring))))
+
 (defn segment-at-idx
   "LineSegment from a LineString's point at index to index + 1."
   [^org.locationtech.jts.geom.LineString linestring idx]
