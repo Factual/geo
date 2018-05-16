@@ -14,9 +14,9 @@
    [org.locationtech.jts.io/jts-io-common "1.15.0"]
    [org.noggit/noggit "0.8"]]
   :codox {:themes [:rdash]}
-  :profiles {:dev {:plugins [[lein-midje "3.1.1"]
+  :profiles {:dev {:plugins [[lein-midje "3.2.1"]
                              [lein-codox "0.10.3"]]
-                   :dependencies [[org.clojure/clojure "1.8.0"]
+                   :dependencies [[org.clojure/clojure "1.9.0"]
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
-                                  [midje "1.6.3"]]}})
+                                  [midje "1.9.1"]]}})
