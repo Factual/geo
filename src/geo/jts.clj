@@ -12,8 +12,13 @@
 
 (def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
-(def ^GeometryFactory gf
-  (GeometryFactory. pm 4326))
+(defn gf
+  "Creates a GeometryFactory for a given SRID."
+  [srid]
+  (GeometryFactory. pm srid))
+
+(def ^GeometryFactory gf-wgs84
+  (gf 4326))
 
 (defn coordinate
   "Creates a Cooordinate."
@@ -25,12 +30,12 @@
   ([x y]
    (point (coordinate x y)))
   ([^Coordinate coordinate]
-   (.createPoint gf coordinate)))
+   (.createPoint gf-wgs84 coordinate)))
 
 (defn coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
   [coordinates]
-  (.. gf getCoordinateSequenceFactory create
+  (.. gf-wgs84 getCoordinateSequenceFactory create
     (into-array Coordinate coordinates)))
 
 (defn wkt->coords-array
@@ -42,7 +47,7 @@
 (defn linestring
   "Given a list of Coordinates, creates a LineString"
   [coordinates]
-  (.createLineString gf (into-array Coordinate coordinates)))
+  (.createLineString gf-wgs84 (into-array Coordinate coordinates)))
 
 (defn linestring-wkt
   "Makes a LineString from a WKT-style data structure: a flat sequence of
@@ -71,7 +76,7 @@
 (defn linear-ring
   "Given a list of Coordinates, creates a LinearRing."
   [coordinates]
-  (.createLinearRing gf (into-array Coordinate coordinates)))
+  (.createLinearRing gf-wgs84 (into-array Coordinate coordinates)))
 
 (defn linear-ring-wkt
   "Makes a LinearRing from a WKT-style data structure: a flat sequence of
@@ -85,7 +90,7 @@
   ([shell]
    (polygon shell nil))
   ([shell holes]
-   (.createPolygon gf shell (into-array LinearRing holes))))
+   (.createPolygon gf-wgs84 shell (into-array LinearRing holes))))
 
 (defn polygon-wkt
   "Generates a polygon from a WKT-style data structure: a sequence of
@@ -101,7 +106,7 @@
 (defn multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
-  (.createMultiPolygon gf (into-array Polygon polygons)))
+  (.createMultiPolygon gf-wgs84 (into-array Polygon polygons)))
 
 (defn multi-polygon-wkt
   "Creates a MultiPolygon from a WKT-style data structure, e.g. [[[0 0 1 0 2 2
