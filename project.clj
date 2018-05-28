@@ -12,6 +12,7 @@
    [org.locationtech.spatial4j/spatial4j "0.7"]
    [org.locationtech.jts/jts-core "1.15.0"]
    [org.locationtech.jts.io/jts-io-common "1.15.0"]
+   [org.postgresql/postgresql "42.2.2"]
    [org.noggit/noggit "0.8"]]
   :codox {:themes [:rdash]}
   :profiles {:dev {:plugins [[lein-midje "3.2.1"]
