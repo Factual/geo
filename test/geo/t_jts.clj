@@ -1,6 +1,6 @@
 (ns geo.t-jts
-  (:use midje.sweet
-        geo.jts)
+  (:require [geo.jts :refer :all]
+            [midje.sweet :refer [fact facts truthy]])
   (:import (org.locationtech.jts.geom Coordinate)))
 
 (facts "coordinate"
@@ -34,3 +34,23 @@
          (-> segment .p0 .y) => -1.0
          (-> segment .p1 .x) => 1.0
          (-> segment .p1 .y) => 2.0))
+
+(facts "proj4j"
+       (fact "point: 3 param transform"
+         (same-geom? (transform-geom (point 3.8142776 51.285914 4326) 23031)
+                     (point 556878.9016076007 5682145.166264554 23031))
+         => truthy
+         (same-geom? (transform-geom (point 3.8142776 51.285914 4326)
+                                     "+proj=utm +zone=31 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs")
+                     (point 556878.9016076007 5682145.166264554 23031))
+         => truthy)
+       (fact "geometry: stereographic azimuthal, using a linestring"
+         (same-geom?
+           (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875]) 3031)
+           (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
+         => truthy)
+       (same-geom?
+         (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875])
+                         "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs")
+         (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
+       => truthy)

@@ -5,7 +5,7 @@
   earth's radii and circumferences, along with points like the poles.
 
   Defines protocols for unified access to Points and Shapes, to allow different
-  ge ometry libraries to interoperate.
+  geometry libraries to interoperate.
 
   Basic utility functions for unit conversion; e.g. degrees<->radians.
 
@@ -17,26 +17,24 @@
   statuses, etc."
   (:use [clojure.math.numeric-tower :only [abs]])
   (:require [geo.jts :as jts])
-  (:import (ch.hsr.geohash WGS84Point
-                           GeoHash)
+  (:import (ch.hsr.geohash WGS84Point)
            (ch.hsr.geohash.util VincentyGeodesy)
-           (ch.hsr.geohash.queries GeoHashCircleQuery
-                                   GeoHashQuery)
            (org.locationtech.spatial4j.shape SpatialRelation
                                              Shape
-                                             ShapeFactory
                                              Rectangle)
            (org.locationtech.jts.geom Geometry Coordinate)
+           (org.locationtech.spatial4j.shape.impl PointImpl RectangleImpl)
            (org.locationtech.spatial4j.shape.jts JtsGeometry
+                                                 JtsPoint
                                                  JtsShapeFactory)
-           (org.locationtech.spatial4j.distance DistanceUtils
-                                                DistanceCalculator)
+           (org.locationtech.spatial4j.distance DistanceUtils)
            (org.locationtech.spatial4j.context SpatialContextFactory
                                                SpatialContext)
            (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
 
 (declare spatial4j-point)
 (declare geohash-point)
+(declare jts-point)
 
 (defn square [x]
   (Math/pow x 2))
@@ -94,23 +92,36 @@
   (>= (.getWidth (.getEnvelopeInternal jts-geom))
       180))
 
+(defn shape->geom
+  [^Shape shape]
+  (cond (or (instance? RectangleImpl shape) (instance? JtsGeometry shape))
+        (.getGeom shape)
+        (or (instance? PointImpl shape) (instance? JtsPoint shape))
+        (jts-point (.getY shape) (.getX shape))))
+
 (defprotocol Shapelike
-  (^Shape to-shape [this] "Convert anything to a Shape."))
+  (^Shape to-shape [this] "Convert anything to a Shape.")
+  (^Geometry to-jts [this] [this srid] "Convert anything to a projected JTS Geometry."))
 
 (extend-protocol Shapelike
   Shape
   (to-shape [this] this)
+  (to-jts ([this] (jts/set-srid (shape->geom this) 4326))
+          ([this srid] (to-jts (to-jts this) srid)))
 
   Geometry
   (to-shape [this]
     ;; Cloning geometries that cross dateline to workaround
     ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
-    (let [geom (if (crosses-dateline? this)
-                           (.clone this)
-                           this)
+    (let [this-wgs84 (jts/transform-geom this 4326)
+          geom (if (crosses-dateline? this-wgs84)
+                   (.clone this-wgs84)
+                 this-wgs84)
           dateline-180-check? true
           allow-multi-overlap? true]
-      (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?))))
+      (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?)))
+  (to-jts ([this] this)
+          ([this srid] (jts/transform-geom this srid))))
 
 (defprotocol Point
   (latitude [this])
@@ -188,7 +199,7 @@
   ([radians]
    (radians->distance radians earth-mean-radius))
   ([radians radius]
-    (DistanceUtils/radians2Dist radians radius)))
+   (DistanceUtils/radians2Dist radians radius)))
 
 (def square-degree-in-steradians
   (/ (* 180 180) (* Math/PI Math/PI)))
@@ -196,6 +207,13 @@
 (defn square-degrees->steradians
   [steradians]
   (/ steradians square-degree-in-steradians))
+
+(defn jts-point
+  "Returns a Point used by JTS."
+  ([point]
+   (jts/point (longitude point) (latitude point)))
+  ([lat long]
+   (jts/point long lat)))
 
 (defn steradians->area
   "Converts steradians to square meters on the surface of the earth. Assumes
@@ -293,12 +311,12 @@
   actually refers to solid angle, not area; we convert by multiplying by the
   earth's radius at the midpoint of the rectangle."
   [rect]
-  (let [a (area-in-square-degrees rect)
-        r (earth-radius (center rect))]
-    (-> rect
-      area-in-square-degrees
-      square-degrees->steradians
-      steradians->area)))
+  ;(let [a (area-in-square-degrees rect)
+  ;      r (earth-radius (center rect))
+  (-> rect
+    area-in-square-degrees
+    square-degrees->steradians
+    steradians->area))
 
 (defn relate
   "The relationship between two shapes. Returns a keyword:
@@ -363,10 +381,9 @@
 (defn- under-cap-with-next-point? [coords next-coord dist]
   (< (length (jts/linestring (conj coords next-coord))) dist))
 
-(defn resegment
-  "Repartitions a JTS LineString into multiple contiguous linestrings, each up to the
-   provided length (in meters). Final segment may be less than the requested length.
-   Length of individual segments may vary a bit but total length should remain the same."
+(defn- resegment-wgs84
+  "Performs the resegment operation used in (resegment),
+   with the assumption that a linestring is in WGS84 projection"
   [linestring segment-length]
   (loop [coords (jts/coords linestring)
          segments []
@@ -380,3 +397,11 @@
                 (recur coords
                        (conj segments (conj current cut-point))
                        [cut-point]))))))
+
+(defn resegment
+  "Repartitions a JTS LineString into multiple contiguous linestrings, each up to the
+   provided length (in meters). Final segment may be less than the requested length.
+   Length of individual segments may vary a bit but total length should remain the same."
+  [linestring segment-length]
+  (let [srid (jts/get-srid linestring)]
+    (map #(jts/transform-geom % srid) (resegment-wgs84 (jts/transform-geom linestring 4326) segment-length))))

@@ -162,7 +162,7 @@
                   [maxlat maxlng]] (region-bounding-box region)
                  [dlat dlng]       [(- maxlat minlat) (- maxlng minlng)]
                  [mlat mlng]       [(/ (+ maxlat minlat) 2.0)
-                                   (/ (+ maxlng minlng) 2.0)]
+                                    (/ (+ maxlng minlng) 2.0)]
                  bisecting-line    (if (> dlat dlng)
                                      [[mlat minlng] [mlat maxlng]]      ; split lat
                                      [[minlat mlng] [maxlat mlng]])     ; split lng

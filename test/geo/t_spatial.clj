@@ -1,8 +1,10 @@
 (ns geo.t-spatial
-  (:use midje.sweet)
   (:require [geo.jts :as jts]
-            [geo.spatial :as s])
-  (:import (org.locationtech.spatial4j.context SpatialContext)))
+            [geo.spatial :as s]
+            [geo.geohash :refer :all]
+            [midje.sweet :refer [fact facts falsey future-fact n-of roughly truthy]])
+  (:import (org.locationtech.spatial4j.context SpatialContext)
+           (org.locationtech.spatial4j.shape.jts JtsGeometry)))
 
 (facts "earth"
        (fact s/earth => (partial instance? SpatialContext)))
@@ -44,25 +46,61 @@
              => (roughly s/earth-mean-circumference)))
 
 (facts "interchangeable points"
-       (let [flip-spatial (comp s/to-spatial4j-point s/to-geohash-point)
-             flip-geohash (comp s/to-geohash-point s/to-spatial4j-point)
+       (let [g->s (comp s/to-spatial4j-point s/to-geohash-point)
+             s->g (comp s/to-geohash-point s/to-spatial4j-point)
+             j->s (comp s/to-spatial4j-point s/to-jts)
+             s->j (comp s/to-jts s/to-spatial4j-point)
+             j->g (comp s/to-geohash-point s/to-jts)
+             g->j (comp s/to-jts s/to-geohash-point)
              g1 (s/geohash-point 0 0)
              g2 (s/geohash-point 12.456 -98.765)
              s1 (s/spatial4j-point 0 0)
-             s2 (s/spatial4j-point 12.456 -98.765)]
+             s2 (s/spatial4j-point 12.456 -98.765)
+             j1 (s/jts-point 0 0)
+             j2 (s/jts-point 12.456 -98.765)]
          ; Identity conversions
-         (fact (s/to-geohash-point g2) g2)
-         (fact (s/to-spatial4j-point g2) s2)
+         (fact (s/to-geohash-point g2) => g2)
+         (fact (s/to-spatial4j-point g2) => s2)
+         (fact (s/to-jts j2) => j2)
 
          ; Direct conversions
-         (fact (s/to-spatial4j-point s2) s2)
-         (fact (s/to-geohash-point s2) g2)
+         (fact (s/to-spatial4j-point g2) => s2)
+         (fact (s/to-spatial4j-point j2) => s2)
+         (fact (s/to-geohash-point s2) => g2)
+         (fact (s/to-geohash-point j2) => g2)
+         (fact (s/to-jts s2) => j2)
+         (fact (s/to-jts g2) => j2)
 
          ; Two-way conversions
-         (fact (flip-geohash g1) => g1)
-         (fact (flip-geohash g2) => g2)
-         (fact (flip-spatial s1) => s1)
-         (fact (flip-spatial s2) => s2)))
+         (fact (s->g g1) => g1)
+         (fact (s->g g2) => g2)
+         (fact (j->g g1) => g1)
+         (fact (j->g g2) => g2)
+         (fact (g->s s1) => s1)
+         (fact (g->s s2) => s2)
+         (fact (j->s s1) => s1)
+         (fact (j->s s2) => s2)
+         (fact (s->j j1) => j1)
+         (fact (s->j j2) => j2)
+         (fact (g->j j1) => j1)
+         (fact (g->j j2) => j2)))
+
+(facts "interchangeable polygons"
+       (let [s->j (comp s/to-jts s/to-shape)
+             j1 (->> [0 0 10 0 10 10 0 0]
+                     (partition 2)
+                     (map (partial apply jts/coordinate))
+                     jts/linear-ring
+                     jts/polygon)]
+
+         ; Identity conversion
+         (fact (s/to-jts j1) => j1)
+
+         ; Direct conversion
+         (fact (type (s/to-shape j1)) => JtsGeometry)
+
+         ; Two-way conversion
+         (fact (s->j j1) => j1)))
 
 ; Have some airports
 (let [lhr (s/spatial4j-point 51.477500 -0.461388)

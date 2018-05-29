@@ -2,10 +2,10 @@
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts]
             [geo.io :as gio]
+            [geo.geohash :refer :all]
+            [midje.sweet :refer [fact facts just roughly throws truthy]]
             [criterium.core :as crit])
-  (:use midje.sweet geo.geohash)
   (:import (ch.hsr.geohash GeoHash)
-           (org.locationtech.spatial4j.context SpatialContext)
            (org.locationtech.jts.geom PrecisionModel
                                       Envelope
                                       GeometryFactory)))
@@ -14,7 +14,11 @@
        (fact (geohash 50 20 64) => (partial instance? GeoHash))
        (fact "from string"
              (geohash-center (geohash "u4pruydqqvj"))
-             => (spatial/geohash-point 57.64911063015461 10.407439693808556)))
+             => (spatial/geohash-point 57.64911063015461 10.407439693808556))
+       (fact "interchangeable center"
+             (jts/same-geom? (spatial/jts-point (geohash-center (geohash "u4p4uydqqvj")))
+                             (spatial/jts-point (spatial/center (geohash "u4p4uydqqvj"))))
+             => truthy))
 
 (facts "subdivide"
        (fact (map #(.longValue ^GeoHash %) (subdivide (geohash "")))
@@ -61,9 +65,9 @@
                 (square-ring [0 0] 3)])
          (fact (take 4 (concentric-square-rings [-2 5])) =>
                (cons [[-2 5]]
-               (map (partial apply square-ring) [[[-2 5] 3]
-                                                 [[-1 6] 5]
-                                                 [[ 0 7] 7]])))))
+                (map (partial apply square-ring) [[[-2 5] 3]
+                                                  [[-1 6] 5]
+                                                  [[ 0 7] 7]])))))
 
 (facts "geohash-area"
        (let [a 5.101e14] ; Earth's surface

@@ -1,17 +1,11 @@
 (ns geo.geohash
-  "Working with geohashes.
-
-
-  "
-  (:use geo.spatial)
+  "Working with geohashes."
+  (:require [geo.spatial :refer :all]
+            [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point
                            GeoHash)
-           (ch.hsr.geohash.util VincentyGeodesy)
            (org.locationtech.spatial4j.shape.impl RectangleImpl)
-           (org.locationtech.spatial4j.context.jts JtsSpatialContext)
-           (org.locationtech.spatial4j.shape SpatialRelation)
-           (org.locationtech.spatial4j.distance DistanceUtils)
-           (org.locationtech.spatial4j.context SpatialContextFactory)))
+           (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
 
 (defn geohash
   "Creates a geohash from a string, or at the given point with the given bit
@@ -29,11 +23,20 @@
   GeoHash
   (to-shape [^GeoHash geohash]
             (let [box (.getBoundingBox geohash)]
-              (.makeRectangle earth
-                              (.getMinLon box)
-                              (.getMaxLon box)
-                              (.getMinLat box)
-                              (.getMaxLat box)))))
+              (.rect jts-earth
+                     (.getMinLon box)
+                     (.getMaxLon box)
+                     (.getMinLat box)
+                     (.getMaxLat box))))
+  (to-jts ([^GeoHash geohash]
+           (jts/set-srid (.getGeometryFrom jts-earth (to-shape geohash)) 4326))
+          ([^GeoHash geohash srid]
+           (to-jts (to-jts geohash) srid)))
+
+  WGS84Point
+  (to-shape [this] (spatial4j-point this))
+  (to-jts ([this] (jts-point this))
+          ([this srid] (to-jts (to-jts this) srid))))
 
 (defn northern-neighbor [^GeoHash h] (.getNorthernNeighbour h))
 (defn eastern-neighbor [^GeoHash h] (.getEasternNeighbour h))
@@ -83,8 +86,8 @@
     [origin]
     ; We build the list backwards by recurring from last to first,
     ; counterclockwise.
-    (let [len   (* 4 (dec n))      ; Total sequence length
-          west  0                  ; We start (at L), with i = 0, going west
+    (let [;len   (* 4 (dec n))     ; Total sequence length
+          ;west  0                 ; We start (at L), with i = 0, going west
           south (- n 2)            ; Turn south at i = n - 2
           east  (+ south (- n 1))  ; Turn east
           north (+ east  (- n 1))  ; Turn north

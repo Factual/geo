@@ -9,13 +9,16 @@ coordinates, distances, and polygon intersections. We think this library will
 be particularly useful in concert with our [rich API of geospatial
 information](http://developer.factual.com/).
 
-We unify three open-source JVM geospatial libraries: The [JTS topology
-library](https://github.com/locationtech/jts),
-[spatial4j](https://github.com/spatial4j/spatial4j), and
-[geohash-java](https://clojars.org/la.tomoj/geohash-java). Clojure protocols
-allow these libraries' disparate representations of points and shapes to
-interoperate, so you can, for instance, ask whether a JTS point is within a
-geohash, or whether a geohash intersects a spatial4j multipolygon.
+We unify four open-source JVM geospatial libraries: The [JTS topology
+suite](https://github.com/locationtech/jts),
+[spatial4j](https://github.com/spatial4j/spatial4j),
+[geohash-java](https://github.com/kungfoo/geohash-java), and
+[proj4j](https://github.com/locationtech/geotrellis/tree/master/proj4). Clojure
+protocols allow these libraries' disparate representations of points, shapes,
+and spatial reference systems to interoperate, so you can, for instance, ask
+whether a JTS point is within a geohash, whether a geohash intersects a
+spatial4j multipolygon, or whether a geohash's center point intersects with a
+JTS polygon projected in a local state plane.
 
 In addition, we provide common scales and translation functions for unit
 conversion: converting between steradians and surface areas; finding the radius
@@ -188,7 +191,9 @@ in specific.
 
 ## geo.io
 
-Helper functions for dealing with common geospatial serialization formats. Use these to read and write from WKT, GeoJSON, and WKB.
+Helper functions for dealing with common geospatial serialization formats.
+Use these to read and write from WKT, GeoJSON, WKB in byte and in hex string
+formats, and EWKB in byte and in hex string formats.
 
 IO functions return JTS Geometries.
 
