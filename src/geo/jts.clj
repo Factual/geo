@@ -1,7 +1,7 @@
 (ns geo.jts
   "Wrapper for the locationtech JTS spatial library. Constructors for points,
   coordinate sequences, rings, polygons, multipolygons, and so on."
-  (:require [clojure.string :as str])
+  (:require [clojure.string :refer [join]])
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequenceFilter
                                       Geometry
@@ -53,7 +53,7 @@
 (defn srid->epsg
   "Converts SRID integer to EPSG string."
   [srid]
-  (str/join ["EPSG:" srid]))
+  (join ["EPSG:" srid]))
 
 (defn epsg->srid
   "Converts EPSG string to SRID, if possible."
@@ -113,7 +113,9 @@
 (defn coordinate
   "Creates a Coordinate."
   ([x y]
-   (Coordinate. x y)))
+   (Coordinate. x y))
+  ([x y z]
+   (Coordinate. x y z)))
 
 (defn point
   "Creates a Point from a Coordinate, or an x,y pair. Allows an optional SRID argument at end."
@@ -227,7 +229,7 @@
    (multi-polygon (map #(polygon-wkt % srid) wkt))))
 
 (defn- coord-dimension-check
-  "Check if a Coordinate is 3D or 2D"
+  "Return 3 if x, y, and z dimensions are valid. Return 2 if only x and y are valid."
   [coord]
   (let [x (not (Double/isNaN (.x coord)))
         y (not (Double/isNaN (.y coord)))
@@ -260,36 +262,30 @@
        (not= (get-srid g1) 0)))
 
 (defn same-coords?
-  "Check if two Coordinates have the same values."
+  "Check if two Coordinates have the same number of dimensions and equal ordinates."
   [^Coordinate c1 ^Coordinate c2]
   (let [d1 (coord-dimension-check c1)
         d2 (coord-dimension-check c2)]
     (and (= d1 d2)
          (cond (= d1 3)
-               (and (= (.x c1) (.x c2))
-                    (= (.y c1) (.y c2))
-                    (= (.z c1) (.z c2)))
+               (.equals3D c1 c2)
                (= d1 2)
-               (and (= (.x c1) (.x c2))
-                    (= (.y c1) (.y c2)))))))
+               (.equals2D c1 c2)))))
 
 (defn same-geom?
-  "Check if each vertex in two Geometries has the same coordinates and SRID."
+  "Check if two geometries are topologically equal, with the same SRID."
   [^Geometry g1 ^Geometry g2]
-  (let [coords1 (coordinates g1)
-        coords2 (coordinates g2)]
-    (and (same-srid? g1 g2)
-         (= (count coords1) (count coords2)))
-    (map #(same-coords? (nth coords1 %) (nth coords2 %)) (range (count coords1)))))
+  (and (same-srid? g1 g2)
+       (.equalsTopo g1 g2)))
 
 (defn- transform-coord
   "Transforms a coordinate using a proj4j transform.
   Can either be specified with a transform argument or two projection arguments."
   ([coord transform]
    (-> (.transform transform
-                   (ProjCoordinate. (.x coord) (.y coord))
+                   (ProjCoordinate. (.x coord) (.y coord) (.z coord))
                    (ProjCoordinate.))
-       (#(coordinate (.x %) (.y %)))))
+       (#(coordinate (.x %) (.y %) (.z %)))))
   ([coord c1 c2]
    (if (= c1 c2) coord
                        (transform-coord coord (create-transform c1

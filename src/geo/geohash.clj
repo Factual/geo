@@ -86,9 +86,9 @@
     [origin]
     ; We build the list backwards by recurring from last to first,
     ; counterclockwise.
-    (let [;len   (* 4 (dec n))     ; Total sequence length
-          ;west  0                 ; We start (at L), with i = 0, going west
-          south (- n 2)            ; Turn south at i = n - 2
+    ; Total sequence length is determined by (* 4 (dec n))
+    ; Start (at L), with i = 0, going west
+    (let [south (- n 2)            ; Turn south at i = n - 2
           east  (+ south (- n 1))  ; Turn east
           north (+ east  (- n 1))  ; Turn north
           end   (+ north n)]       ; Then stop (at F)

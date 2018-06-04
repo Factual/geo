@@ -40,8 +40,9 @@
          (same-geom? (transform-geom (point 3.8142776 51.285914 4326) 23031)
                      (point 556878.9016076007 5682145.166264554 23031))
          => truthy
-         (same-geom? (transform-geom (point 3.8142776 51.285914 4326)
-                                     "+proj=utm +zone=31 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs")
+         (same-geom? (set-srid (transform-geom (point 3.8142776 51.285914 4326)
+                                               "+proj=utm +zone=31 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs")
+                               23031)
                      (point 556878.9016076007 5682145.166264554 23031))
          => truthy)
        (fact "geometry: stereographic azimuthal, using a linestring"
@@ -50,7 +51,8 @@
            (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
          => truthy)
        (same-geom?
-         (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875])
-                         "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs")
+         (set-srid (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875])
+                                   "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs")
+                   3031)
          (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
        => truthy)
