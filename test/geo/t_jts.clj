@@ -36,6 +36,9 @@
          (-> segment .p1 .y) => 2.0))
 
 (facts "proj4j"
+       (fact "setting SRID for a geom"
+             (get-srid (point 0 0)) => 4326
+             (get-srid (set-srid (point 0 0) 23031)) => 23031)
        (fact "point: 3 param transform"
          (same-geom? (transform-geom (point 3.8142776 51.285914 4326) 23031)
                      (point 556878.9016076007 5682145.166264554 23031))

@@ -35,8 +35,7 @@
 (defn set-srid
   "Sets a geometry's SRID to a new value, and returns that geometry."
   [geom srid]
-  (.setSRID geom srid)
-  geom)
+  (doto geom (.setSRID srid)))
 
 (defn get-factory
   "Gets a GeometryFactory for a given geometry."
