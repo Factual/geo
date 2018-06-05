@@ -188,6 +188,21 @@
        (map string (neighbors (geohash "u4pruyd"))) => ["u4pruyf" "u4pruyg" "u4pruye"
                                                         "u4pruy7" "u4pruy6" "u4pruy3"
                                                         "u4pruy9" "u4pruyc"])
+
+(facts "Converting geohashes to shapes"
+       (let [gh (geohash "9q5")]
+         (spatial/area gh) => 2.0161507786744812E10))
+
+(facts "Getting bounding geometries for geohashes"
+       (let [gh (geohash "9q5")
+             points [[-119.53125 33.75, -119.53125 35.15625, -118.125 35.15625, -118.125 33.75, -119.53125 33.75]]]
+         (bbox-geom gh) => (jts/polygon-wkt points)))
+
+(facts "Getting bounding Shapes for geohashes"
+       (let [gh (geohash "9q5")]
+         (bbox gh) => (.rect spatial/jts-earth -119.53125 -118.125 33.75 35.15625)
+         (bbox gh) => (spatial/to-shape gh)))
+
 (comment
   "intersecting-geohashes benchmarking"
   (let [sample-wkt "POLYGON((-107.814331054688 33.9746840624585,-107.63786315918 34.2560813847164,-107.405776977539 33.9991657910092,-107.814331054688 33.9746840624585))"

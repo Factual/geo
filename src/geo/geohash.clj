@@ -2,9 +2,8 @@
   "Working with geohashes."
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts])
-  (:import (ch.hsr.geohash WGS84Point
-                           GeoHash)
-           (org.locationtech.spatial4j.shape.impl RectangleImpl)
+  (:import (ch.hsr.geohash WGS84Point GeoHash)
+           (org.locationtech.spatial4j.shape Shape)
            (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
 
 (defn geohash
@@ -19,16 +18,20 @@
   ([lat long precision]
    (GeoHash/withBitPrecision lat long precision)))
 
-(extend-protocol Shapelike
+(defn bbox ^Shape [^GeoHash geohash]
+  (let [box (.getBoundingBox geohash)]
+    (.rect spatial/jts-earth
+           (.getMinLon box)
+           (.getMaxLon box)
+           (.getMinLat box)
+           (.getMaxLat box))))
+
+(defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
+  (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash)))
+
 (extend-protocol spatial/Shapelike
   GeoHash
-  (to-shape [^GeoHash geohash]
-            (let [box (.getBoundingBox geohash)]
-              (.rect jts-earth
-                     (.getMinLon box)
-                     (.getMaxLon box)
-                     (.getMinLat box)
-                     (.getMaxLat box))))
+  (to-shape [^GeoHash geohash] (bbox geohash))
   (to-jts ([^GeoHash geohash]
            (jts/set-srid (bbox-geom geohash) 4326))
           ([^GeoHash geohash srid]
@@ -187,15 +190,6 @@
   "Estimates the precision which generates geohash regions on the scale of the
   given shape."
   [shape]
-
-(defn bbox-geom [^GeoHash geohash]
-  (let [bbox (.getBoundingBox geohash)
-        rect (RectangleImpl. (.getMinLon bbox)
-                             (.getMaxLon bbox)
-                             (.getMinLat bbox)
-                             (.getMaxLat bbox)
-                             JtsSpatialContext/GEO)]
-    (.getGeometryFrom JtsSpatialContext/GEO rect)))
   (min (least-upper-bound-index degrees-precision-lat-cache (spatial/height shape))
        (least-upper-bound-index degrees-precision-long-cache (spatial/height shape))))
 
