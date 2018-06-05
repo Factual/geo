@@ -156,32 +156,10 @@
   ([wkt srid]
    (multi-polygon (map #(polygon-wkt % srid) wkt))))
 
-(defn- coord-dimension-check
-  "Return 3 if x, y, and z dimensions are valid. Return 2 if only x and y are valid."
-  [coord]
-  (let [x (not (Double/isNaN (.x coord)))
-        y (not (Double/isNaN (.y coord)))
-        z (not (Double/isNaN (.z coord)))]
-    (cond (and x y z)
-          3
-          (and x y)
-          2)))
-
 (defn coordinates
   "Get a sequence of Coordinates from a Geometry"
   [^Geometry geom]
   (into [] (.getCoordinates geom)))
-
-(defn geom-dimension-check
-  "In a Geometry, return 3 if any Coordinate has a Z.
-  Otherwise return 2 if any Coordinate has a Y."
-  [geom]
-  (let [coords (coordinates geom)
-        dimensions (into [] (map coord-dimension-check coords))]
-    (cond (some #{3} dimensions)
-          3
-          (some #{2} dimensions)
-          2)))
 
 (defn same-srid?
   "Check if two Geometries have the same SRID."
@@ -192,13 +170,7 @@
 (defn same-coords?
   "Check if two Coordinates have the same number of dimensions and equal ordinates."
   [^Coordinate c1 ^Coordinate c2]
-  (let [d1 (coord-dimension-check c1)
-        d2 (coord-dimension-check c2)]
-    (and (= d1 d2)
-         (cond (= d1 3)
-               (.equals3D c1 c2)
-               (= d1 2)
-               (.equals2D c1 c2)))))
+  (.equals2D c1 c2))
 
 (defn same-geom?
   "Check if two geometries are topologically equal, with the same SRID."

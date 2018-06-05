@@ -13,8 +13,6 @@
 (def ^WKBReader wkb-reader (WKBReader.))
 (def ^WKBWriter wkb-writer (WKBWriter.))
 (def ^WKBWriter wkb-writer-2d-srid (WKBWriter. 2 true))
-(def ^WKBWriter wkb-writer-3d-srid (WKBWriter. 3 true))
-(def wkb-dimensions {2 wkb-writer-2d-srid 3 wkb-writer-3d-srid})
 
 (def ^GeoJsonReader geojson-reader (GeoJsonReader.))
 (def ^GeoJsonWriter geojson-writer (GeoJsonWriter.))
@@ -41,9 +39,7 @@
 
 (defn to-ewkb [^Geometry geom]
   "Write an EWKB, including the SRID"
-  (-> geom
-      jts/geom-dimension-check
-      (.write geom)))
+  (.write wkb-writer-2d-srid geom))
 
 (defn to-wkb-hex
   "Write a WKB as a hex string, excluding any SRID"
