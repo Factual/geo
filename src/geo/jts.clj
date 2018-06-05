@@ -24,8 +24,9 @@
   [srid]
   (GeometryFactory. pm srid))
 
-(def ^GeometryFactory gf-wgs84
-  (gf 4326))
+(def default-srid 4326)
+
+(def ^GeometryFactory gf-wgs84 (gf default-srid))
 
 (defn get-srid
   "Gets an integer SRID for a given geometry."
@@ -137,8 +138,7 @@
 
    Allows an optional SRID argument at end."
   ([rings]
-   (let [rings (map linear-ring-wkt rings)]
-     (polygon (first rings) (into-array LinearRing (rest rings)))))
+   (polygon-wkt rings default-srid))
   ([rings srid]
    (let [rings (map #(linear-ring-wkt % srid) rings)]
      (polygon (first rings) (into-array LinearRing (rest rings))))))
