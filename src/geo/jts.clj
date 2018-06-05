@@ -52,13 +52,9 @@
 (defn point
   "Creates a Point from a Coordinate, or an x,y pair. Allows an optional SRID argument at end."
   ([^Coordinate coordinate]
-   (.createPoint gf-wgs84 coordinate))
-  ([x-or-coordinate y-or-srid]
-   (cond (and (number? x-or-coordinate) (number? y-or-srid))
-         (point (coordinate x-or-coordinate y-or-srid))
-         (and (instance? Coordinate x-or-coordinate)
-              (integer? y-or-srid))
-         (.createPoint (gf y-or-srid) x-or-coordinate)))
+   (.createPoint gf coordinate))
+  ([x y]
+   (point (coordinate x y)))
   ([x y srid]
    (point (coordinate x y) srid)))
 
