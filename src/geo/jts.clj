@@ -1,7 +1,7 @@
 (ns geo.jts
   "Wrapper for the locationtech JTS spatial library. Constructors for points,
   coordinate sequences, rings, polygons, multipolygons, and so on."
-  (:require [clojure.string :refer [join]])
+  (:require [geo.crs :as crs])
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequenceFilter
                                       Geometry
@@ -41,73 +41,6 @@
   "Gets a GeometryFactory for a given geometry."
   [geom]
   (.getFactory geom))
-
-(defn epsg?
-  [s]
-  (try (and (= (subs s 0 4) "EPSG")
-            (int? (read-string (subs s 5))))
-       (catch Exception _
-         false)))
-
-(defn srid->epsg
-  "Converts SRID integer to EPSG string."
-  [srid]
-  (join ["EPSG:" srid]))
-
-(defn epsg->srid
-  "Converts EPSG string to SRID, if possible."
-  [epsg]
-  (cond (int? epsg)
-        epsg
-        (epsg? epsg)
-        (read-string (subs epsg 5))))
-
-(def ^CoordinateTransformFactory ctf-factory
-  (CoordinateTransformFactory.))
-
-(def ^CRSFactory crs-factory
-  (CRSFactory.))
-
-(defn crs-name?
-  "Check if input is a valid CRS name"
-  [c]
-  (try (or (= (subs c 0 5) "EPSG:")
-           (= (subs c 0 5) "ESRI:")
-           (= (subs c 0 5) "NA83:")
-           (= (subs c 0 6) "WORLD:")
-           (= (subs c 0 6) "NAD27:"))
-       (catch Exception _
-         false)))
-
-(defn proj4-string?
-  "Check if input appears to be a proj4 string"
-  [c]
-  (try (.contains c "+proj=")
-       (catch Exception _
-         false)))
-
-
-(defn- create-crs
-  "Create a CRS system. If given an integer, assume it is an EPSG code.
-  If given a valid CRS name or proj4 string, use that as the CRS identifier."
-  [c]
-  (cond (int? c)
-        (.createFromName crs-factory (srid->epsg c))
-        (crs-name? c)
-        (.createFromName crs-factory c)
-        (proj4-string? c)
-        (.createFromParameters crs-factory "" c)))
-
-(defn- create-transform
-  "Creates a proj4j transform between two projection systems.
-  c1 or c2 can be:
-   integers (which will be interpreted as that EPSG);
-   a string identifier for types EPSG:XXXX, ESRI:XXXX, WORLD:XXXX, NA83:XXXX, or NAD27:XXXX;
-   or a proj4 string."
-  [c1 c2]
-  (.createTransform ctf-factory
-                    (create-crs c1)
-                    (create-crs c2)))
 
 (defn coordinate
   "Creates a Coordinate."
@@ -287,8 +220,7 @@
        (#(coordinate (.x %) (.y %) (.z %)))))
   ([coord c1 c2]
    (if (= c1 c2) coord
-                       (transform-coord coord (create-transform c1
-                                                                c2)))))
+       (transform-coord coord (crs/create-transform c1 c2)))))
 
 (defn- transform-coord-seq-item
   "Transforms one item in a CoordinateSequence using a proj4j transform."
@@ -314,8 +246,8 @@
   [g c]
   (cond (int? c)
         (set-srid g c)
-        (epsg? c)
-        (set-srid g (epsg->srid c))
+        (crs/epsg? c)
+        (set-srid g (crs/epsg->srid c))
         :else
         g))
 
@@ -324,7 +256,7 @@
   When the target transformation is an EPSG code, set the Geometry's SRID to that integer."
   [g c1 c2]
   (let [tcsf (transform-coord-seq-filter
-               (create-transform c1 c2))]
+               (crs/create-transform c1 c2))]
     (.apply g tcsf)
     (tf-set-srid g c2)))
 
@@ -337,7 +269,7 @@
      (cond (= geom-srid 0)
            (Exception. "Geometry does not have an SRID")
            (or (= geom-srid crs)
-               (= (srid->epsg geom-srid) crs))
+               (= (crs/srid->epsg geom-srid) crs))
            g
            :else
            (transform-geom g geom-srid crs))))
