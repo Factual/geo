@@ -311,12 +311,10 @@
   actually refers to solid angle, not area; we convert by multiplying by the
   earth's radius at the midpoint of the rectangle."
   [rect]
-  ;(let [a (area-in-square-degrees rect)
-  ;      r (earth-radius (center rect))
   (-> rect
-    area-in-square-degrees
-    square-degrees->steradians
-    steradians->area))
+      area-in-square-degrees
+      square-degrees->steradians
+      steradians->area))
 
 (defn relate
   "The relationship between two shapes. Returns a keyword:
