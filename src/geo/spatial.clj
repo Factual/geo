@@ -432,6 +432,27 @@
          angles)))
 
 (defn rand-point-in-radius
+  "Get a random point around the given latitude and longitude within the given radius.
+
+  (rand-point-in-radius 34.05656 -118.41881 100)
+  (rand-point-in-radius 34.05656 -118.41881 100 :clustered)
+  (rand-point-in-radius 34.05656 -118.41881 100 (fn [] 1))
+
+  Returns org.locationtech.spatial4j.shape.jts.JtsPoint; Use geo.spatial/latitude and geo.spatial/longitude
+  to retrieve raw coords.
+
+  Accepts an optional 4th argument for customizing the distribution. Can be either :uniform or :clustered
+  for built-in distributions, or a custom fn.
+
+  Distribution fn should return a float between 0.0 and 1.0 when invoked.
+
+  The built-in :clustered distribution uses a linear distribution of radius, which results in points
+  clustered more heavily toward the center of the radius.
+
+  :uniform uses an exponential distribution of radius which results in points being spread evenly across
+  the circle.
+
+  Default distribution is :uniform."
   ([center-lat center-lon radius-meters]
    (rand-point-in-radius center-lat center-lon radius-meters :uniform))
   ([center-lat center-lon radius-meters distribution]
