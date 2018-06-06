@@ -23,7 +23,7 @@
                                              Shape
                                              Rectangle)
            (org.locationtech.jts.geom Geometry Coordinate)
-           (org.locationtech.spatial4j.shape.impl PointImpl RectangleImpl)
+           (org.locationtech.spatial4j.shape.impl GeoCircle PointImpl RectangleImpl)
            (org.locationtech.spatial4j.shape.jts JtsGeometry
                                                  JtsPoint
                                                  JtsShapeFactory)
@@ -92,21 +92,34 @@
   (>= (.getWidth (.getEnvelopeInternal jts-geom))
       180))
 
-(defn shape->geom
-  [^Shape shape]
-  (cond (or (instance? RectangleImpl shape) (instance? JtsGeometry shape))
-        (.getGeom shape)
-        (or (instance? PointImpl shape) (instance? JtsPoint shape))
-        (jts-point (.getY shape) (.getX shape))))
-
 (defprotocol Shapelike
   (^Shape to-shape [this] "Convert anything to a Shape.")
   (^Geometry to-jts [this] [this srid] "Convert anything to a projected JTS Geometry."))
 
 (extend-protocol Shapelike
-  Shape
+  GeoCircle
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (shape->geom this) 4326))
+  (to-jts ([_] (Exception. "Cannot cast GeoCircle to JTS."))
+          ([_ _] (Exception. "Cannot cast GeoCircle to JTS.")))
+
+  RectangleImpl
+  (to-shape [this] this)
+  (to-jts ([this] (jts/set-srid (.getGeom this) jts/default-srid))
+          ([this srid] (to-jts (to-jts this) srid)))
+
+  PointImpl
+  (to-shape [this] this)
+  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) jts/default-srid))
+          ([this srid] (to-jts (to-jts this) srid)))
+
+  JtsGeometry
+  (to-shape [this] this)
+  (to-jts ([this] (jts/set-srid (.getGeom this) jts/default-srid))
+          ([this srid] (to-jts (to-jts this) srid)))
+
+  JtsPoint
+  (to-shape [this] this)
+  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) jts/default-srid))
           ([this srid] (to-jts (to-jts this) srid)))
 
   Geometry

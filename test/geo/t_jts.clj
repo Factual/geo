@@ -1,6 +1,6 @@
 (ns geo.t-jts
   (:require [geo.jts :refer :all]
-            [midje.sweet :refer [fact facts truthy]])
+            [midje.sweet :refer [fact facts throws truthy]])
   (:import (org.locationtech.jts.geom Coordinate)))
 
 (facts "coordinate"
@@ -53,9 +53,18 @@
            (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875]) 3031)
            (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
          => truthy)
-       (same-geom?
-         (set-srid (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875])
-                                   "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs")
-                   3031)
-         (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
-       => truthy)
+       (fact "geometry: stereographic azimuthal, using a linestring, projected with proj4 string"
+         (same-geom?
+           (set-srid (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875])
+                                     "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs")
+                     3031)
+           (linestring-wkt [0 1638783.2384072358 -992481.6337864351 628482.0632797639] 3031))
+         => truthy)
+       (fact "geometry: projecting from a geometry with 0 SRID using only target CRS throws exception"
+             (transform-geom (point 10 10 0) 4326)
+             => throws)
+       (fact "geometry: projecting from a geometry with a 0 SRID using both a source and target CRS"
+             (same-geom?
+               (transform-geom (point 10 10 0) 4326 4326)
+               (point 10 10 4326))
+             => truthy))

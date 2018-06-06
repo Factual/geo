@@ -2,7 +2,7 @@
   (:require [geo.jts :as jts]
             [geo.spatial :as s]
             [geo.geohash :refer :all]
-            [midje.sweet :refer [fact facts falsey future-fact n-of roughly truthy]])
+            [midje.sweet :refer [fact facts falsey future-fact n-of roughly throws truthy]])
   (:import (org.locationtech.spatial4j.context SpatialContext)
            (org.locationtech.spatial4j.shape.jts JtsGeometry)))
 
@@ -101,6 +101,15 @@
 
          ; Two-way conversion
          (fact (s->j j1) => j1)))
+
+(facts "spatial4j circles cannot be converted to JTS"
+       (let [cir1 (s/circle (s/point 0 0) 100)]
+
+         ; Attempt to convert GeoCircle to JTS.
+         (fact (s/to-jts cir1) => throws)
+
+         ; Attempt to convert GeoCircle to projected JTS.
+         (fact (s/to-jts cir1 jts/default-srid) => throws)))
 
 ; Have some airports
 (let [lhr (s/spatial4j-point 51.477500 -0.461388)
