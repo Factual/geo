@@ -419,18 +419,6 @@
 
 (def vincenty-distance-calculator (org.locationtech.spatial4j.distance.GeodesicSphereDistCalc$Vincenty.))
 
-(defn make-circle-points [center-lat center-lon radius-meters num-points]
-  (let [center (point center-lat center-lon)
-        offset (radians->degrees (distance-at-point->radians radius-meters center))
-        angles (map (fn [i] (* (/ 360.0 num-points) i)) (range num-points))]
-    (map (fn [angle] (.pointOnBearing vincenty-distance-calculator
-                                      center
-                                      offset
-                                      angle
-                                      earth
-                                      nil))
-         angles)))
-
 (defn rand-point-in-radius
   "Get a random point around the given latitude and longitude within the given radius.
 
