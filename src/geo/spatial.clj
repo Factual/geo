@@ -99,8 +99,8 @@
 (extend-protocol Shapelike
   GeoCircle
   (to-shape [this] this)
-  (to-jts ([_] (Exception. "Cannot cast GeoCircle to JTS."))
-          ([_ _] (Exception. "Cannot cast GeoCircle to JTS.")))
+  (to-jts ([_] (throw (Exception. "Cannot cast GeoCircle to JTS.")))
+          ([_ _] (throw (Exception. "Cannot cast GeoCircle to JTS."))))
 
   RectangleImpl
   (to-shape [this] this)

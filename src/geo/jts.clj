@@ -234,7 +234,7 @@
   ([g crs]
    (let [geom-srid (get-srid g)]
      (cond (= geom-srid 0)
-           (Exception. "Geometry does not have an SRID")
+           (throw (Exception. "Geometry does not have an SRID"))
            (or (= geom-srid crs)
                (= (crs/srid->epsg geom-srid) crs))
            g
