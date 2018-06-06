@@ -211,19 +211,15 @@
 (defn- tf-set-srid
   "When the final projection for a tf is an SRID or EPSG, set the Geometry's SRID."
   [g c]
-  (cond (int? c)
-        (set-srid g c)
-        (crs/epsg? c)
-        (set-srid g (crs/epsg->srid c))
-        :else
-        g))
+  (cond (int? c) (set-srid g c)
+        (crs/epsg? c) (set-srid g (crs/epsg-str->srid c))
+        :else g))
 
 (defn- tf
   "Transform a Geometry from one CRS to another.
   When the target transformation is an EPSG code, set the Geometry's SRID to that integer."
   [g c1 c2]
-  (let [tcsf (transform-coord-seq-filter
-               (crs/create-transform c1 c2))]
+  (let [tcsf (transform-coord-seq-filter (crs/create-transform c1 c2))]
     (.apply g tcsf)
     (tf-set-srid g c2)))
 
