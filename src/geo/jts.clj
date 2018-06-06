@@ -13,9 +13,7 @@
                                       Polygon
                                       PrecisionModel
                                       GeometryFactory)
-           (org.osgeo.proj4j CoordinateTransformFactory
-                             CRSFactory
-                             ProjCoordinate)))
+           (org.osgeo.proj4j ProjCoordinate)))
 
 (def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
@@ -51,13 +49,13 @@
    (Coordinate. x y z)))
 
 (defn point
-  "Creates a Point from a Coordinate, or an x,y pair. Allows an optional SRID argument at end."
+  "Creates a Point from a Coordinate, a lat/long, or an x,y pair with an SRID."
   ([^Coordinate coordinate]
-   (.createPoint gf coordinate))
-  ([x y]
-   (point (coordinate x y)))
+   (.createPoint gf-wgs84 coordinate))
+  ([lat long]
+   (point long lat default-srid))
   ([x y srid]
-   (point (coordinate x y) srid)))
+   (.createPoint (gf srid) (coordinate x y))))
 
 (defn coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
@@ -242,6 +240,6 @@
            :else
            (transform-geom g geom-srid crs))))
   ([g crs1 crs2]
-   (-> (if (= crs1 crs2)
-         (tf-set-srid g crs2)
-         (tf (.clone g) crs1 crs2)))))
+   (if (= crs1 crs2)
+     (tf-set-srid g crs2)
+     (tf (.clone g) crs1 crs2))))

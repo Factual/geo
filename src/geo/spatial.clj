@@ -211,9 +211,9 @@
 (defn jts-point
   "Returns a Point used by JTS."
   ([point]
-   (jts/point (longitude point) (latitude point)))
+   (jts/point (latitude point) (longitude point)))
   ([lat long]
-   (jts/point long lat)))
+   (jts/point lat long)))
 
 (defn steradians->area
   "Converts steradians to square meters on the surface of the earth. Assumes

@@ -2,8 +2,7 @@
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
   (:require [clojure.string :refer [join]])
   (:import (org.osgeo.proj4j CoordinateTransformFactory
-                             CRSFactory
-                             ProjCoordinate)))
+                             CRSFactory)))
 
 (defn epsg?
   [s]
