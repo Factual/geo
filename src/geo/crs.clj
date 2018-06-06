@@ -31,13 +31,14 @@
   (CRSFactory.))
 
 (defn crs-name?
-  "Check if input is a valid CRS name"
+  "Check if input is a valid CRS name accepted by proj4j. Accepted CRS names are in the forms
+  EPSG:xxxx, ESRI:xxxx, NAD83:xxxx, NAD27:xxx, or WORLD:xxxx."
   [c]
   (try (or (= (subs c 0 5) "EPSG:")
            (= (subs c 0 5) "ESRI:")
-           (= (subs c 0 5) "NA83:")
-           (= (subs c 0 6) "WORLD:")
-           (= (subs c 0 6) "NAD27:"))
+           (= (subs c 0 6) "NAD83:")
+           (= (subs c 0 6) "NAD27:")
+           (= (subs c 0 6) "WORLD:"))
        (catch Exception _
          false)))
 
@@ -63,7 +64,7 @@
   "Creates a proj4j transform between two projection systems.
   c1 or c2 can be:
    integers (which will be interpreted as that EPSG);
-   a string identifier for types EPSG:XXXX, ESRI:XXXX, WORLD:XXXX, NA83:XXXX, or NAD27:XXXX;
+   a string identifier for types EPSG:XXXX, ESRI:XXXX, WORLD:XXXX, NAD83:XXXX, or NAD27:XXXX;
    or a proj4 string."
   [c1 c2]
   (.createTransform ctf-factory

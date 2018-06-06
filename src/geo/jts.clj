@@ -160,7 +160,7 @@
   (into [] (.getCoordinates geom)))
 
 (defn same-srid?
-  "Check if two Geometries have the same SRID."
+  "Check if two Geometries have the same SRID. If both geometries have SRIDs of 0, will also return true."
   [^Geometry g1 ^Geometry g2]
   (and (= (get-srid g1) (get-srid g2))
        (not= (get-srid g1) 0)))
@@ -171,7 +171,8 @@
   (.equals2D c1 c2))
 
 (defn same-geom?
-  "Check if two geometries are topologically equal, with the same SRID."
+  "Check if two geometries are topologically equal, with the same SRID.
+  Two SRIDs of 0 are considered equal to each other."
   [^Geometry g1 ^Geometry g2]
   (and (same-srid? g1 g2)
        (.equalsTopo g1 g2)))
