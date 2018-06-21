@@ -232,7 +232,7 @@
      (cond (= geom-srid 0)
            (throw (Exception. "Geometry does not have an SRID"))
            (or (= geom-srid crs)
-               (= (crs/srid->epsg geom-srid) crs))
+               (= (crs/srid->epsg-str geom-srid) crs))
            g
            :else
            (transform-geom g geom-srid crs))))

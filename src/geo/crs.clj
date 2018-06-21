@@ -43,7 +43,7 @@
   If given a valid CRS name or proj4 string, use that as the CRS identifier."
   [c]
   (cond (int? c)
-        (.createFromName crs-factory (srid->epsg c))
+        (.createFromName crs-factory (srid->epsg-str c))
         (crs-name? c)
         (.createFromName crs-factory c)
         (proj4-string? c)
