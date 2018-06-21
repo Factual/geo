@@ -162,8 +162,7 @@
 (defn same-srid?
   "Check if two Geometries have the same SRID. If both geometries have SRIDs of 0, will also return true."
   [^Geometry g1 ^Geometry g2]
-  (and (= (get-srid g1) (get-srid g2))
-       (not= (get-srid g1) 0)))
+  (= (get-srid g1) (get-srid g2)))
 
 (defn same-coords?
   "Check if two Coordinates have the same number of dimensions and equal ordinates."
@@ -212,7 +211,7 @@
   "When the final projection for a tf is an SRID or EPSG, set the Geometry's SRID."
   [g c]
   (cond (int? c) (set-srid g c)
-        (crs/epsg? c) (set-srid g (crs/epsg-str->srid c))
+        (crs/epsg-str? c) (set-srid g (crs/epsg-str->srid c))
         :else g))
 
 (defn- tf
@@ -229,13 +228,10 @@
   When two are given, force the transformation to occur between those two systems."
   ([g crs]
    (let [geom-srid (get-srid g)]
-     (cond (= geom-srid 0)
-           (throw (Exception. "Geometry does not have an SRID"))
-           (or (= geom-srid crs)
-               (= (crs/srid->epsg-str geom-srid) crs))
-           g
-           :else
-           (transform-geom g geom-srid crs))))
+     (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
+     (if (or (= geom-srid crs) (= (crs/srid->epsg-str geom-srid) crs))
+       g
+       (transform-geom g geom-srid crs))))
   ([g crs1 crs2]
    (if (= crs1 crs2)
      (tf-set-srid g crs2)
