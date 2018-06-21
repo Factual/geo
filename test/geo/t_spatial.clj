@@ -219,34 +219,38 @@
                (-> rs last s/length) => (roughly 16265 50)
                (-> rs count) => 14)))
 
-(facts "Getting a random point in a radius"
-       (let [points (take 20 (repeatedly (partial s/rand-point-in-radius 0 0 500)))]
-         (->> points
-              (map (partial s/distance (s/point 0 0)))
-              (map #(>= 500 % 0))) => (n-of true 20))
+;; overriding core.rand with a custom generator to specify seed
+(let [gen (java.util.Random. 1)]
+  (with-redefs [clojure.core/rand (fn [& args] (if-let [i (first args)]
+                                                 (* i (.nextDouble gen))
+                                                 (.nextDouble gen)))]
+    (facts (str "Getting a random point in a radius")
+           (let [points (take 20 (repeatedly (partial s/rand-point-in-radius 0 0 500)))]
+             (->> points
+                  (map (partial s/distance (s/point 0 0)))
+                  (map #(>= 500 % 0))) => (n-of true 20))
 
-       (fact "Accepts custom distribution function"
-             (let [distrib (fn [] 1)
-                   points (take 20 )]
-               (->> (partial s/rand-point-in-radius 0 0 100 distrib)
-                    (repeatedly)
-                    (take 20)
-                    (map (partial s/distance (s/point 0 0)))
-                    (map (roughly 100.0 1.0))) => (n-of true 20)))
+           (fact "Accepts custom distribution function"
+                 (let [distrib (fn [] 1)
+                       points (take 20 )]
+                   (->> (partial s/rand-point-in-radius 0 0 100 distrib)
+                        (repeatedly)
+                        (take 20)
+                        (map (partial s/distance (s/point 0 0)))
+                        (map (roughly 100.0 1.0))) => (n-of true 20)))
 
-       (fact "Uniform vs Clustered distributions"
-             (let [c-points (take 1000 (repeatedly (partial s/rand-point-in-radius 0 0 100 :clustered)))
-                   u-points (take 1000 (repeatedly (partial s/rand-point-in-radius 0 0 100 :uniform)))
-                   dist (partial s/distance (s/point 0 0))]
+           (fact "Uniform vs Clustered distributions"
+                 (let [c-points (take 1000 (repeatedly (partial s/rand-point-in-radius 0 0 100 :clustered)))
+                       u-points (take 1000 (repeatedly (partial s/rand-point-in-radius 0 0 100 :uniform)))
+                       dist (partial s/distance (s/point 0 0))]
+                   ;; Clustered distribution places ~50% of points within 50m, i.e. radius midpoint
+                   (->> c-points
+                        (map dist)
+                        (filter (partial > 50))
+                        count) => (roughly 500 20)
 
-               ;; Clustered distribution places ~50% of points within 50m, i.e. radius midpoint
-               (->> c-points
-                    (map dist)
-                    (filter (partial > 50))
-                    count) => (roughly 500 50)
-
-               ;; Uniform distribution places ~25% of points within 50m, i.e. radius midpoint
-               (->> u-points
-                    (map dist)
-                    (filter (partial > 50))
-                    count) => (roughly 250 50))))
+                   ;; Uniform distribution places ~25% of points within 50m, i.e. radius midpoint
+                   (->> u-points
+                        (map dist)
+                        (filter (partial > 50))
+                        count) => (roughly 250 10))))))
