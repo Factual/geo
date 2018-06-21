@@ -1,17 +1,10 @@
 (ns geo.geohash
-  "Working with geohashes.
-
-
-  "
-  (:use geo.spatial)
-  (:import (ch.hsr.geohash WGS84Point
-                           GeoHash)
-           (ch.hsr.geohash.util VincentyGeodesy)
-           (org.locationtech.spatial4j.shape.impl RectangleImpl)
-           (org.locationtech.spatial4j.context.jts JtsSpatialContext)
-           (org.locationtech.spatial4j.shape SpatialRelation)
-           (org.locationtech.spatial4j.distance DistanceUtils)
-           (org.locationtech.spatial4j.context SpatialContextFactory)))
+  "Working with geohashes."
+  (:require [geo.spatial :as spatial]
+            [geo.jts :as jts])
+  (:import (ch.hsr.geohash WGS84Point GeoHash)
+           (org.locationtech.spatial4j.shape Shape)
+           (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
 
 (defn geohash
   "Creates a geohash from a string, or at the given point with the given bit
@@ -19,21 +12,35 @@
   ([string]
    (GeoHash/fromGeohashString string))
   ([point precision]
-   (geohash (latitude point)
-            (longitude point)
+   (geohash (spatial/latitude point)
+            (spatial/longitude point)
             precision))
   ([lat long precision]
    (GeoHash/withBitPrecision lat long precision)))
 
-(extend-protocol Shapelike
+(defn bbox ^Shape [^GeoHash geohash]
+  (let [box (.getBoundingBox geohash)]
+    (.rect spatial/jts-earth
+           (.getMinLon box)
+           (.getMaxLon box)
+           (.getMinLat box)
+           (.getMaxLat box))))
+
+(defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
+  (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash)))
+
+(extend-protocol spatial/Shapelike
   GeoHash
-  (to-shape [^GeoHash geohash]
-            (let [box (.getBoundingBox geohash)]
-              (.makeRectangle earth
-                              (.getMinLon box)
-                              (.getMaxLon box)
-                              (.getMinLat box)
-                              (.getMaxLat box)))))
+  (to-shape [^GeoHash geohash] (bbox geohash))
+  (to-jts ([^GeoHash geohash]
+           (jts/set-srid (bbox-geom geohash) 4326))
+          ([^GeoHash geohash srid]
+           (spatial/to-jts (spatial/to-jts geohash) srid)))
+
+  WGS84Point
+  (to-shape [this] (spatial/spatial4j-point this))
+  (to-jts ([this] (spatial/jts-point this))
+          ([this srid] (spatial/to-jts (spatial/to-jts this) srid))))
 
 (defn northern-neighbor [^GeoHash h] (.getNorthernNeighbour h))
 (defn eastern-neighbor [^GeoHash h] (.getEasternNeighbour h))
@@ -83,9 +90,9 @@
     [origin]
     ; We build the list backwards by recurring from last to first,
     ; counterclockwise.
-    (let [len   (* 4 (dec n))      ; Total sequence length
-          west  0                  ; We start (at L), with i = 0, going west
-          south (- n 2)            ; Turn south at i = n - 2
+    ; Total sequence length is determined by (* 4 (dec n))
+    ; Start (at L), with i = 0, going west
+    (let [south (- n 2)            ; Turn south at i = n - 2
           east  (+ south (- n 1))  ; Turn east
           north (+ east  (- n 1))  ; Turn north
           end   (+ north n)]       ; Then stop (at F)
@@ -135,10 +142,10 @@
         max-long (.getMaxLon box)
         mean-lat (/ (+ min-lat max-lat) 2)
         mean-long (/ (+ min-long max-long) 2)]
-    [(distance (geohash-point min-lat mean-long)
-               (geohash-point max-lat mean-long))
-     (distance (geohash-point mean-lat min-long)
-               (geohash-point mean-lat max-long))]))
+    [(spatial/distance (spatial/geohash-point min-lat mean-long)
+               (spatial/geohash-point max-lat mean-long))
+     (spatial/distance (spatial/geohash-point mean-lat min-long)
+               (spatial/geohash-point mean-lat max-long))]))
 
 (defn geohash-midline-area
   "An estimate of a geohash's area, in square meters, based on its midline
@@ -151,7 +158,7 @@
   the given geohash."
   [^GeoHash geohash]
   (let [box (.getBoundingBox geohash)]
-    (distance (.getLowerRight box) (.getUpperLeft box))))
+    (spatial/distance (.getLowerRight box) (.getUpperLeft box))))
 
 (defn geohash-max-error
   "Returns the maximum error (i.e. the distance between opposite corners of the
@@ -169,9 +176,9 @@
 (defn character-precision [^GeoHash geohash] (.getCharacterPrecision geohash))
 
 (def degrees-precision-long-cache
-  (map (comp width (partial geohash 45 45)) (range 0 64)))
+  (map (comp spatial/width (partial geohash 45 45)) (range 0 64)))
 (def degrees-precision-lat-cache
-  (map (comp height (partial geohash 45 45)) (range 0 64)))
+  (map (comp spatial/height (partial geohash 45 45)) (range 0 64)))
 
 (defn least-upper-bound-index
   "Given a sequence of numbers in descending order, finds the index of the
@@ -183,17 +190,8 @@
   "Estimates the precision which generates geohash regions on the scale of the
   given shape."
   [shape]
-  (min (least-upper-bound-index degrees-precision-lat-cache (height shape))
-       (least-upper-bound-index degrees-precision-long-cache (height shape))))
-
-(defn bbox-geom [^GeoHash geohash]
-  (let [bbox (.getBoundingBox geohash)
-        rect (RectangleImpl. (.getMinLon bbox)
-                             (.getMaxLon bbox)
-                             (.getMinLat bbox)
-                             (.getMaxLat bbox)
-                             JtsSpatialContext/GEO)]
-    (.getGeometryFrom JtsSpatialContext/GEO rect)))
+  (min (least-upper-bound-index degrees-precision-lat-cache (spatial/height shape))
+       (least-upper-bound-index degrees-precision-long-cache (spatial/height shape))))
 
 (defn- queue [] clojure.lang.PersistentQueue/EMPTY)
 
@@ -206,7 +204,7 @@
        (persistent! matches)
        (let [^GeoHash current (peek queue)
              level (significant-bits current)
-             intersects (and (<= level max-level) (intersects? shape current))]
+             intersects (and (<= level max-level) (spatial/intersects? shape current))]
          (cond
            (not intersects) (recur matches (pop queue))
            (= level max-level) (recur (conj! matches current) (pop queue))
@@ -217,4 +215,4 @@
   "Returns a list of geohashes of the given precision within radius meters of
   the given point."
   [point radius precision]
-  (geohashes-intersecting (circle point radius) precision))
+  (geohashes-intersecting (spatial/circle point radius) precision))

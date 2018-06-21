@@ -10,3 +10,5 @@ build
 .lein-deps-sum
 .lein-failures
 target/**
+.idea
+*.iml

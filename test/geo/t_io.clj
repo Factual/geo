@@ -1,10 +1,16 @@
 (ns geo.t-io
-  (:require [geo.io :as sut]
-            [midje.sweet :as midje :refer [fact facts]]))
+  (:require [clojure.string :refer [trim]]
+            [geo.io :as sut]
+            [geo.jts :as jts]
+            [midje.sweet :refer [fact facts truthy]]))
 
-(def wkt "POLYGON ((-70.0024 30.0019, -70.0024 30.0016, -70.0017 30.0016, -70.0017 30.0019, -70.0024 30.0019))")
-(def wkt-2 "POLYGON ((-118.41632050954 34.0569111034308,-118.416338488265 34.0568986639481,-118.416492289093 34.0567922421742,-118.416530323474 34.0567659511355,-118.418142315196 34.0556504823845,-118.418150052351 34.0556594411781,-118.418689703423 34.0562853532086,-118.418415962306 34.0564736252562,-118.418418218819 34.0564759256614,-118.418378572273 34.0565031846417,-118.418376282883 34.0565009118285,-118.418233752614 34.0565989279524,-118.418236937922 34.0566021044676,-118.418196205493 34.0566301090773,-118.4181930532 34.0566269324467,-118.418073292223 34.0567096187712,-118.417930201783 34.0568079936995,-118.417773815715 34.0566504764553,-118.41769386392 34.0567054359181,-118.417612270018 34.0566232540736,-118.416840191548 34.0571544513339,-118.416817318266 34.0571701863547,-118.41678665332 34.0571912877453,-118.416674690686 34.0572683160349,-118.41632050954 34.0569111034308))")
-(def geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0024,30.0019],[-70.0024,30.0016],[-70.0017,30.0016],[-70.0017,30.0019],[-70.0024,30.0019]]]}")
+(def wkt (trim (slurp "test/resources/wkt")))
+(def wkt-2 (trim (slurp "test/resources/wkt-2")))
+(def wkb-hex (trim (slurp "test/resources/wkb-hex")))
+(def ewkb-hex-wgs84 (trim (slurp "test/resources/ewkb-hex-wgs84")))
+(def wkb-2-hex (trim (slurp "test/resources/wkb-2-hex")))
+(def ewkb-2-hex-wgs84 (trim (slurp "test/resources/ewkb-2-hex-wgs84")))
+(def geojson (trim (slurp "test/resources/geojson")))
 
 (def coords [[-70.0024 30.0019]
              [-70.0024 30.0016]
@@ -25,6 +31,54 @@
         (.getNumPoints (sut/read-wkb wkb)) => 5
         (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-wkt wkt))) => coords
         (-> wkt sut/read-wkt sut/to-wkb sut/read-wkb sut/to-wkt) => wkt))
+
+(fact "reads and writes ewkb"
+      (let [geom (jts/set-srid (sut/read-wkt wkt) 3857)
+            ewkb (sut/to-ewkb geom)]
+        (count ewkb) => 97
+        (.getNumPoints (sut/read-wkb ewkb)) => 5
+        (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-wkb ewkb))) => coords
+        (-> wkt sut/read-wkt sut/to-ewkb sut/read-wkb sut/to-wkt) => wkt))
+
+(facts "reads and writes wkb in hex string"
+       (fact "wkb-hex identity"
+             (-> wkb-hex sut/read-wkb-hex sut/to-wkb-hex) => wkb-hex
+             (-> wkb-2-hex sut/read-wkb-hex sut/to-wkb-hex) => wkb-2-hex)
+       (fact "ewkb-hex -> wkb-hex"
+             (-> ewkb-hex-wgs84 sut/read-wkb-hex sut/to-wkb-hex) => wkb-hex
+             (-> ewkb-2-hex-wgs84 sut/read-wkb-hex sut/to-wkb-hex) => wkb-2-hex)
+       (fact "wkt -> wkb-hex"
+             (-> wkt sut/read-wkt sut/to-wkb-hex) => wkb-hex
+             (-> wkt-2 sut/read-wkt (jts/set-srid 3857) sut/to-wkb-hex) => wkb-2-hex)
+       (fact "wkb-hex -> wkt"
+             (-> wkb-hex sut/read-wkb-hex sut/to-wkt) => wkt
+             (-> wkb-2-hex sut/read-wkb-hex sut/to-wkt) => wkt-2)
+       (fact "ewkb-hex -> wkt"
+             (-> ewkb-hex-wgs84 sut/read-wkb-hex sut/to-wkt) => wkt
+             (-> ewkb-2-hex-wgs84 sut/read-wkb-hex sut/to-wkt) => wkt-2)
+       (fact "wkt with projection -> wkt"
+             (-> wkt sut/read-wkt (jts/set-srid 3857) sut/to-wkb-hex) => wkb-hex
+             (-> wkt-2 sut/read-wkt (jts/set-srid 3857) sut/to-wkb-hex) => wkb-2-hex))
+
+(fact "understands projection in hex string"
+      (-> wkb-hex sut/read-wkb-hex jts/get-srid) => 0
+      (-> ewkb-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326
+      (-> wkb-2-hex sut/read-wkb-hex jts/get-srid) => 0
+      (-> ewkb-2-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326)
+
+(facts "reads and writes ewkb in hex string"
+       (fact "ewkb-hex identity"
+             (-> ewkb-hex-wgs84 sut/read-wkb-hex sut/to-ewkb-hex) => ewkb-hex-wgs84
+             (-> ewkb-2-hex-wgs84 sut/read-wkb-hex sut/to-ewkb-hex) => ewkb-2-hex-wgs84)
+       (fact "wkb-hex with projection set -> ewkb-hex"
+            (-> wkb-hex sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-hex-wgs84
+            (-> wkb-2-hex sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-2-hex-wgs84)
+       (fact "wkt with projection set -> ewkb-hex"
+             (-> wkt sut/read-wkt (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-hex-wgs84
+             (-> wkt-2 sut/read-wkt (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-2-hex-wgs84)
+       (fact "ewkb-hex with same projection set"
+             (-> ewkb-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-hex-wgs84
+             (-> ewkb-2-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-2-hex-wgs84))
 
 (fact "reads and writes geojson"
       (type (sut/read-geojson geojson)) => org.locationtech.jts.geom.Polygon
