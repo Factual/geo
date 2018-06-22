@@ -1,20 +1,20 @@
 (ns geo.io
   "Helper functions for converting JTS geometries to and from various
    geospatial IO formats (geojson, wkt, wkb)."
-  (:require [geo.jts]
+  (:require [geo.jts :refer [gf-wgs84]]
             [clojure.data])
   (:import (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
            (org.locationtech.jts.geom Geometry)
            (org.locationtech.jts.io.geojson GeoJsonReader GeoJsonWriter)))
 
-(def ^WKTReader wkt-reader (WKTReader.))
+(def ^WKTReader wkt-reader (WKTReader. gf-wgs84))
 (def ^WKTWriter wkt-writer (WKTWriter.))
 
-(def ^WKBReader wkb-reader (WKBReader.))
+(def ^WKBReader wkb-reader (WKBReader. gf-wgs84))
 (def ^WKBWriter wkb-writer (WKBWriter.))
 (def ^WKBWriter wkb-writer-2d-srid (WKBWriter. 2 true))
 
-(def ^GeoJsonReader geojson-reader (GeoJsonReader.))
+(def ^GeoJsonReader geojson-reader (GeoJsonReader. gf-wgs84))
 (def ^GeoJsonWriter geojson-writer (GeoJsonWriter.))
 
 (.setEncodeCRS geojson-writer false)

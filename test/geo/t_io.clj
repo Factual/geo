@@ -61,9 +61,9 @@
              (-> wkt-2 sut/read-wkt (jts/set-srid 3857) sut/to-wkb-hex) => wkb-2-hex))
 
 (fact "understands projection in hex string"
-      (-> wkb-hex sut/read-wkb-hex jts/get-srid) => 0
+      (-> wkb-hex sut/read-wkb-hex jts/get-srid) => 4326
       (-> ewkb-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326
-      (-> wkb-2-hex sut/read-wkb-hex jts/get-srid) => 0
+      (-> wkb-2-hex sut/read-wkb-hex jts/get-srid) => 4326
       (-> ewkb-2-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326)
 
 (facts "reads and writes ewkb in hex string"
