@@ -35,10 +35,20 @@
          (-> segment .p1 .x) => 1.0
          (-> segment .p1 .y) => 2.0))
 
+(facts "Comparing geometry SRIDs"
+       (let [g1 (linestring-wkt [0 0 0 1 0 2])
+             g2 (linestring-wkt [1 1 2 2 3 3])
+             g3 (linestring-wkt [1 1 2 2 3 3] 1234)]
+         (get-srid g1) => 4326
+         (same-srid? g1 g2) => true
+         (same-srid? (set-srid g1 0) (set-srid g2 0)) => true
+         (same-srid? g1 g3) => false))
+
+(fact "setting SRID for a geom"
+      (get-srid (point 0 0)) => 4326
+      (get-srid (set-srid (point 0 0) 23031)) => 23031)
+
 (facts "proj4j"
-       (fact "setting SRID for a geom"
-             (get-srid (point 0 0)) => 4326
-             (get-srid (set-srid (point 0 0) 23031)) => 23031)
        (fact "point: 3 param transform"
          (same-geom? (transform-geom (point 3.8142776 51.285914 4326) 23031)
                      (point 556878.9016076007 5682145.166264554 23031))
@@ -62,7 +72,7 @@
          => truthy)
        (fact "geometry: projecting from a geometry with 0 SRID using only target CRS throws exception"
              (transform-geom (point 10 10 0) 4326)
-             => throws)
+             => (throws java.lang.AssertionError))
        (fact "geometry: projecting from a geometry with a 0 SRID using both a source and target CRS"
              (same-geom?
                (transform-geom (point 10 10 0) 4326 4326)
