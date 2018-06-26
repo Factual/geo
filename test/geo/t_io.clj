@@ -66,6 +66,12 @@
       (-> wkb-2-hex sut/read-wkb-hex jts/get-srid) => 4326
       (-> ewkb-2-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326)
 
+(fact "reads WKTs and WKBs with custom SRID"
+      (-> wkt sut/read-wkt jts/get-srid) => 4326
+      (-> wkt (sut/read-wkt 2229) jts/get-srid) => 2229
+      (-> wkb-hex sut/read-wkb-hex jts/get-srid) => 4326
+      (-> wkb-hex (sut/read-wkb-hex 2229) jts/get-srid) => 2229)
+
 (facts "reads and writes ewkb in hex string"
        (fact "ewkb-hex identity"
              (-> ewkb-hex-wgs84 sut/read-wkb-hex sut/to-ewkb-hex) => ewkb-hex-wgs84
