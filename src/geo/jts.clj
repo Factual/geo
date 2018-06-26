@@ -17,7 +17,7 @@
 
 (def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
-(defn gf
+(defn ^GeometryFactory gf
   "Creates a GeometryFactory for a given SRID."
   [srid]
   (GeometryFactory. pm srid))
@@ -43,9 +43,9 @@
 
 (defn coordinate
   "Creates a Coordinate."
-  ([x y]
+  ([^double x ^double y]
    (Coordinate. x y))
-  ([x y z]
+  ([^double x ^double y ^double z]
    (Coordinate. x y z)))
 
 (defn point
@@ -56,6 +56,10 @@
    (point long lat default-srid))
   ([x y srid]
    (.createPoint (gf srid) (coordinate x y))))
+
+(defn ^"[Lorg.locationtech.jts.geom.Coordinate;" coord-array
+  [coordinates]
+  (into-array Coordinate coordinates))
 
 (defn coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
@@ -78,9 +82,9 @@
 (defn linestring
   "Given a list of Coordinates, creates a LineString. Allows an optional SRID argument at end."
   ([coordinates]
-   (.createLineString gf-wgs84 (into-array Coordinate coordinates)))
+   (.createLineString gf-wgs84 (coord-array coordinates)))
   ([coordinates srid]
-   (.createLineString (gf srid) (into-array Coordinate coordinates))))
+   (.createLineString (gf srid) (coord-array coordinates))))
 
 (defn linestring-wkt
   "Makes a LineString from a WKT-style data structure: a flat sequence of
