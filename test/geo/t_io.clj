@@ -2,7 +2,8 @@
   (:require [clojure.string :refer [trim]]
             [geo.io :as sut]
             [geo.jts :as jts]
-            [midje.sweet :refer [fact facts truthy]]))
+            [midje.sweet :refer [fact facts truthy]])
+  (:import (org.locationtech.jts.geom Geometry GeometryCollection)))
 
 (def wkt (trim (slurp "test/resources/wkt")))
 (def wkt-2 (trim (slurp "test/resources/wkt-2")))
@@ -10,7 +11,16 @@
 (def ewkb-hex-wgs84 (trim (slurp "test/resources/ewkb-hex-wgs84")))
 (def wkb-2-hex (trim (slurp "test/resources/wkb-2-hex")))
 (def ewkb-2-hex-wgs84 (trim (slurp "test/resources/ewkb-2-hex-wgs84")))
-(def geojson (trim (slurp "test/resources/geojson")))
+(def geometry (trim (slurp "test/resources/geometry")))
+(def feature (trim (slurp "test/resources/feature")))
+(def feature-collection-1 (trim (slurp "test/resources/feature-collection-1")))
+(def feature-collection-2 (trim (slurp "test/resources/feature-collection-2")))
+(def null-island-geometry (trim (slurp "test/resources/null-island-geometry")))
+(def one-island-geometry (trim (slurp "test/resources/one-island-geometry")))
+(def null-island-properties (read-string (trim (slurp "test/resources/null-island-properties"))))
+(def null-island-properties-kw (read-string (trim (slurp "test/resources/null-island-properties-kw"))))
+(def one-island-properties (read-string (trim (slurp "test/resources/one-island-properties"))))
+(def one-island-properties-kw (read-string (trim (slurp "test/resources/one-island-properties-kw"))))
 
 (def coords [[-70.0024 30.0019]
              [-70.0024 30.0016]
@@ -87,7 +97,79 @@
              (-> ewkb-2-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-2-hex-wgs84))
 
 (fact "reads and writes geojson"
-      (type (sut/read-geojson geojson)) => org.locationtech.jts.geom.Polygon
-      (.getNumPoints (sut/read-geojson geojson)) => 5
-      (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-geojson geojson))) => coords
-      (-> geojson sut/read-geojson sut/to-geojson) => geojson)
+      (type (sut/read-geojson geometry)) => org.locationtech.jts.geom.Polygon
+      (.getNumPoints (sut/read-geojson geometry)) => 5
+      (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-geojson geometry))) => coords
+      (-> geometry sut/read-geojson sut/to-geojson) => geometry
+      (type (sut/read-geojson feature)) => org.locationtech.jts.geom.Point
+      (type (first (sut/read-geojson feature-collection-1))) => org.locationtech.jts.geom.Point
+      (count (sut/read-geojson feature-collection-2)) => 2)
+
+(facts "by default, geojson features with properties lose all info except geometry when read in"
+      (fact "dropping all properties for a single feature"
+            (-> feature sut/read-geojson sut/to-geojson)
+            => null-island-geometry)
+      (fact "dropping all properties for a feature collection with one feature"
+            (->> feature-collection-1 sut/read-geojson (map sut/to-geojson))
+            => (list null-island-geometry))
+      (fact "dropping all properties for a feature collection with two features"
+            (->> feature-collection-2 sut/read-geojson (map sut/to-geojson))
+            => (list null-island-geometry one-island-geometry)))
+
+(facts "options map for read-geojson handles properties differently"
+       (fact "feature: keep properties, no collections"
+             (-> feature (sut/read-geojson {:properties? true}) :properties)
+             => null-island-properties)
+       (fact "feature: keep properties, no collections, properties as keywords"
+             (-> feature (sut/read-geojson {:properties? true
+                                            :keywords? true}) :properties)
+             => null-island-properties-kw)
+       (fact "feature collection: keep properties, no collections"
+             (map :properties (-> feature-collection-1 (sut/read-geojson {:properties? true})))
+             => (list null-island-properties)
+             (instance? Geometry
+                        (first (map :geometry (-> feature-collection-1 (sut/read-geojson {:properties? true})))))
+             => truthy
+             (instance? Geometry
+                        (first (map :geometry (-> feature-collection-2 (sut/read-geojson {:properties? true})))))
+             => truthy
+             (map :properties (-> feature-collection-1 (sut/read-geojson {:properties? true})))
+             => (list null-island-properties)
+             (map :properties (-> feature-collection-2 (sut/read-geojson {:properties? true})))
+             => (list null-island-properties one-island-properties))
+       (fact "feature collection: keep properties, collections"
+             (-> feature-collection-1 (sut/read-geojson {:properties? true
+                                                         :collection? true})
+                 :properties)
+             => (list null-island-properties)
+             (-> feature-collection-2 (sut/read-geojson {:properties? true
+                                                         :collection? true})
+                 :properties)
+             => (list null-island-properties one-island-properties)
+             (instance? GeometryCollection
+                        (-> feature-collection-1 (sut/read-geojson {:properties? true :collection? true})
+                            :geometry))
+             => truthy
+             (instance? GeometryCollection
+                        (-> feature-collection-2 (sut/read-geojson {:properties? true :collection? true})
+                            :geometry))
+             => truthy)
+       (fact "feature collection: keep properties, collections, properties as keywords"
+             (-> feature-collection-1 (sut/read-geojson {:properties? true :collection? true :keywords? true})
+                 :properties)
+             => (list null-island-properties-kw)
+             (-> feature-collection-2 (sut/read-geojson {:properties? true :collection? true :keywords? true})
+                 :properties)
+             => (list null-island-properties-kw one-island-properties-kw)
+             (instance? GeometryCollection
+                        (-> feature-collection-1
+                            (sut/read-geojson {:properties? true :collection? true :keywords? true})
+                            :geometry))
+             => truthy
+             (instance? GeometryCollection
+                        (-> feature-collection-2
+                            (sut/read-geojson {:properties? true :collection? true :keywords true})
+                            :geometry))
+             => truthy))
+
+
