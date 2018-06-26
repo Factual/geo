@@ -5,6 +5,8 @@
 (facts "Identifying and converting EPSG and SRID identifiers"
        (fact "EPSG:2000" => sut/epsg-str?)
        (fact "pizza" => (comp not sut/epsg-str?))
+       (fact "EPSG:2000abc" => (comp not sut/epsg-str?))
+       (fact " EPSG:2000" => (comp not sut/epsg-str?))
        (fact "pizza EPSG:2000" => (comp not sut/epsg-str?))
        (fact "pizza EPSG:2000.0" => (comp not sut/epsg-str?))
        (fact (sut/srid->epsg-str 2000) => "EPSG:2000")
