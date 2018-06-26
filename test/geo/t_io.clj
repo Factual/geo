@@ -172,4 +172,10 @@
                             :geometry))
              => truthy))
 
-
+(fact "parsing geojson defaults to EPSG:4326 but SRID can be overridden in option map"
+      (jts/get-srid (sut/read-geojson geometry)) => 4326
+      (jts/get-srid (sut/read-geojson feature)) => 4326
+      (jts/get-srid (first (sut/read-geojson feature-collection-1))) => 4326
+      (jts/get-srid (sut/read-geojson geometry {:srid 2229})) => 2229
+      (jts/get-srid (sut/read-geojson feature {:srid 2229})) => 2229
+      (jts/get-srid (first (sut/read-geojson feature-collection-1 {:srid 2229}))) => 2229)
