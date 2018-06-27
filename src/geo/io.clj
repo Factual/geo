@@ -72,7 +72,7 @@
   ([^Feature feature options]
    (let [options (merge {:properties? false
                          :keywords? false
-                         :srid 4326} options)
+                         :srid jts/default-srid} options)
          properties? (:properties? options)
          keywords? (:keywords? options)
          g (jts/set-srid (.read geojson-reader (.getGeometry feature)) (:srid options))]
@@ -146,7 +146,7 @@
    If set, set the Geometry's SRID. Defaults to 4326."
 
   ([^String geojson]
-   (read-geojson geojson {:srid 4326}))
+   (read-geojson geojson {:srid jts/default-srid}))
   ([^String geojson options]
    (let [parsed (parse-geojson geojson)]
      (cond (instance? org.wololo.geojson.Geometry parsed)
