@@ -65,95 +65,41 @@
   [^String geojson]
   (GeoJSONFactory/create geojson))
 
-(defn- feat->geom
-  "Convert a Feature into a Geometry, applying the options specified by read-geojson."
-  ([^Feature feature]
-   (feat->geom feature {}))
-  ([^Feature feature options]
-   (let [options (merge {:properties? false
-                         :keywords? false
-                         :srid jts/default-srid} options)
-         properties? (:properties? options)
-         keywords? (:keywords? options)
-         g (jts/set-srid (.read geojson-reader (.getGeometry feature)) (:srid options))]
-     (cond (false? properties?)
-           g
-           (true? properties?)
-           (hash-map :geometry g
-                     :properties (cond (false? keywords?)
-                                       (into {} (.getProperties feature))
-                                       (true? keywords?)
-                                       (keywordize-keys (into {} (.getProperties feature)))))))))
+(defn properties [^org.wololo.geojson.Feature feature]
+  (keywordize-keys (into {} (.getProperties feature))))
 
-(defn- into-collection
-  "Convert a vector of features or geometries into a single collection,
-   applying the options specified by read-geojson."
-  [v options]
-  (let [options (merge {} options)
-        properties? (:properties? options)
-        geoms (cond (instance? Geometry (first v))
-                    (into-array v)
-                    (map? (first v))
-                    (into-array (map :geometry v)))
-        gc (.createGeometryCollection gf-wgs84 geoms)
-        props (when (true? properties?)
-                (vec (map :properties v)))]
-    (cond
-      (true? properties?)
-      (hash-map :geometry gc
-                :properties props)
-      (false? properties?)
-      gc)))
+(defprotocol GeoJSONGeometry
+  (read-geometry [this]))
 
-(defn- fc->geoms
-  "Convert a FeatureCollection into geometries, applying the options specified by read-geojson"
-  ([^FeatureCollection fc]
-   (fc->geoms fc {}))
+(extend-protocol GeoJSONGeometry
+  org.wololo.geojson.Geometry
+  (read-geometry [this] (.read geojson-reader this))
+  org.wololo.geojson.Feature
+  (read-geometry [this] (read-geometry (.getGeometry this))))
 
-  ([^FeatureCollection fc options]
-   (let [options (merge {:properties? false
-                         :collection? false
-                         :keywords? false} options)
-         collection? (:collection? options)
-         v (into [] (map #(feat->geom % options) (vec (.getFeatures fc))))]
-     (cond (false? collection?)
-           v
-           (true? collection?)
-           (into-collection v options)))))
+(defprotocol GeoJSONFeatures
+  (to-features [this]))
+
+(extend-protocol GeoJSONFeatures
+  org.wololo.geojson.Geometry
+  (to-features [this] [{:properties {} :geometry (read-geometry this)}])
+  org.wololo.geojson.Feature
+  (to-features [this] [{:properties (properties this) :geometry (read-geometry this)}])
+  org.wololo.geojson.FeatureCollection
+  (to-features [this] (mapcat to-features (.getFeatures this))))
 
 (defn read-geojson
   "Parse a GeoJSON and convert based on a set of options. By default, and if no options are specified,
-  their values default to false.
-
-  Options map:
-  {:properties?
-   If false, return either a single Geometry or a vector of Geometries.
-   If true, if the GeoJSON contains Features, return either a single hash-map or a vector of hash-maps.
-   Each hash-map consists of a :geometry key containing a JTS Geometry and a :properties key containing
-   all the properties associated with that Feature.
-
-   :keywords?
-   Only applies when properties are being returned. If false, return properties where keys are strings.
-   If true, return properties where keys are keywords.
-
-   :collection?
-   If false, split GeometryCollections and FeatureCollections into individual Geometries or hash-maps
-   representing Features.
-   If true, combine all Geometries into one GeometryCollection and combine all properties into one
-   vector with individual hash-maps for each Feature.
-
-   :srid
-   If set, set the Geometry's SRID. Defaults to 4326."
-
+  their values default to false."
   ([^String geojson]
-   (read-geojson geojson {:srid jts/default-srid}))
-  ([^String geojson options]
-   (let [parsed (parse-geojson geojson)]
-     (cond (instance? org.wololo.geojson.Geometry parsed)
-           (jts/set-srid (.read geojson-reader parsed) (:srid options))
-           (instance? FeatureCollection parsed)
-           (fc->geoms parsed options)
-           (instance? Feature parsed)
-           (feat->geom parsed options)))))
+   (read-geojson geojson jts/default-srid))
+  ([^String geojson srid]
+   (->> geojson
+        parse-geojson
+        to-features
+        (map (fn [f] (update f :geometry (fn [g] (jts/set-srid g srid))))))))
 
 (defn to-geojson [^Geometry geom] (.toString (.write geojson-writer geom)))
+;; TODO
+;; (defn to-geojson-feature [^Geometry geom properties] (.toString (.write geojson-writer geom)))
+;; (defn to-geojson-feature-collection [geoms] (.toString (.write geojson-writer geom)))

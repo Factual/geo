@@ -96,16 +96,31 @@
              (-> ewkb-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-hex-wgs84
              (-> ewkb-2-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-2-hex-wgs84))
 
-(fact "reads and writes geojson"
-      (type (sut/read-geojson geometry)) => org.locationtech.jts.geom.Polygon
-      (.getNumPoints (sut/read-geojson geometry)) => 5
-      (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-geojson geometry))) => coords
-      (-> geometry sut/read-geojson sut/to-geojson) => geometry
-      (type (sut/read-geojson feature)) => org.locationtech.jts.geom.Point
-      (type (first (sut/read-geojson feature-collection-1))) => org.locationtech.jts.geom.Point
-      (count (sut/read-geojson feature-collection-2)) => 2)
+(fact "Reading GeoJSON Geometry"
+      (count (sut/read-geojson geometry)) => 1
+      (let [parsed (first (sut/read-geojson geometry))]
+        parsed => map?
+        (keys parsed) => [:properties :geometry]
+        (-> parsed :geometry .getNumPoints) => 5
+        (->> parsed :geometry .getCoordinates (map (fn [c] [(.x c) (.y c)]))) => coords
+        (-> parsed :geometry sut/to-geojson sut/read-geojson parsed)))
 
-(facts "by default, geojson features with properties lose all info except geometry when read in"
+(fact "Reading GeoJSON Feature"
+      (count (sut/read-geojson feature)) => 1
+      (-> feature
+          sut/read-geojson
+          first
+          :geometry
+          type) => org.locationtech.jts.geom.Point)
+
+(fact "Reading GeoJSON FeatureCollection"
+      (count (sut/read-geojson feature-collection-1)) => 1
+      (->> feature-collection-2
+           sut/read-geojson
+           (map :geometry)
+           (map type)) => [org.locationtech.jts.geom.Point org.locationtech.jts.geom.Point])
+
+#_(facts "by default, geojson features with properties lose all info except geometry when read in"
       (fact "dropping all properties for a single feature"
             (-> feature sut/read-geojson sut/to-geojson)
             => null-island-geometry)
@@ -116,7 +131,7 @@
             (->> feature-collection-2 sut/read-geojson (map sut/to-geojson))
             => (list null-island-geometry one-island-geometry)))
 
-(facts "options map for read-geojson handles properties differently"
+#_(facts "options map for read-geojson handles properties differently"
        (fact "feature: keep properties, no collections"
              (-> feature (sut/read-geojson {:properties? true}) :properties)
              => null-island-properties)
@@ -173,9 +188,9 @@
              => truthy))
 
 (fact "parsing geojson defaults to EPSG:4326 but SRID can be overridden in option map"
-      (jts/get-srid (sut/read-geojson geometry)) => 4326
-      (jts/get-srid (sut/read-geojson feature)) => 4326
-      (jts/get-srid (first (sut/read-geojson feature-collection-1))) => 4326
-      (jts/get-srid (sut/read-geojson geometry {:srid 2229})) => 2229
-      (jts/get-srid (sut/read-geojson feature {:srid 2229})) => 2229
-      (jts/get-srid (first (sut/read-geojson feature-collection-1 {:srid 2229}))) => 2229)
+      (map (comp jts/get-srid :geometry) (sut/read-geojson geometry)) => [4326]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature)) => [4326]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1)) => [4326]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson geometry 2229)) => [2229]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature 2229)) => [2229]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1 2229)) => [2229])
