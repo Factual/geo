@@ -27,15 +27,14 @@
            (.getMaxLat box))))
 
 (defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
-  (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash)))
+  (jts/set-srid (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash))
+                jts/default-srid))
 
 (extend-protocol spatial/Shapelike
   GeoHash
   (to-shape [^GeoHash geohash] (bbox geohash))
-  (to-jts ([^GeoHash geohash]
-           (jts/set-srid (bbox-geom geohash) 4326))
-          ([^GeoHash geohash srid]
-           (spatial/to-jts (spatial/to-jts geohash) srid)))
+  (to-jts ([^GeoHash geohash] (bbox-geom geohash))
+          ([^GeoHash geohash srid] (jts/set-srid (spatial/to-jts geohash) srid)))
 
   WGS84Point
   (to-shape [this] (spatial/spatial4j-point this))

@@ -196,7 +196,10 @@
 (facts "Getting bounding geometries for geohashes"
        (let [gh (geohash "9q5")
              points [[-119.53125 33.75, -119.53125 35.15625, -118.125 35.15625, -118.125 33.75, -119.53125 33.75]]]
-         (bbox-geom gh) => (jts/polygon-wkt points)))
+         (bbox-geom gh) => (jts/polygon-wkt points)
+         (jts/get-srid (bbox-geom gh)) => 4326
+         (jts/get-srid (spatial/to-jts gh)) => 4326
+         (jts/get-srid (spatial/to-jts gh 1234)) => 1234))
 
 (facts "Getting bounding Shapes for geohashes"
        (let [gh (geohash "9q5")]
