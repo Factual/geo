@@ -3,7 +3,7 @@
    geospatial IO formats (geojson, wkt, wkb)."
   (:require [geo.jts :refer [gf-wgs84] :as jts]
             [clojure.data]
-            [clojure.walk :refer [keywordize-keys]])
+            [clojure.walk :refer [keywordize-keys stringify-keys]])
   (:import (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
            (org.locationtech.jts.geom Geometry)
            (org.wololo.geojson Feature FeatureCollection GeoJSONFactory)
@@ -89,8 +89,23 @@
   (to-features [this] (mapcat to-features (.getFeatures this))))
 
 (defn read-geojson
-  "Parse a GeoJSON and convert based on a set of options. By default, and if no options are specified,
-  their values default to false."
+  "Parse a GeoJSON string into a sequence of maps representing GeoJSON \"Features\".
+
+  These will contain a :geometry key containing a JTS geometry and a :features key
+  containing a (possibly empty) map of features.
+
+  (read-geojson \"{\\\"type\\\":\\\"Polygon\\\",\\\"coordinates\\\":[[[-70.0024,30.0019],[-70.0024,30.0016],[-70.0017,30.0016],[-70.0017,30.0019],[-70.0024,30.0019]]]}\")
+  => [{:properties {}, :geometry #object[org.locationtech.jts.geom.Polygon(...)]}]
+
+  (read-geojson \"{\\\"type\\\":\\\"Feature\\\",\\\"geometry\\\":{\\\"type\\\":\\\"Point\\\",\\\"coordinates\\\":[0.0,0.0]},\\\"properties\\\":{\\\"name\\\":\\\"null island\\\"}}\")
+  => [{:properties {:name \"null island\"}
+       :geometry #object[org.locationtech.jts.geom.Point(...)]}]
+
+
+  (read-geojson \"{\\\"type\\\":\\\"FeatureCollection\\\",\\\"features\\\":[{\\\"type\\\":\\\"Feature\\\",\\\"geometry\\\":{\\\"type\\\":\\\"Point\\\",\\\"coordinates\\\":[0.0,0.0]},\\\"properties\\\":{\\\"name\\\":\\\"null island\\\"}}]}\")
+  => [{:properties {:name \"null island\"},
+       :geometry #object[org.locationtech.jts.geom.Point(...)]}]
+  "
   ([^String geojson]
    (read-geojson geojson jts/default-srid))
   ([^String geojson srid]
@@ -100,6 +115,13 @@
         (map (fn [f] (update f :geometry (fn [g] (jts/set-srid g srid))))))))
 
 (defn to-geojson [^Geometry geom] (.toString (.write geojson-writer geom)))
-;; TODO
-;; (defn to-geojson-feature [^Geometry geom properties] (.toString (.write geojson-writer geom)))
-;; (defn to-geojson-feature-collection [geoms] (.toString (.write geojson-writer geom)))
+
+(defn- gj-feature
+  [{^Geometry geom :geometry properties :properties}]
+  (let [gj-geom (.write geojson-writer geom)]
+    (org.wololo.geojson.Feature. gj-geom (stringify-keys properties))))
+
+(defn to-geojson-feature-collection
+  [feature-maps]
+  (let [features (map gj-feature feature-maps)]
+    (.toString (.write geojson-writer features))))

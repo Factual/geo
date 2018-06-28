@@ -2,6 +2,7 @@
   (:require [clojure.string :refer [trim]]
             [geo.io :as sut]
             [geo.jts :as jts]
+            [cheshire.core :as json]
             [midje.sweet :refer [fact facts truthy]])
   (:import (org.locationtech.jts.geom Geometry GeometryCollection)))
 
@@ -120,72 +121,24 @@
            (map :geometry)
            (map type)) => [org.locationtech.jts.geom.Point org.locationtech.jts.geom.Point])
 
-#_(facts "by default, geojson features with properties lose all info except geometry when read in"
-      (fact "dropping all properties for a single feature"
-            (-> feature sut/read-geojson sut/to-geojson)
-            => null-island-geometry)
-      (fact "dropping all properties for a feature collection with one feature"
-            (->> feature-collection-1 sut/read-geojson (map sut/to-geojson))
-            => (list null-island-geometry))
-      (fact "dropping all properties for a feature collection with two features"
-            (->> feature-collection-2 sut/read-geojson (map sut/to-geojson))
-            => (list null-island-geometry one-island-geometry)))
+(fact "writing geojson geometries"
+      (->> geometry sut/read-geojson (map :geometry) (map sut/to-geojson)) => [geometry])
 
-#_(facts "options map for read-geojson handles properties differently"
-       (fact "feature: keep properties, no collections"
-             (-> feature (sut/read-geojson {:properties? true}) :properties)
-             => null-island-properties)
-       (fact "feature: keep properties, no collections, properties as keywords"
-             (-> feature (sut/read-geojson {:properties? true
-                                            :keywords? true}) :properties)
-             => null-island-properties-kw)
-       (fact "feature collection: keep properties, no collections"
-             (map :properties (-> feature-collection-1 (sut/read-geojson {:properties? true})))
-             => (list null-island-properties)
-             (instance? Geometry
-                        (first (map :geometry (-> feature-collection-1 (sut/read-geojson {:properties? true})))))
-             => truthy
-             (instance? Geometry
-                        (first (map :geometry (-> feature-collection-2 (sut/read-geojson {:properties? true})))))
-             => truthy
-             (map :properties (-> feature-collection-1 (sut/read-geojson {:properties? true})))
-             => (list null-island-properties)
-             (map :properties (-> feature-collection-2 (sut/read-geojson {:properties? true})))
-             => (list null-island-properties one-island-properties))
-       (fact "feature collection: keep properties, collections"
-             (-> feature-collection-1 (sut/read-geojson {:properties? true
-                                                         :collection? true})
-                 :properties)
-             => (list null-island-properties)
-             (-> feature-collection-2 (sut/read-geojson {:properties? true
-                                                         :collection? true})
-                 :properties)
-             => (list null-island-properties one-island-properties)
-             (instance? GeometryCollection
-                        (-> feature-collection-1 (sut/read-geojson {:properties? true :collection? true})
-                            :geometry))
-             => truthy
-             (instance? GeometryCollection
-                        (-> feature-collection-2 (sut/read-geojson {:properties? true :collection? true})
-                            :geometry))
-             => truthy)
-       (fact "feature collection: keep properties, collections, properties as keywords"
-             (-> feature-collection-1 (sut/read-geojson {:properties? true :collection? true :keywords? true})
-                 :properties)
-             => (list null-island-properties-kw)
-             (-> feature-collection-2 (sut/read-geojson {:properties? true :collection? true :keywords? true})
-                 :properties)
-             => (list null-island-properties-kw one-island-properties-kw)
-             (instance? GeometryCollection
-                        (-> feature-collection-1
-                            (sut/read-geojson {:properties? true :collection? true :keywords? true})
-                            :geometry))
-             => truthy
-             (instance? GeometryCollection
-                        (-> feature-collection-2
-                            (sut/read-geojson {:properties? true :collection? true :keywords true})
-                            :geometry))
-             => truthy))
+(fact "writing geojson Feature Collection"
+      (let [fc (-> geometry sut/read-geojson sut/to-geojson-feature-collection json/parse-string)]
+        (fc "type") => "FeatureCollection"
+        (count (fc "features")) => 1
+        (get (first (fc "features")) "geometry") => (json/parse-string geometry)
+        (get (first (fc "features")) "properties") => {}
+        ))
+
+(fact "writing geojson Feature Collection with properties"
+      (let [feature (-> feature sut/read-geojson first)
+            fc (json/parse-string (sut/to-geojson-feature-collection [feature]))]
+        (fc "type") => "FeatureCollection"
+        (count (fc "features")) => 1
+        (get (first (fc "features")) "geometry") => {"coordinates" [0.0 0.0] "type" "Point"}
+        (get (first (fc "features")) "properties") => {"name" "null island"}))
 
 (fact "parsing geojson defaults to EPSG:4326 but SRID can be overridden in option map"
       (map (comp jts/get-srid :geometry) (sut/read-geojson geometry)) => [4326]
