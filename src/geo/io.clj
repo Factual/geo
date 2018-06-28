@@ -121,6 +121,10 @@
   (let [gj-geom (.write geojson-writer geom)]
     (org.wololo.geojson.Feature. gj-geom (stringify-keys properties))))
 
+(defn to-geojson-feature
+  [feature-map]
+  (.toString (gj-feature feature-map)))
+
 (defn to-geojson-feature-collection
   [feature-maps]
   (let [features (map gj-feature feature-maps)]

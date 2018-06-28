@@ -124,13 +124,25 @@
 (fact "writing geojson geometries"
       (->> geometry sut/read-geojson (map :geometry) (map sut/to-geojson)) => [geometry])
 
+(fact "writing geojson feature"
+      (json/parse-string
+       (sut/to-geojson-feature
+        {:properties {:name "hi"}
+         :geometry (sut/read-wkt wkt)})) => {"type" "Feature"
+                                             "properties" {"name" "hi"}
+                                             "geometry" {"coordinates" [[[-70.0024 30.0019]
+                                                                         [-70.0024 30.0016]
+                                                                         [-70.0017 30.0016]
+                                                                         [-70.0017 30.0019]
+                                                                         [-70.0024 30.0019]]]
+                                                         "type" "Polygon"}})
+
 (fact "writing geojson Feature Collection"
       (let [fc (-> geometry sut/read-geojson sut/to-geojson-feature-collection json/parse-string)]
         (fc "type") => "FeatureCollection"
         (count (fc "features")) => 1
         (get (first (fc "features")) "geometry") => (json/parse-string geometry)
-        (get (first (fc "features")) "properties") => {}
-        ))
+        (get (first (fc "features")) "properties") => {}))
 
 (fact "writing geojson Feature Collection with properties"
       (let [feature (-> feature sut/read-geojson first)
