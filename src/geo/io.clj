@@ -65,7 +65,7 @@
   [^String geojson]
   (GeoJSONFactory/create geojson))
 
-(defn properties [^org.wololo.geojson.Feature feature]
+(defn properties [^Feature feature]
   (keywordize-keys (into {} (.getProperties feature))))
 
 (defprotocol GeoJSONGeometry
@@ -74,7 +74,7 @@
 (extend-protocol GeoJSONGeometry
   org.wololo.geojson.Geometry
   (read-geometry [this] (.read geojson-reader this))
-  org.wololo.geojson.Feature
+  Feature
   (read-geometry [this] (read-geometry (.getGeometry this))))
 
 (defprotocol GeoJSONFeatures
@@ -83,9 +83,9 @@
 (extend-protocol GeoJSONFeatures
   org.wololo.geojson.Geometry
   (to-features [this] [{:properties {} :geometry (read-geometry this)}])
-  org.wololo.geojson.Feature
+  Feature
   (to-features [this] [{:properties (properties this) :geometry (read-geometry this)}])
-  org.wololo.geojson.FeatureCollection
+  FeatureCollection
   (to-features [this] (mapcat to-features (.getFeatures this))))
 
 (defn read-geojson
@@ -119,7 +119,7 @@
 (defn- gj-feature
   [{^Geometry geom :geometry properties :properties}]
   (let [gj-geom (.write geojson-writer geom)]
-    (org.wololo.geojson.Feature. gj-geom (stringify-keys properties))))
+    (Feature. gj-geom (stringify-keys properties))))
 
 (defn to-geojson-feature
   [feature-map]

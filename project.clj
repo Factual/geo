@@ -11,8 +11,8 @@
    [ch.hsr/geohash "1.3.0"]
    [org.locationtech.geotrellis/geotrellis-proj4_2.11 "1.2.1"]
    [org.locationtech.spatial4j/spatial4j "0.7"]
-   [org.locationtech.jts/jts-core "1.15.0"]
-   [org.locationtech.jts.io/jts-io-common "1.15.0"]
+   [org.locationtech.jts/jts-core "1.15.1"]
+   [org.locationtech.jts.io/jts-io-common "1.15.1"]
    [org.noggit/noggit "0.8"]
    [org.wololo/jts2geojson "0.12.0"]]
   :codox {:themes [:rdash]}
