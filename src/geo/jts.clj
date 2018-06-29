@@ -63,6 +63,12 @@
   (.. gf-wgs84 getCoordinateSequenceFactory create
       (into-array Coordinate coordinates)))
 
+(defn geometry-collection
+  "Given a list of Geometries, generates a GeometryCollection."
+  [geometries]
+  (-> (get-factory (first geometries))
+      (.createGeometryCollection (into-array Geometry geometries))))
+
 (defn wkt->coords-array
   [flat-coord-list]
   (->> flat-coord-list
