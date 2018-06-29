@@ -26,7 +26,7 @@
   ([^String wkt] (.read wkt-reader wkt))
   ([^String wkt srid] (.read (WKTReader. (jts/gf srid)) wkt)))
 
-(defn to-wkt [^Geometry geom] (.write wkt-writer geom))
+(defn to-wkt [shapelike] (.write wkt-writer (to-jts shapelike)))
 
 (defn read-wkb
   "Read a WKB byte array and convert to a Geometry.
@@ -44,22 +44,22 @@
 
 (defn to-wkb
   "Write a WKB, excluding any SRID"
-  [^Geometry geom]
-  (.write wkb-writer geom))
+  [shapelike]
+  (.write wkb-writer (to-jts shapelike)))
 
-(defn to-ewkb [^Geometry geom]
+(defn to-ewkb [shapelike]
   "Write an EWKB, including the SRID"
-  (.write wkb-writer-2d-srid geom))
+  (.write wkb-writer-2d-srid (to-jts shapelike)))
 
 (defn to-wkb-hex
   "Write a WKB as a hex string, excluding any SRID"
-  [^Geometry geom]
-  (WKBWriter/toHex (to-wkb geom)))
+  [shapelike]
+  (WKBWriter/toHex (to-wkb (to-jts shapelike))))
 
 (defn to-ewkb-hex
   "Write an EWKB as a hex string, excluding any SRID"
-  [^Geometry geom]
-  (WKBWriter/toHex (to-ewkb geom)))
+  [shapelike]
+  (WKBWriter/toHex (to-ewkb (to-jts shapelike))))
 
 (defn parse-geojson
   "Parse a geojson using GeoJSONFactory's create"
