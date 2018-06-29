@@ -2,6 +2,7 @@
   "Helper functions for converting JTS geometries to and from various
    geospatial IO formats (geojson, wkt, wkb)."
   (:require [geo.jts :refer [gf-wgs84] :as jts]
+            [geo.spatial :refer [Shapelike to-jts]]
             [clojure.data]
             [clojure.walk :refer [keywordize-keys stringify-keys]])
   (:import (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
@@ -114,11 +115,21 @@
         to-features
         (map (fn [f] (update f :geometry (fn [g] (jts/set-srid g srid))))))))
 
-(defn to-geojson [^Geometry geom] (.toString (.write geojson-writer geom)))
+(defn read-geojson-geometry
+  "Parse a GeoJSON string representing a single Geometry into a JTS Geometry."
+  ([^String geojson]
+   (read-geojson-geometry geojson jts/default-srid))
+  ([^String geojson srid]
+   (-> geojson
+       parse-geojson
+       read-geometry
+       (jts/set-srid srid))))
+
+(defn to-geojson [shapelike] (.toString (.write geojson-writer (to-jts shapelike jts/default-srid))))
 
 (defn- gj-feature
-  [{^Geometry geom :geometry properties :properties}]
-  (let [gj-geom (.write geojson-writer geom)]
+  [{shapelike :geometry properties :properties}]
+  (let [gj-geom (.write geojson-writer (to-jts shapelike jts/default-srid))]
     (Feature. gj-geom (stringify-keys properties))))
 
 (defn to-geojson-feature
