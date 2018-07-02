@@ -9,11 +9,12 @@ coordinates, distances, and polygon intersections. We think this library will
 be particularly useful in concert with our [rich API of geospatial
 information](http://developer.factual.com/).
 
-We unify four open-source JVM geospatial libraries: The [JTS topology
+We unify five open-source JVM geospatial libraries: The [JTS topology
 suite](https://github.com/locationtech/jts),
 [spatial4j](https://github.com/spatial4j/spatial4j),
-[geohash-java](https://github.com/kungfoo/geohash-java), and
-[proj4j](https://github.com/locationtech/geotrellis/tree/master/proj4). Clojure
+[geohash-java](https://github.com/kungfoo/geohash-java),
+[proj4j](https://github.com/locationtech/geotrellis/tree/master/proj4),
+and [h3](https://github.com/uber/h3-java). Clojure
 protocols allow these libraries' disparate representations of points, shapes,
 and spatial reference systems to interoperate, so you can, for instance, ask
 whether a JTS point is within a geohash, whether a geohash intersects a
@@ -172,6 +173,9 @@ box intersections, bounded-space partitioning, and so on.
 Wrapper for the locationtech JTS spatial library. Constructors for points,
 coordinate sequences, rings, polygons, multipolygons, and so on.
 
+Given a certain geometry, can transform using proj4j to a different coordinate
+reference system.
+
 ## geo.geohash
 
 Defines geohashes using the ch.hsr.geohash library, and extends them to support
@@ -194,6 +198,24 @@ in specific.
 Helper functions for dealing with common geospatial serialization formats.
 Use these to read and write from WKT, GeoJSON, WKB in byte and in hex string
 formats, and EWKB in byte and in hex string formats.
+
+## geo.crs
+
+Helper functions for dealing with transforms between coordinate reference
+systems. Can create transformations used in the geo.jts namespace.
+
+## geo.h3
+
+Defines hexagonal cells using the com.uber.h3 library. Extends H3's GeoCoord
+to support the Point protocol.
+
+Given a certain H3 cell, can compute surrounding rings, get the boundary in JTS format,
+or get the resolution.
+
+Given a Shapelike geometry, can polyfill a list of H3 cells at a given level of resolution.
+
+Given a list of H3 cells, can compact the list to remove redundant cells, or can uncompact the list
+to a desired resolution.
 
 IO functions return JTS Geometries.
 
