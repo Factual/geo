@@ -35,6 +35,18 @@
   [h]
   (.h3GetResolution h3-inst h))
 
+(defn ring-cells
+  "Return the neighboring indexes around a cell in all directions, for 'k' number of rings.
+  The first element is h (where k = 0)."
+  [h k]
+  (.kRing h3-inst h k))
+
+(defn ring
+  "Return a list of indices of rings of neighboring indexes around a cell in all directions, for 'k' number of rings.
+  Rings are ordered from closest to farthest. The first element is [h] (where k = 0)."
+  [h k]
+  (.kRingDistances h3-inst h k))
+
 (defn- geo-boundary
   "Given an H3 identifier, return a List of GeoCoords for that cell's boundary"
   [h]
