@@ -2,7 +2,9 @@
   (:require [clojure.string :refer [trim]]
             [geo.io :as sut]
             [geo.jts :as jts]
-            [midje.sweet :refer [fact facts truthy]]))
+            [cheshire.core :as json]
+            [midje.sweet :refer [fact facts truthy]])
+  (:import (org.locationtech.jts.geom Geometry GeometryCollection)))
 
 (def wkt (trim (slurp "test/resources/wkt")))
 (def wkt-2 (trim (slurp "test/resources/wkt-2")))
@@ -10,7 +12,16 @@
 (def ewkb-hex-wgs84 (trim (slurp "test/resources/ewkb-hex-wgs84")))
 (def wkb-2-hex (trim (slurp "test/resources/wkb-2-hex")))
 (def ewkb-2-hex-wgs84 (trim (slurp "test/resources/ewkb-2-hex-wgs84")))
-(def geojson (trim (slurp "test/resources/geojson")))
+(def geometry (trim (slurp "test/resources/geometry")))
+(def feature (trim (slurp "test/resources/feature")))
+(def feature-collection-1 (trim (slurp "test/resources/feature-collection-1")))
+(def feature-collection-2 (trim (slurp "test/resources/feature-collection-2")))
+(def null-island-geometry (trim (slurp "test/resources/null-island-geometry")))
+(def one-island-geometry (trim (slurp "test/resources/one-island-geometry")))
+(def null-island-properties (read-string (trim (slurp "test/resources/null-island-properties"))))
+(def null-island-properties-kw (read-string (trim (slurp "test/resources/null-island-properties-kw"))))
+(def one-island-properties (read-string (trim (slurp "test/resources/one-island-properties"))))
+(def one-island-properties-kw (read-string (trim (slurp "test/resources/one-island-properties-kw"))))
 
 (def coords [[-70.0024 30.0019]
              [-70.0024 30.0016]
@@ -86,8 +97,65 @@
              (-> ewkb-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-hex-wgs84
              (-> ewkb-2-hex-wgs84 sut/read-wkb-hex (jts/set-srid 4326) sut/to-ewkb-hex) => ewkb-2-hex-wgs84))
 
-(fact "reads and writes geojson"
-      (type (sut/read-geojson geojson)) => org.locationtech.jts.geom.Polygon
-      (.getNumPoints (sut/read-geojson geojson)) => 5
-      (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-geojson geojson))) => coords
-      (-> geojson sut/read-geojson sut/to-geojson) => geojson)
+(fact "Reading GeoJSON Geometry"
+      (count (sut/read-geojson geometry)) => 1
+      (let [parsed (first (sut/read-geojson geometry))]
+        parsed => map?
+        (keys parsed) => [:properties :geometry]
+        (-> parsed :geometry .getNumPoints) => 5
+        (->> parsed :geometry .getCoordinates (map (fn [c] [(.x c) (.y c)]))) => coords
+        (-> parsed :geometry sut/to-geojson sut/read-geojson parsed)))
+
+(fact "Reading GeoJSON Feature"
+      (count (sut/read-geojson feature)) => 1
+      (-> feature
+          sut/read-geojson
+          first
+          :geometry
+          type) => org.locationtech.jts.geom.Point)
+
+(fact "Reading GeoJSON FeatureCollection"
+      (count (sut/read-geojson feature-collection-1)) => 1
+      (->> feature-collection-2
+           sut/read-geojson
+           (map :geometry)
+           (map type)) => [org.locationtech.jts.geom.Point org.locationtech.jts.geom.Point])
+
+(fact "writing geojson geometries"
+      (->> geometry sut/read-geojson (map :geometry) (map sut/to-geojson)) => [geometry])
+
+(fact "writing geojson feature"
+      (json/parse-string
+       (sut/to-geojson-feature
+        {:properties {:name "hi"}
+         :geometry (sut/read-wkt wkt)})) => {"type" "Feature"
+                                             "properties" {"name" "hi"}
+                                             "geometry" {"coordinates" [[[-70.0024 30.0019]
+                                                                         [-70.0024 30.0016]
+                                                                         [-70.0017 30.0016]
+                                                                         [-70.0017 30.0019]
+                                                                         [-70.0024 30.0019]]]
+                                                         "type" "Polygon"}})
+
+(fact "writing geojson Feature Collection"
+      (let [fc (-> geometry sut/read-geojson sut/to-geojson-feature-collection json/parse-string)]
+        (fc "type") => "FeatureCollection"
+        (count (fc "features")) => 1
+        (get (first (fc "features")) "geometry") => (json/parse-string geometry)
+        (get (first (fc "features")) "properties") => {}))
+
+(fact "writing geojson Feature Collection with properties"
+      (let [feature (-> feature sut/read-geojson first)
+            fc (json/parse-string (sut/to-geojson-feature-collection [feature]))]
+        (fc "type") => "FeatureCollection"
+        (count (fc "features")) => 1
+        (get (first (fc "features")) "geometry") => {"coordinates" [0.0 0.0] "type" "Point"}
+        (get (first (fc "features")) "properties") => {"name" "null island"}))
+
+(fact "parsing geojson defaults to EPSG:4326 but SRID can be overridden in option map"
+      (map (comp jts/get-srid :geometry) (sut/read-geojson geometry)) => [4326]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature)) => [4326]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1)) => [4326]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson geometry 2229)) => [2229]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature 2229)) => [2229]
+      (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1 2229)) => [2229])
