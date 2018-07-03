@@ -154,7 +154,7 @@
 (defn edges
   "Get all edges originating from an index."
   [cell]
-  (.getH3UnidirectionalEdgesFromHexagon h3-inst cell))
+  (into [] (.getH3UnidirectionalEdgesFromHexagon h3-inst cell)))
 
 (defn edge-boundary
   "Get coordinates representing the edge."
