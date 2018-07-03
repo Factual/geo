@@ -7,6 +7,10 @@
   (:import (org.locationtech.jts.geom Geometry LinearRing)
            (com.uber.h3core.util GeoCoord)))
 
+(def geohash-with-hole (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
+                                                  (spatial/to-jts (geohash/geohash "u4pruyk")))
+                                     jts/default-srid))
+
 (facts "h3 core functions"
        (fact "from coordinates"
              (sut/pt->h3 57.64911063015461 10.407439693808556 7) => "871f24ac5ffffff")
@@ -38,16 +42,10 @@
                                                              "891f24ac0b3ffff"
                                                              "891f24ac543ffff"
                                                              "891f24ac55bffff"]
-             (count (sut/polyfill
-                      (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
-                                                 (spatial/to-jts (geohash/geohash "u4pruyk")))
-                                    jts/default-srid) 10)) => 35)
+             (count (sut/polyfill geohash-with-hole 12)) => 1648)
        (fact "compact/uncompact"
-             (count (sut/compact (sut/polyfill
-                                   (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
-                                                              (spatial/to-jts (geohash/geohash "u4pruyk")))
-                                                 jts/default-srid) 10))) => 23
-             (count (sut/uncompact (sut/polyfill
-                                     (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
-                                                                (spatial/to-jts (geohash/geohash "u4pruyk")))
-                                                   jts/default-srid) 10) 11)) => 245))
+             (count (sut/compact (sut/polyfill geohash-with-hole 12))) => 310
+             (count (sut/uncompact (sut/polyfill geohash-with-hole 12) 13)) => 11536)
+       (fact "multi-polygon"
+             (count (jts/coordinates
+                      (sut/multi-polygon (sut/polyfill geohash-with-hole 12)))) => 402))

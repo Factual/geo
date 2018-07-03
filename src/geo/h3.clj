@@ -1,10 +1,12 @@
 (ns geo.h3
   "Working with H3."
   (:require [geo.spatial :as spatial]
-            [geo.jts :as jts])
+            [geo.jts :as jts]
+            [clojure.walk :as walk])
   (:import (org.locationtech.jts.geom Geometry)
            (com.uber.h3core H3Core)
-           (geo.spatial Shapelike)))
+           (geo.spatial Shapelike)
+           (com.uber.h3core.util GeoCoord)))
 
 (def h3-inst (H3Core/newInstance))
 
@@ -91,3 +93,45 @@
         (.uncompact h3-inst cells res)
         (string? (first cells))
         (.uncompactAddress h3-inst cells res)))
+
+(defn- geocoord-array-wkt
+  "Create a wkt-style data structure from a collection of GeoCoords."
+  [coords]
+  (->> coords
+       (map (fn [coord] [(spatial/longitude coord) (spatial/latitude coord)]))
+       flatten
+       vec))
+
+(defn- geocoord-multi-helper
+  "Helper function to pass to postwalk for multi-polygon generators."
+  [v]
+  (if (instance? GeoCoord (first v))
+    (geocoord-array-wkt v)
+    v))
+
+
+(defn- multi-polygon-n
+  "Multi-polygon generator for numbers"
+  [cells]
+  (as-> cells v
+        (.h3SetToMultiPolygon h3-inst v true)
+        (mapv #(into [] %) v)
+        (walk/postwalk geocoord-multi-helper v)
+        (jts/multi-polygon-wkt v)))
+
+(defn- multi-polygon-s
+  "Multi-polygon generator for strings"
+  [cells]
+  (as-> cells v
+        (.h3AddressSetToMultiPolygon h3-inst v true)
+        (mapv #(into [] %) v)
+        (walk/postwalk geocoord-multi-helper v)
+        (jts/multi-polygon-wkt v)))
+
+(defn multi-polygon
+  "Given a contiguous set of H3 cells, return a JTS MultiPolygon."
+  [cells]
+  (cond (number? (first cells))
+        (multi-polygon-n cells)
+        (string? (first cells))
+        (multi-polygon-s cells)))
