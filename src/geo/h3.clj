@@ -160,3 +160,8 @@
   "Get coordinates representing the edge."
   [edge]
   (into [] (.getH3UnidirectionalEdgeBoundary h3-inst edge)))
+
+(defn pentagon?
+  "Check if an index is a pentagon"
+  [cell]
+  (.h3IsPentagon h3-inst cell))

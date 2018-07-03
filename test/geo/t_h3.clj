@@ -3,7 +3,7 @@
             [geo.geohash :as geohash]
             [geo.jts :as jts]
             [geo.spatial :as spatial]
-            [midje.sweet :refer [fact facts]])
+            [midje.sweet :refer [fact facts falsey truthy]])
   (:import (org.locationtech.jts.geom Geometry LinearRing)
            (com.uber.h3core.util GeoCoord)))
 
@@ -32,7 +32,10 @@
              (sut/edge-destination "1371f24ac4ffffff") => "871f24ac0ffffff"
              (sut/edges "871f24ac4ffffff") => ["1171f24ac4ffffff" "1271f24ac4ffffff" "1371f24ac4ffffff"
                                                "1471f24ac4ffffff" "1571f24ac4ffffff" "1671f24ac4ffffff"]
-             (type (first (sut/edge-boundary "1371f24ac4ffffff"))) => GeoCoord))
+             (type (first (sut/edge-boundary "1371f24ac4ffffff"))) => GeoCoord)
+       (fact "pentagon"
+             (sut/pentagon? "8f28308280f18f2") => falsey
+             (sut/pentagon? "821c07fffffffff") => truthy))
 
 
 (facts "h3 algorithms"
