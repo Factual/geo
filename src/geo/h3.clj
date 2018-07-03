@@ -3,66 +3,196 @@
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts]
             [clojure.walk :as walk])
-  (:import (org.locationtech.jts.geom Geometry)
+  (:import (org.locationtech.jts.geom Polygon)
            (com.uber.h3core H3Core)
-           (geo.spatial Shapelike)
+           (geo.spatial Point Polygonal Shapelike)
            (com.uber.h3core.util GeoCoord)))
 
-(def h3-inst (H3Core/newInstance))
+(def ^H3Core h3-inst (H3Core/newInstance))
 
-(defn long->string
+(defn- long->string
   "Convert a long representation of an H3 cell to a string."
   [^Long h]
   (.h3ToString h3-inst h))
 
-(defn string->long
+(defn- string->long
   "Convert a string representation of an H3 cell to a long."
   [^String h]
   (.stringToH3 h3-inst h))
 
-(defn pt->h3
-  "Return the index of the resolution 'res' cell that a point or lat/lng pair is contained within."
-  ([pt res]
-   (pt->h3 (spatial/latitude pt) (spatial/longitude pt) res))
-  ([lat lng res]
-   (.geoToH3Address h3-inst lat lng res)))
-
-(defn h3->pt
-  "Return a GeoCoord of the center point of a cell."
-  [h]
+(defn- h3->pt-long
+  "Long helper to return a GeoCoord of the center point of a cell."
+  [^Long h]
   (.h3ToGeo h3-inst h))
 
-(defn get-resolution
-  "Return the resolution of a cell."
-  [h]
+(defn- h3->pt-string
+  "String helper to return a GeoCoord of the center point of a cell."
+  [^String h]
+  (.h3ToGeo h3-inst h))
+
+(defn- get-resolution-string
+  "String helper to return the resolution of a cell."
+  [^String h]
   (.h3GetResolution h3-inst h))
 
-(defn ring-cells
-  "Return the neighboring indexes around a cell in all directions, for 'k' number of rings.
-  The first element is h (where k = 0)."
-  [h k]
-  (.kRing h3-inst h k))
+(defn get-resolution-long
+  "Long helper to return the resolution of a cell."
+  [^Long h]
+  (.h3GetResolution h3-inst h))
 
-(defn ring
-  "Return a list of indices of rings of neighboring indexes around a cell in all directions, for 'k' number of rings.
-  Rings are ordered from closest to farthest. The first element is [h] (where k = 0)."
-  [h k]
+(defn- ring-string
+  "String helper to return a list of indices of rings of neighboring indexes around a cell in all directions,
+  for 'k' number of rings. Rings are ordered from closest to farthest. The first element is [h] (where k = 0)."
+  [^String h ^Integer k]
   (.kRingDistances h3-inst h k))
 
-(defn- geo-boundary
-  "Given an H3 identifier, return a List of GeoCoords for that cell's boundary"
-  [h]
-  (.h3ToGeoBoundary h3-inst h))
+(defn- ring-long
+  "Long helper to return a list of indices of rings of neighboring indexes around a cell in all directions,
+  for 'k' number of rings. Rings are ordered from closest to farthest. The first element is [h] (where k = 0)."
+  [^Long h ^Integer k]
+  (.kRingDistances h3-inst h k))
 
-(defn jts-boundary
-  "Given an H3 identifier, return a LinearRing of that cell's boundary."
-  [h]
-  (as-> h v
-        (geo-boundary v)
+(defn- ring-cells-string
+  "String helper to return the neighboring indexes around a cell in all directions, for 'k' number of rings.
+  The first element is h (where k = 0)."
+  [^String h ^Integer k]
+  (.kRing h3-inst h k))
+
+(defn- ring-cells-long
+  "Long helper to return the neighboring indexes around a cell in all directions, for 'k' number of rings.
+  The first element is h (where k = 0)."
+  [^Long h ^Integer k]
+  (.kRing h3-inst h k))
+
+(defn- jts-boundary-common
+  "Convert a geo boundary to JTS LinearRing."
+  [g]
+  (as-> g v
         (into [] v)
         (conj v (first v))
         (map #(jts/coordinate (spatial/longitude %) (spatial/latitude %)) v)
         (jts/linear-ring v)))
+
+(defn- jts-boundary-string
+  "String helper for: given an H3 identifier, return a LinearRing of that cell's boundary."
+  [^String h]
+  (jts-boundary-common (.h3ToGeoBoundary h3-inst h)))
+
+(defn- jts-boundary-long
+  "Long helper for: given an H3 identifier, return a LinearRing of that cell's boundary."
+  [^Long h]
+  (jts-boundary-common (.h3ToGeoBoundary h3-inst h)))
+
+(defn- edge-string
+  "String helper for: given both 'from' and 'to' cells, get a unidirectional edge index."
+  [^String from ^String to]
+  (.getH3UnidirectionalEdge h3-inst from to))
+
+(defn- edge-long
+  "Long helper for: given both 'from' and 'to' cells, get a unidirectional edge index."
+  [^Long from ^Long to]
+  (.getH3UnidirectionalEdge h3-inst from to))
+
+(defn- edge-origin-string
+  "String helper for: given a unidirectional edge, get its origin."
+  [^String edge]
+  (.getOriginH3IndexFromUnidirectionalEdge h3-inst edge))
+
+(defn- edge-origin-long
+  "Long helper for: given a unidirectional edge, get its origin."
+  [^Long edge]
+  (.getOriginH3IndexFromUnidirectionalEdge h3-inst edge))
+
+(defn- edge-destination-string
+  "String helper for: given a unidirectional edge, get its destination."
+  [^String edge]
+  (.getDestinationH3IndexFromUnidirectionalEdge h3-inst edge))
+
+(defn- edge-destination-long
+  "Long helper for: given a unidirectional edge, get its destination."
+  [^Long edge]
+  (.getDestinationH3IndexFromUnidirectionalEdge h3-inst edge))
+
+(defn- edges-string
+  "String helper to get all edges originating from an index."
+  [^String cell]
+  (into [] (.getH3UnidirectionalEdgesFromHexagon h3-inst cell)))
+
+(defn- edges-long
+  "Long helper to get all edges originating from an index."
+  [^Long cell]
+  (into [] (.getH3UnidirectionalEdgesFromHexagon h3-inst cell)))
+
+(defn- edge-boundary-string
+  "String helper to get coordinates representing the edge."
+  [^String edge]
+  (into [] (.getH3UnidirectionalEdgeBoundary h3-inst edge)))
+
+(defn- edge-boundary-long
+  "Long helper to get coordinates representing the edge."
+  [^Long edge]
+  (into [] (.getH3UnidirectionalEdgeBoundary h3-inst edge)))
+
+(defn- pentagon?-string
+  "String helper to check if an index is a pentagon"
+  [^String cell]
+  (.h3IsPentagon h3-inst cell))
+
+(defn- pentagon?-long
+  "Long helper to check if an index is a pentagon"
+  [^Long cell]
+  (.h3IsPentagon h3-inst cell))
+
+
+(defprotocol H3Index
+  (convert [this] "Convert strings to longs and vice-versa.")
+  (h3->pt [this] "Return a GeoCoord of the center point of a cell.")
+  (get-resolution [this] "Return the resolution of a cell.")
+  (ring [this k] "Return a list of indices of rings of neighboring indexes around a cell in all directions.")
+  (ring-cells [this k] "Return neighboring indexes around a cell in all directions, for 'k' number of rings.")
+  (jts-boundary [this] "Given an H3 identifier, return a LinearRing of that cell's boundary.")
+  (edge [from to] "Given both 'from' and 'to' cells, get a unidirectional edge index.")
+  (edge-origin [this] "Given a unidirectional edge, get its origin.")
+  (edge-destination [this] "Given a unidirectional edge, get its destination.")
+  (edges [this] "Get all edges originating from an index.")
+  (edge-boundary [this] "Get coordinates representing the edge.")
+  (pentagon? [this] "Check if an index is a pentagon."))
+
+(extend-protocol H3Index
+  String
+  (convert [this] (string->long this))
+  (h3->pt [this] (h3->pt-string this))
+  (get-resolution [this] (get-resolution-string this))
+  (ring [this k] (ring-string this k))
+  (ring-cells [this k] (ring-cells-string this k))
+  (jts-boundary [this] (jts-boundary-string this))
+  (edge [from to] (edge-string from to))
+  (edge-origin [this] (edge-origin-string this))
+  (edge-destination [this] (edge-destination-string this))
+  (edges [this] (edges-string this))
+  (edge-boundary [this] (edge-boundary-string this))
+  (pentagon? [this] (pentagon?-string this))
+
+  Long
+  (convert [this] (long->string this))
+  (h3->pt [this] (h3->pt-long this))
+  (get-resolution [this] (get-resolution-long this))
+  (ring [this k] (ring-long this k))
+  (ring-cells [this k] (ring-cells-long this k))
+  (jts-boundary [this] (jts-boundary-long this))
+  (edge [from to] (edge-long from to))
+  (edge-origin [this] (edge-origin-long this))
+  (edge-destination [this] (edge-destination-long this))
+  (edges [this] (edges-long this))
+  (edge-boundary [this] (edge-boundary-long this))
+  (pentagon? [this] (pentagon?-long this)))
+
+(defn pt->h3
+  "Return the index of the resolution 'res' cell that a point or lat/lng pair is contained within."
+  ([^Point pt ^Integer res]
+   (pt->h3 (spatial/latitude pt) (spatial/longitude pt) res))
+  ([^Double lat ^Double lng ^Integer res]
+   (.geoToH3Address h3-inst lat lng res)))
 
 (defn geo-coords
   "Return all coordinates for a given Shapelike as GeoCoords"
@@ -71,11 +201,11 @@
 
 (defn polyfill
   "Return all resolution 'res' cells that cover a given Shapelike, excluding internal holes."
-  [^Shapelike s ^Integer res]
-  (let [s (spatial/to-jts s jts/default-srid)
-        num-interior-rings (.getNumInteriorRing s)
-        ext-ring (.getExteriorRing s)
-        int-rings (map #(.getInteriorRingN s %) (range num-interior-rings))]
+  [^Polygonal s ^Integer res]
+  (let [s (spatial/to-polygon s jts/default-srid)
+        num-interior-rings (.getNumInteriorRing ^Polygon s)
+        ext-ring (.getExteriorRing ^Polygon s)
+        int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
     (.polyfillAddress h3-inst (geo-coords ext-ring) (map geo-coords int-rings) res)))
 
 (defn compact
@@ -135,33 +265,3 @@
         (multi-polygon-n cells)
         (string? (first cells))
         (multi-polygon-s cells)))
-
-(defn edge
-  "Given both 'from' and 'to' cells, get a unidirectional edge index."
-  [from to]
-  (.getH3UnidirectionalEdge h3-inst from to))
-
-(defn edge-origin
-  "Given a unidirectional edge, get its origin."
-  [edge]
-  (.getOriginH3IndexFromUnidirectionalEdge h3-inst edge))
-
-(defn edge-destination
-  "Given a unidirectional edge, get its destination."
-  [edge]
-  (.getDestinationH3IndexFromUnidirectionalEdge h3-inst edge))
-
-(defn edges
-  "Get all edges originating from an index."
-  [cell]
-  (into [] (.getH3UnidirectionalEdgesFromHexagon h3-inst cell)))
-
-(defn edge-boundary
-  "Get coordinates representing the edge."
-  [edge]
-  (into [] (.getH3UnidirectionalEdgeBoundary h3-inst edge)))
-
-(defn pentagon?
-  "Check if an index is a pentagon"
-  [cell]
-  (.h3IsPentagon h3-inst cell))

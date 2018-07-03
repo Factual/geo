@@ -17,13 +17,16 @@
   statuses, etc."
   (:use [clojure.math.numeric-tower :only [abs]])
   (:require [geo.jts :as jts])
-  (:import (ch.hsr.geohash WGS84Point)
+  (:import (ch.hsr.geohash WGS84Point GeoHash)
            (ch.hsr.geohash.util VincentyGeodesy)
            (com.uber.h3core.util GeoCoord)
            (org.locationtech.spatial4j.shape SpatialRelation
                                              Shape
                                              Rectangle)
-           (org.locationtech.jts.geom Geometry Coordinate)
+           (org.locationtech.jts.geom Coordinate
+                                      Geometry
+                                      LinearRing
+                                      Polygon)
            (org.locationtech.spatial4j.shape.impl GeoCircle PointImpl RectangleImpl)
            (org.locationtech.spatial4j.shape.jts JtsGeometry
                                                  JtsPoint
@@ -133,6 +136,26 @@
   (to-shape [this] (spatial4j-point this))
   (to-jts ([this] (jts-point this))
           ([this srid] (jts/transform-geom (to-jts this) srid))))
+
+(defprotocol Polygonal
+  (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries."))
+
+(extend-protocol Polygonal
+  GeoHash
+  (to-polygon ([this] (to-jts this))
+              ([this srid] (to-jts this srid)))
+
+  RectangleImpl
+  (to-polygon ([this] (to-jts this))
+              ([this srid] (to-jts this srid)))
+
+  Polygon
+  (to-polygon ([this] this)
+              ([this srid] (to-jts this srid)))
+
+  LinearRing
+  (to-polygon ([this] (jts/polygon this))
+              ([this srid] (jts/polygon (jts/transform-geom this srid)))))
 
 (defprotocol Point
   (latitude [this])

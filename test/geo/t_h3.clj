@@ -17,11 +17,11 @@
        (fact "from point"
              (sut/pt->h3 (jts/point 57.64911063015461 10.407439693808556) 7) => "871f24ac5ffffff")
        (fact "strings and longs"
-             (sut/string->long "871f24ac5ffffff") => 608533827635118079
-             (sut/long->string 608533827635118079) => "871f24ac5ffffff")
+             (sut/convert "871f24ac5ffffff") => 608533827635118079
+             (sut/convert 608533827635118079) => "871f24ac5ffffff")
        (fact "resolution"
              (sut/get-resolution "871f24ac5ffffff") => 7
-             (sut/get-resolution (sut/string->long "871f24ac5ffffff")) => 7)
+             (sut/get-resolution (sut/convert "871f24ac5ffffff")) => 7)
        (fact "boundary"
              (type (sut/jts-boundary "871f24ac5ffffff")) => LinearRing)
        (fact "geo coord"
