@@ -123,16 +123,7 @@
           ([this srid] (to-jts (to-jts this) srid)))
 
   Geometry
-  (to-shape [this]
-    ;; Cloning geometries that cross dateline to workaround
-    ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
-    (let [this-wgs84 (jts/transform-geom this jts/default-srid)
-          geom (if (crosses-dateline? this-wgs84)
-                   (.copy this-wgs84)
-                 this-wgs84)
-          dateline-180-check? true
-          allow-multi-overlap? true]
-      (.makeShape jts-earth geom dateline-180-check? allow-multi-overlap?)))
+  (to-shape [this] (.makeShape jts-earth (jts/transform-geom this jts/default-srid) true true))
   (to-jts ([this] this)
           ([this srid] (jts/transform-geom this srid))))
 
