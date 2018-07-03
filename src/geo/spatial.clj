@@ -126,9 +126,9 @@
   (to-shape [this]
     ;; Cloning geometries that cross dateline to workaround
     ;; spatial4j / jts conversion issue: https://github.com/locationtech/spatial4j/issues/150
-    (let [this-wgs84 (jts/transform-geom this 4326)
+    (let [this-wgs84 (jts/transform-geom this jts/default-srid)
           geom (if (crosses-dateline? this-wgs84)
-                   (.clone this-wgs84)
+                   (.copy this-wgs84)
                  this-wgs84)
           dateline-180-check? true
           allow-multi-overlap? true]

@@ -241,4 +241,4 @@
   ([g crs1 crs2]
    (if (= crs1 crs2)
      (tf-set-srid g crs2)
-     (tf (.clone g) crs1 crs2))))
+     (tf (.copy g) crs1 crs2))))
