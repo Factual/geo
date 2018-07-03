@@ -214,8 +214,11 @@ or get the resolution.
 
 Given a Shapelike geometry, can polyfill a list of H3 cells at a given level of resolution.
 
-Given a list of H3 cells, can compact the list to remove redundant cells, or can uncompact the list
-to a desired resolution.
+Given a list of H3 cells, can compact the list to remove redundant cells, uncompact the list
+to a desired resolution, or merge contiguous cells into a JTS multipolygon.
+
+Can create unidirectional edges based on different configurations of cells, and can check
+for the 12 pentagonal cells at each resolution.
 
 IO functions return JTS Geometries.
 
