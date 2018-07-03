@@ -25,7 +25,14 @@
        (fact "boundary"
              (type (sut/jts-boundary "871f24ac5ffffff")) => LinearRing)
        (fact "geo coord"
-             (type (first (sut/geo-coords (geohash/geohash "u4pruy")))) => GeoCoord))
+             (type (first (sut/geo-coords (geohash/geohash "u4pruy")))) => GeoCoord)
+       (fact "edges"
+             (sut/edge "871f24ac4ffffff" "871f24ac0ffffff") => "1371f24ac4ffffff"
+             (sut/edge-origin "1371f24ac4ffffff") => "871f24ac4ffffff"
+             (sut/edge-destination "1371f24ac4ffffff") => "871f24ac0ffffff"
+             (sut/edges "871f24ac4ffffff") => ["1171f24ac4ffffff" "1271f24ac4ffffff" "1371f24ac4ffffff"
+                                               "1471f24ac4ffffff" "1571f24ac4ffffff" "1671f24ac4ffffff"]
+             (type (first (sut/edge-boundary "1371f24ac4ffffff"))) => GeoCoord))
 
 
 (facts "h3 algorithms"

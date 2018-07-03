@@ -135,3 +135,28 @@
         (multi-polygon-n cells)
         (string? (first cells))
         (multi-polygon-s cells)))
+
+(defn edge
+  "Given both 'from' and 'to' cells, get a unidirectional edge index."
+  [from to]
+  (.getH3UnidirectionalEdge h3-inst from to))
+
+(defn edge-origin
+  "Given a unidirectional edge, get its origin."
+  [edge]
+  (.getOriginH3IndexFromUnidirectionalEdge h3-inst edge))
+
+(defn edge-destination
+  "Given a unidirectional edge, get its destination."
+  [edge]
+  (.getDestinationH3IndexFromUnidirectionalEdge h3-inst edge))
+
+(defn edges
+  "Get all edges originating from an index."
+  [cell]
+  (.getH3UnidirectionalEdgesFromHexagon h3-inst cell))
+
+(defn edge-boundary
+  "Get coordinates representing the edge."
+  [edge]
+  (into [] (.getH3UnidirectionalEdgeBoundary h3-inst edge)))
