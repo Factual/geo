@@ -116,7 +116,7 @@
   "Returns true if a line contains a point."
   [[p1 p2] p] (let [n (normal p1 p2)
                     d (minus p p1)]
-                (< (Math/abs (dot n d)) EPSILON)))
+                (< (Math/abs ^Double (dot n d)) EPSILON)))
 
 (defn line-coordinate
   "Returns the line-coordinate of the given point. Works best when the point is on the line."

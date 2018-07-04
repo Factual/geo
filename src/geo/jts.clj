@@ -3,23 +3,24 @@
   coordinate sequences, rings, polygons, multipolygons, and so on."
   (:require [geo.crs :as crs])
   (:import (org.locationtech.jts.geom Coordinate
+                                      CoordinateSequence
                                       CoordinateSequenceFilter
                                       Geometry
+                                      GeometryCollection
+                                      GeometryFactory
                                       Point
                                       LinearRing
                                       LineSegment
                                       LineString
-                                      PrecisionModel
                                       Polygon
-                                      PrecisionModel
-                                      GeometryFactory)
-           (org.osgeo.proj4j ProjCoordinate)))
+                                      PrecisionModel)
+           (org.osgeo.proj4j CoordinateTransform ProjCoordinate)))
 
 (def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
 (defn ^GeometryFactory gf
   "Creates a GeometryFactory for a given SRID."
-  [srid]
+  [^Integer srid]
   (GeometryFactory. pm srid))
 
 (def default-srid 4326)
@@ -28,17 +29,17 @@
 
 (defn get-srid
   "Gets an integer SRID for a given geometry."
-  [geom]
+  [^Geometry geom]
   (.getSRID geom))
 
 (defn set-srid
   "Sets a geometry's SRID to a new value, and returns that geometry."
-  [geom srid]
+  [^Geometry geom ^Integer srid]
   (doto geom (.setSRID srid)))
 
-(defn get-factory
+(defn ^GeometryFactory get-factory
   "Gets a GeometryFactory for a given geometry."
-  [geom]
+  [^Geometry geom]
   (.getFactory geom))
 
 (defn coordinate
@@ -55,23 +56,35 @@
   ([lat long]
    (point long lat default-srid))
   ([x y srid]
-   (.createPoint (gf srid) (coordinate x y))))
+   (.createPoint (gf srid) ^Coordinate (coordinate x y))))
 
 (defn ^"[Lorg.locationtech.jts.geom.Coordinate;" coord-array
   [coordinates]
   (into-array Coordinate coordinates))
 
-(defn coordinate-sequence
+(defn ^"[Lorg.locationtech.jts.geom.Geometry;" geom-array
+  [geoms]
+  (into-array Geometry geoms))
+
+(defn ^"[Lorg.locationtech.jts.geom.LinearRing;" linear-ring-array
+  [rings]
+  (into-array LinearRing rings))
+
+(defn ^"[Lorg.locationtech.jts.geom.Polygon;" polygon-array
+  [polygons]
+  (into-array Polygon polygons))
+
+(defn ^CoordinateSequence coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
   [coordinates]
-  (.. gf-wgs84 getCoordinateSequenceFactory create
-      (into-array Coordinate coordinates)))
+  (-> (.getCoordinateSequenceFactory gf-wgs84)
+      (.create (coord-array coordinates))))
 
-(defn geometry-collection
+(defn ^GeometryCollection geometry-collection
   "Given a list of Geometries, generates a GeometryCollection."
   [geometries]
   (-> (get-factory (first geometries))
-      (.createGeometryCollection (into-array Geometry geometries))))
+      (.createGeometryCollection (geom-array geometries))))
 
 (defn wkt->coords-array
   [flat-coord-list]
@@ -113,12 +126,12 @@
   (LineSegment. (coord (point-n linestring idx))
                 (coord (point-n linestring (inc idx)))))
 
-(defn linear-ring
+(defn ^LinearRing linear-ring
   "Given a list of Coordinates, creates a LinearRing. Allows an optional SRID argument at end."
   ([coordinates]
-   (.createLinearRing gf-wgs84 (into-array Coordinate coordinates)))
+   (.createLinearRing gf-wgs84 (coord-array coordinates)))
   ([coordinates srid]
-   (.createLinearRing (gf srid) (into-array Coordinate coordinates))))
+   (.createLinearRing (gf srid) (coord-array coordinates))))
 
 (defn linear-ring-wkt
   "Makes a LinearRing from a WKT-style data structure: a flat sequence of
@@ -128,13 +141,14 @@
   ([coordinates srid]
    (-> coordinates wkt->coords-array (linear-ring srid))))
 
-(defn polygon
+(defn ^Polygon polygon
   "Given a LinearRing shell, and a list of LinearRing holes, generates a
   polygon."
   ([shell]
    (polygon shell nil))
-  ([shell holes]
-   (.createPolygon (get-factory shell) shell (into-array LinearRing holes))))
+  ([^LinearRing shell holes]
+   (.createPolygon (get-factory shell) shell
+                   (linear-ring-array holes))))
 
 (defn polygon-wkt
   "Generates a polygon from a WKT-style data structure: a sequence of
@@ -154,7 +168,8 @@
 (defn multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
-  (.createMultiPolygon (get-factory (first polygons)) (into-array Polygon polygons)))
+  (.createMultiPolygon (get-factory (first polygons))
+                       (polygon-array polygons)))
 
 (defn multi-polygon-wkt
   "Creates a MultiPolygon from a WKT-style data structure, e.g. [[[0 0 1 0 2 2
@@ -186,27 +201,27 @@
   (and (same-srid? g1 g2)
        (.equalsTopo g1 g2)))
 
-(defn- transform-coord
+(defn- ^Coordinate transform-coord
   "Transforms a coordinate using a proj4j transform.
   Can either be specified with a transform argument or two projection arguments."
-  ([coord transform]
+  ([^Coordinate coord ^CoordinateTransform transform]
    (-> (.transform transform
                    (ProjCoordinate. (.x coord) (.y coord) (.z coord))
                    (ProjCoordinate.))
-       (#(coordinate (.x %) (.y %) (.z %)))))
+       (#(coordinate (.x ^ProjCoordinate %) (.y ^ProjCoordinate %) (.z ^ProjCoordinate %)))))
   ([coord c1 c2]
    (if (= c1 c2) coord
        (transform-coord coord (crs/create-transform c1 c2)))))
 
 (defn- transform-coord-seq-item
   "Transforms one item in a CoordinateSequence using a proj4j transform."
-  [cseq i transform]
+  [^CoordinateSequence cseq ^Integer i ^CoordinateTransform transform]
   (let [coordinate (.getCoordinate cseq i)
         transformed (transform-coord coordinate transform)]
     (.setOrdinate cseq i 0 (.x transformed))
     (.setOrdinate cseq i 1 (.y transformed))))
 
-(defn- transform-coord-seq-filter
+(defn- ^CoordinateSequenceFilter transform-coord-seq-filter
   "Implement JTS's CoordinateSequenceFilter, to be applied to a Geometry using transform-geom."
   [transform]
   (reify CoordinateSequenceFilter
@@ -227,12 +242,12 @@
 (defn- tf
   "Transform a Geometry from one CRS to another.
   When the target transformation is an EPSG code, set the Geometry's SRID to that integer."
-  [g c1 c2]
+  [^Geometry g c1 c2]
   (let [tcsf (transform-coord-seq-filter (crs/create-transform c1 c2))]
     (.apply g tcsf)
     (tf-set-srid g c2)))
 
-(defn transform-geom
+(defn ^Geometry transform-geom
   "Transform a Geometry using a proj4j transform, if needed. Returns a new Geometry if a transform occurs.
   When only one CRS is given, get the CRS of the existing geometry.
   When two are given, force the transformation to occur between those two systems."
@@ -242,7 +257,7 @@
      (if (or (= geom-srid crs) (= (crs/srid->epsg-str geom-srid) crs))
        g
        (transform-geom g geom-srid crs))))
-  ([g crs1 crs2]
+  ([^Geometry g crs1 crs2]
    (if (= crs1 crs2)
      (tf-set-srid g crs2)
      (tf (.copy g) crs1 crs2))))
