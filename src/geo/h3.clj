@@ -145,7 +145,8 @@
 
 
 (defprotocol H3Index
-  (convert [this] "Convert strings to longs and vice-versa.")
+  (to-string [this] "Return index as a string.")
+  (to-long [this] "Return index as a long.")
   (h3->pt [this] "Return a GeoCoord of the center point of a cell.")
   (get-resolution [this] "Return the resolution of a cell.")
   (ring [this k] "Return a list of indices of rings of neighboring indexes around a cell in all directions.")
@@ -160,7 +161,8 @@
 
 (extend-protocol H3Index
   String
-  (convert [this] (string->long this))
+  (to-string [this] this)
+  (to-long [this] (string->long this))
   (h3->pt [this] (h3->pt-string this))
   (get-resolution [this] (get-resolution-string this))
   (ring [this k] (ring-string this k))
@@ -174,7 +176,8 @@
   (pentagon? [this] (pentagon?-string this))
 
   Long
-  (convert [this] (long->string this))
+  (to-string [this] (long->string this))
+  (to-long [this] this)
   (h3->pt [this] (h3->pt-long this))
   (get-resolution [this] (get-resolution-long this))
   (ring [this k] (ring-long this k))
