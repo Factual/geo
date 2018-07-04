@@ -1,7 +1,7 @@
 (ns geo.t-jts
   (:require [geo.jts :refer :all]
             [midje.sweet :refer [fact facts throws roughly truthy]])
-  (:import (org.locationtech.jts.geom Coordinate)))
+  (:import (org.locationtech.jts.geom Coordinate Geometry LineSegment Point)))
 
 (facts "coordinate"
        (fact (coordinate 1 2) => (Coordinate. 1 2)))
@@ -22,13 +22,13 @@
              => "MULTIPOLYGON (((10 10, 110 10, 110 110, 10 110, 10 10), (20 20, 20 30, 30 30, 30 20, 20 20), (40 20, 40 30, 50 30, 50 20, 40 20)))"))
 
 (facts "linestrings"
-       (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3
+       (.getNumPoints ^Geometry (linestring-wkt [0 0 0 1 0 2])) => 3
        (type (first (coords (linestring-wkt [0 0 0 1 0 2])))) => org.locationtech.jts.geom.Coordinate
        (count (coords (linestring-wkt [0 0 0 1 0 2]))) => 3
-       (.getNumPoints (linestring (coords (linestring-wkt [0 0 0 1 0 2])))) => 3
-       (.getX (point-n (linestring-wkt [0 0 0 1 0 2]) 1)) => 0.0
-       (.getY (point-n (linestring-wkt [0 0 0 1 0 2]) 1)) => 1.0
-       (let [segment (segment-at-idx (linestring-wkt [0 -1 1 2]) 0)]
+       (.getNumPoints ^Geometry (linestring (coords (linestring-wkt [0 0 0 1 0 2])))) => 3
+       (.getX ^Point (point-n (linestring-wkt [0 0 0 1 0 2]) 1)) => 0.0
+       (.getY ^Point (point-n (linestring-wkt [0 0 0 1 0 2]) 1)) => 1.0
+       (let [^LineSegment segment (segment-at-idx (linestring-wkt [0 -1 1 2]) 0)]
          (type segment) => org.locationtech.jts.geom.LineSegment
          (-> segment .p0 .x) => 0.0
          (-> segment .p0 .y) => -1.0
@@ -93,13 +93,13 @@
                            p2)
                => truthy))
        (fact "CRS systems with different names"
-             (let [p1 (point 42.3601 -71.0589)
+             (let [p1 ^Point (point 42.3601 -71.0589)
                    p2 (transform-geom p1 26986)]
-               (.getX (transform-geom p1 "EPSG:26986"))
-               => (.getX p2)
-               (.getX (transform-geom p1 "ESRI:26986"))
-               => (roughly (.getX p2) 0.001)
-               (.getX (transform-geom p1 "NAD83:2001"))
-               => (.getX p2)
-               (.getX (transform-geom p1 "+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +datum=NAD83 +units=m +no_defs"))
-               => (.getX p2))))
+               (.getX ^Point (transform-geom p1 "EPSG:26986"))
+               => (.getX ^Point p2)
+               (.getX ^Point (transform-geom p1 "ESRI:26986"))
+               => (roughly (.getX ^Point p2) 0.001)
+               (.getX ^Point (transform-geom p1 "NAD83:2001"))
+               => (.getX ^Point p2)
+               (.getX ^Point (transform-geom p1 "+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +datum=NAD83 +units=m +no_defs"))
+               => (.getX ^Point p2))))

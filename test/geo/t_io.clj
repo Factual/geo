@@ -4,7 +4,7 @@
             [geo.jts :as jts]
             [cheshire.core :as json]
             [midje.sweet :refer [fact facts truthy]])
-  (:import (org.locationtech.jts.geom Geometry GeometryCollection)))
+  (:import (org.locationtech.jts.geom Coordinate Geometry GeometryCollection Polygon)))
 
 (def wkt (trim (slurp "test/resources/wkt")))
 (def wkt-2 (trim (slurp "test/resources/wkt-2")))
@@ -31,24 +31,24 @@
 
 (fact "reads and writes wkt"
       (type (sut/read-wkt wkt)) => org.locationtech.jts.geom.Polygon
-      (.getNumPoints (sut/read-wkt wkt)) => 5
-      (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-wkt wkt))) => coords
+      (.getNumPoints ^Geometry (sut/read-wkt wkt)) => 5
+      (map (fn [^Coordinate c] [(.x c) (.y c)]) (.getCoordinates ^Polygon (sut/read-wkt wkt))) => coords
       (-> wkt sut/read-wkt sut/to-wkt) => wkt)
 
 (fact "reads and writes wkb"
       (let [geom (sut/read-wkt wkt)
             wkb (sut/to-wkb geom)]
         (count wkb) => 93
-        (.getNumPoints (sut/read-wkb wkb)) => 5
-        (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-wkt wkt))) => coords
+        (.getNumPoints ^Geometry (sut/read-wkb wkb)) => 5
+        (map (fn [^Coordinate c] [(.x c) (.y c)]) (.getCoordinates ^Polygon (sut/read-wkt wkt))) => coords
         (-> wkt sut/read-wkt sut/to-wkb sut/read-wkb sut/to-wkt) => wkt))
 
 (fact "reads and writes ewkb"
       (let [geom (jts/set-srid (sut/read-wkt wkt) 3857)
             ewkb (sut/to-ewkb geom)]
         (count ewkb) => 97
-        (.getNumPoints (sut/read-wkb ewkb)) => 5
-        (map (fn [c] [(.x c) (.y c)]) (.getCoordinates (sut/read-wkb ewkb))) => coords
+        (.getNumPoints ^Geometry (sut/read-wkb ewkb)) => 5
+        (map (fn [^Coordinate c] [(.x c) (.y c)]) (.getCoordinates ^Polygon (sut/read-wkb ewkb))) => coords
         (-> wkt sut/read-wkt sut/to-ewkb sut/read-wkb sut/to-wkt) => wkt))
 
 (facts "reads and writes wkb in hex string"
@@ -102,8 +102,8 @@
       (let [parsed (first (sut/read-geojson geometry))]
         parsed => map?
         (keys parsed) => [:properties :geometry]
-        (-> parsed :geometry .getNumPoints) => 5
-        (->> parsed :geometry .getCoordinates (map (fn [c] [(.x c) (.y c)]))) => coords
+        (-> parsed :geometry (#(.getNumPoints ^Geometry %))) => 5
+        (->> parsed :geometry (#(.getCoordinates ^Geometry %)) (map (fn [^Coordinate c] [(.x c) (.y c)]))) => coords
         (-> parsed :geometry sut/to-geojson sut/read-geojson parsed)))
 
 (fact "Reading GeoJSON Feature"
