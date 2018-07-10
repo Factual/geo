@@ -197,18 +197,19 @@
 (defn geohashes-intersecting
   ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
   ([shape min-level max-level]
-   (loop [matches (transient [])
-          queue (conj (queue) (geohash ""))]
-     (if (empty? queue)
-       (persistent! matches)
-       (let [^GeoHash current (peek queue)
-             level (significant-bits current)
-             intersects (and (<= level max-level) (spatial/intersects? shape current))]
-         (cond
-           (not intersects) (recur matches (pop queue))
-           (= level max-level) (recur (conj! matches current) (pop queue))
-           (>= level min-level) (recur (conj! matches current) (into (pop queue) (subdivide current)))
-           :else (recur matches (into (pop queue) (subdivide current)))))))))
+     (let [shape (spatial/to-shape shape)]
+       (loop [matches (transient [])
+              queue (conj (queue) (geohash ""))]
+         (if (empty? queue)
+           (persistent! matches)
+           (let [^GeoHash current (peek queue)
+                 level (significant-bits current)
+                 intersects (and (<= level max-level) (spatial/intersects? shape current))]
+             (cond
+              (not intersects) (recur matches (pop queue))
+              (= level max-level) (recur (conj! matches current) (pop queue))
+              (>= level min-level) (recur (conj! matches current) (into (pop queue) (subdivide current)))
+              :else (recur matches (into (pop queue) (subdivide current))))))))))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of
