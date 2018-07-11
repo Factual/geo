@@ -39,7 +39,11 @@
        (fact "validity checks"
              (sut/is-valid? 608533827635118079) => truthy
              (sut/is-valid? -1) => falsey
-             (sut/is-valid? "871f24ac5ffffff") => truthy))
+             (sut/is-valid? "871f24ac5ffffff") => truthy)
+       (fact "neighbor checks"
+             (sut/neighbors? "871f24ac4ffffff" "871f24ac0ffffff") => truthy
+             (sut/neighbors? 608533827618340863 608533827551231999) => truthy
+             (sut/neighbors? "871f24ac0ffffff" "871f24aeeffffff") => falsey))
 
 
 (facts "h3 algorithms"

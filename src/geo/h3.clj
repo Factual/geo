@@ -145,15 +145,25 @@
   [^Long cell]
   (.h3IsPentagon h3-inst cell))
 
-(defn is-valid?-string
+(defn- is-valid?-string
   "String helper to check if an index is valid"
   [^String cell]
   (.h3IsValid h3-inst cell))
 
-(defn is-valid?-long
+(defn- is-valid?-long
   "Long helper to check if an index is valid"
   [^Long cell]
   (.h3IsValid h3-inst cell))
+
+(defn- neighbors?-string
+  "String helper to check if cells are neighbors"
+  [^String c1 ^String c2]
+  (.h3IndexesAreNeighbors h3-inst c1 c2))
+
+(defn- neighbors?-long
+  "String helper to check if cells are neighbors"
+  [^Long c1 ^Long c2]
+  (.h3IndexesAreNeighbors h3-inst c1 c2))
 
 (defprotocol H3Index
   (to-string [this] "Return index as a string.")
@@ -169,7 +179,8 @@
   (edges [this] "Get all edges originating from an index.")
   (edge-boundary [this] "Get coordinates representing the edge.")
   (pentagon? [this] "Check if an index is a pentagon.")
-  (is-valid? [this] "Check if an index is valid."))
+  (is-valid? [this] "Check if an index is valid.")
+  (neighbors? [this cell] "Check if two indexes are neighbors."))
 
 (extend-protocol H3Index
   String
@@ -187,6 +198,7 @@
   (edge-boundary [this] (edge-boundary-string this))
   (pentagon? [this] (pentagon?-string this))
   (is-valid? [this] (is-valid?-string this))
+  (neighbors? [this cell] (neighbors?-string this cell))
 
   Long
   (to-string [this] (long->string this))
@@ -202,7 +214,8 @@
   (edges [this] (edges-long this))
   (edge-boundary [this] (edge-boundary-long this))
   (pentagon? [this] (pentagon?-long this))
-  (is-valid? [this] (is-valid?-long this)))
+  (is-valid? [this] (is-valid?-long this))
+  (neighbors? [this cell] (neighbors?-long this cell)))
 
 (defprotocol Polygonal
   (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries."))
