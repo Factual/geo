@@ -12,6 +12,7 @@
                                       LinearRing
                                       LineSegment
                                       LineString
+                                      MultiPolygon
                                       Polygon
                                       PrecisionModel)
            (org.osgeo.proj4j CoordinateTransform ProjCoordinate)))
@@ -170,6 +171,17 @@
   [polygons]
   (.createMultiPolygon (get-factory (first polygons))
                        (polygon-array polygons)))
+
+(defn polygons
+  "Given a MultiPolygon, generate a sequence of Polygons"
+  [^MultiPolygon m]
+  (let [n (.getNumGeometries m)
+        srid (get-srid m)
+        geom-n (fn [^MultiPolygon m ^Integer n]
+                 (-> m
+                     (.getGeometryN n)
+                     (set-srid srid)))]
+    (into [] (map #(geom-n m %) (range n)))))
 
 (defn multi-polygon-wkt
   "Creates a MultiPolygon from a WKT-style data structure, e.g. [[[0 0 1 0 2 2

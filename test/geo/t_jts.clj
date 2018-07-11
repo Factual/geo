@@ -22,6 +22,16 @@
                                        [40 20, 40 30, 50 30, 50 20, 40 20]]]))
              => "MULTIPOLYGON (((10 10, 110 10, 110 110, 10 110, 10 10), (20 20, 20 30, 30 30, 30 20, 20 20), (40 20, 40 30, 50 30, 50 20, 40 20)))"))
 
+(facts "polygons <-> multipolygon"
+       (fact "multipolygon to polygons"
+             (str (first (polygons (multi-polygon-wkt [[[-1 -1 11 -1 11 11 -1 -1]],
+                                                       [[0 0 10 0 10 10 0 0]]]))))
+             => "POLYGON ((-1 -1, 11 -1, 11 11, -1 -1))")
+       (fact "polygons to multipolygon"
+             (str (multi-polygon [(polygon-wkt [[-1 -1 11 -1 11 11 -1 -1]])
+                                  (polygon-wkt [[0 0 10 0 10 10 0 0]])]))
+             => "MULTIPOLYGON (((-1 -1, 11 -1, 11 11, -1 -1)), ((0 0, 10 0, 10 10, 0 0)))"))
+
 (facts "linestrings"
        (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3
        (type (first (coords (linestring-wkt [0 0 0 1 0 2])))) => org.locationtech.jts.geom.Coordinate
