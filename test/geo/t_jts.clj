@@ -1,5 +1,6 @@
 (ns geo.t-jts
   (:require [geo.jts :refer :all]
+            [geo.geohash :as geohash]
             [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts throws roughly truthy]])
   (:import (org.locationtech.jts.geom Coordinate)))
@@ -30,7 +31,16 @@
        (fact "polygons to multipolygon"
              (str (multi-polygon [(polygon-wkt [[-1 -1 11 -1 11 11 -1 -1]])
                                   (polygon-wkt [[0 0 10 0 10 10 0 0]])]))
-             => "MULTIPOLYGON (((-1 -1, 11 -1, 11 11, -1 -1)), ((0 0, 10 0, 10 10, 0 0)))"))
+             => "MULTIPOLYGON (((-1 -1, 11 -1, 11 11, -1 -1)), ((0 0, 10 0, 10 10, 0 0)))")
+       (fact "multipolygon SRIDs"
+             (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
+                                 (spatial/to-jts (geohash/geohash "u4pruu"))])
+                 get-srid) => 4326
+             (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
+                                 (spatial/to-jts (geohash/geohash "u4pruu"))])
+                 polygons
+                 first
+                 get-srid) => 4326))
 
 (facts "linestrings"
        (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3

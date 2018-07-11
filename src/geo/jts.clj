@@ -169,8 +169,11 @@
 (defn multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
-  (.createMultiPolygon (get-factory (first polygons))
-                       (polygon-array polygons)))
+  (let [f (first polygons)
+        srid (get-srid f)]
+       (-> (.createMultiPolygon (get-factory f)
+                                (polygon-array polygons))
+           (set-srid srid))))
 
 (defn polygons
   "Given a MultiPolygon, generate a sequence of Polygons"
