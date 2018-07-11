@@ -141,8 +141,8 @@
   (to-geohash-point [this] this)
 
   org.locationtech.jts.geom.Point
-  (latitude [this] (.getY this))
-  (longitude [this] (.getX this))
+  (latitude [this] (.getY (to-jts this jts/default-srid)))
+  (longitude [this] (.getX (to-jts this jts/default-srid)))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
 

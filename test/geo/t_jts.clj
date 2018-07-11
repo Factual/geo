@@ -1,5 +1,6 @@
 (ns geo.t-jts
   (:require [geo.jts :refer :all]
+            [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts throws roughly truthy]])
   (:import (org.locationtech.jts.geom Coordinate)))
 
@@ -57,7 +58,11 @@
                                                "+proj=utm +zone=31 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs")
                                23031)
                      (point 556878.9016076007 5682145.166264554 23031))
-         => truthy)
+         => truthy
+         (spatial/latitude (point 556878.9016076007 5682145.166264554 23031))
+         => (roughly 51.285914 0.000001)
+         (spatial/longitude (point 556878.9016076007 5682145.166264554 23031))
+         => (roughly 3.8142776 0.000001))
        (fact "geometry: stereographic azimuthal, using a linestring"
          (same-geom?
            (transform-geom (linestring-wkt [0 -75 -57.65625 -79.21875]) 3031)
