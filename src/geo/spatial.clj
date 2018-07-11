@@ -27,7 +27,7 @@
            (org.locationtech.spatial4j.shape.jts JtsGeometry
                                                  JtsPoint
                                                  JtsShapeFactory)
-           (org.locationtech.spatial4j.distance DistanceUtils)
+           (org.locationtech.spatial4j.distance DistanceCalculator DistanceUtils)
            (org.locationtech.spatial4j.context SpatialContextFactory
                                                SpatialContext)
            (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
@@ -104,7 +104,7 @@
 
   RectangleImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom this) jts/default-srid))
+  (to-jts ([this] (jts/set-srid (.getGeom ^JtsGeometry this) jts/default-srid))
           ([this srid] (to-jts (to-jts this) srid)))
 
   PointImpl
@@ -408,7 +408,7 @@
   (let [srid (jts/get-srid linestring)]
     (map #(jts/transform-geom % srid) (resegment-wgs84 (jts/transform-geom linestring 4326) segment-length))))
 
-(def vincenty-distance-calculator (org.locationtech.spatial4j.distance.GeodesicSphereDistCalc$Vincenty.))
+(def ^DistanceCalculator vincenty-distance-calculator (org.locationtech.spatial4j.distance.GeodesicSphereDistCalc$Vincenty.))
 
 (defn rand-point-in-radius
   "Get a random point around the given latitude and longitude within the given radius.

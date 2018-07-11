@@ -5,7 +5,8 @@
             [geo.spatial :refer [Shapelike to-jts]]
             [clojure.data]
             [clojure.walk :refer [keywordize-keys stringify-keys]])
-  (:import (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
+  (:import (java.util Arrays Arrays$ArrayList)
+           (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
            (org.locationtech.jts.geom Geometry)
            (org.wololo.geojson Feature FeatureCollection GeoJSONFactory)
            (org.wololo.jts2geojson GeoJSONReader GeoJSONWriter)))
@@ -19,6 +20,10 @@
 
 (def ^GeoJSONReader geojson-reader (GeoJSONReader.))
 (def ^GeoJSONWriter geojson-writer (GeoJSONWriter.))
+
+(defn ^Arrays$ArrayList feature-list
+  [features]
+  (Arrays/asList (into-array Feature features)))
 
 (defn read-wkt
   "Read a WKT string and convert to a Geometry.
@@ -127,7 +132,7 @@
 
 (defn to-geojson [shapelike] (.toString (.write geojson-writer (to-jts shapelike jts/default-srid))))
 
-(defn- gj-feature
+(defn- ^Feature gj-feature
   [{shapelike :geometry properties :properties}]
   (let [gj-geom (.write geojson-writer (to-jts shapelike jts/default-srid))]
     (Feature. gj-geom (stringify-keys properties))))
@@ -138,5 +143,5 @@
 
 (defn to-geojson-feature-collection
   [feature-maps]
-  (let [features (map gj-feature feature-maps)]
+  (let [features (feature-list (map gj-feature feature-maps))]
     (.toString (.write geojson-writer features))))

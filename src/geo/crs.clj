@@ -1,7 +1,8 @@
 (ns geo.crs
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
   (:require [clojure.string :refer [starts-with?]])
-  (:import (org.osgeo.proj4j CoordinateTransformFactory
+  (:import (org.osgeo.proj4j CoordinateTransform
+                             CoordinateTransformFactory
                              CRSFactory)))
 
 (def epsg-str? (partial re-matches #"EPSG:(\d+)"))
@@ -38,18 +39,30 @@
   [crs-str]
   (clojure.string/includes? crs-str "+proj="))
 
+(defn- create-crs-int
+  [^Integer c]
+  (.createFromName crs-factory (srid->epsg-str c)))
+
+(defn- create-crs-name
+  [^String c]
+  (.createFromName crs-factory c))
+
+(defn- create-crs-parameters
+  [^String c]
+  (.createFromParameters crs-factory "" c))
+
 (defn- create-crs
   "Create a CRS system. If given an integer, assume it is an EPSG code.
   If given a valid CRS name or proj4 string, use that as the CRS identifier."
   [c]
   (cond (int? c)
-        (.createFromName crs-factory (srid->epsg-str c))
+        (create-crs-int c)
         (crs-name? c)
-        (.createFromName crs-factory c)
+        (create-crs-name c)
         (proj4-string? c)
-        (.createFromParameters crs-factory "" c)))
+        (create-crs-parameters c)))
 
-(defn create-transform
+(defn ^CoordinateTransform create-transform
   "Creates a proj4j transform between two projection systems.
   c1 or c2 can be:
    - integers (which will be interpreted as that EPSG)
