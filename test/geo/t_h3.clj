@@ -35,7 +35,11 @@
              (type (first (sut/edge-boundary "1371f24ac4ffffff"))) => GeoCoord)
        (fact "pentagon"
              (sut/pentagon? "8f28308280f18f2") => falsey
-             (sut/pentagon? "821c07fffffffff") => truthy))
+             (sut/pentagon? "821c07fffffffff") => truthy)
+       (fact "validity checks"
+             (sut/is-valid? 608533827635118079) => truthy
+             (sut/is-valid? -1) => falsey
+             (sut/is-valid? "871f24ac5ffffff") => truthy))
 
 
 (facts "h3 algorithms"

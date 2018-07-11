@@ -145,6 +145,16 @@
   [^Long cell]
   (.h3IsPentagon h3-inst cell))
 
+(defn is-valid?-string
+  "String helper to check if an index is valid"
+  [^String cell]
+  (.h3IsValid h3-inst cell))
+
+(defn is-valid?-long
+  "Long helper to check if an index is valid"
+  [^Long cell]
+  (.h3IsValid h3-inst cell))
+
 (defprotocol H3Index
   (to-string [this] "Return index as a string.")
   (to-long [this] "Return index as a long.")
@@ -158,7 +168,8 @@
   (edge-destination [this] "Given a unidirectional edge, get its destination.")
   (edges [this] "Get all edges originating from an index.")
   (edge-boundary [this] "Get coordinates representing the edge.")
-  (pentagon? [this] "Check if an index is a pentagon."))
+  (pentagon? [this] "Check if an index is a pentagon.")
+  (is-valid? [this] "Check if an index is valid."))
 
 (extend-protocol H3Index
   String
@@ -175,6 +186,7 @@
   (edges [this] (edges-string this))
   (edge-boundary [this] (edge-boundary-string this))
   (pentagon? [this] (pentagon?-string this))
+  (is-valid? [this] (is-valid?-string this))
 
   Long
   (to-string [this] (long->string this))
@@ -189,7 +201,8 @@
   (edge-destination [this] (edge-destination-long this))
   (edges [this] (edges-long this))
   (edge-boundary [this] (edge-boundary-long this))
-  (pentagon? [this] (pentagon?-long this)))
+  (pentagon? [this] (pentagon?-long this))
+  (is-valid? [this] (is-valid?-long this)))
 
 (defprotocol Polygonal
   (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries."))
