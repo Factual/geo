@@ -47,13 +47,13 @@
 
 
 (facts "h3 algorithms"
-       (fact "ring"
-             (sut/ring "871f24ac5ffffff" 1) => [["871f24ac5ffffff"]
-                                                ["871f24ac4ffffff" "871f24ac0ffffff" "871f24ac1ffffff"
-                                                 "871f24aeaffffff" "871f24aeeffffff" "871f24ae3ffffff"]]
-             (sut/ring-cells "871f24ac5ffffff" 1) => ["871f24ac5ffffff" "871f24ac4ffffff" "871f24ac0ffffff"
-                                                      "871f24ac1ffffff" "871f24aeaffffff" "871f24aeeffffff"
-                                                      "871f24ae3ffffff"])
+       (fact "rings"
+             (sut/hex-ring "871f24ac5ffffff" 0) => ["871f24ac5ffffff"]
+             (sut/hex-ring "871f24ac5ffffff" 1) => ["871f24ae3ffffff" "871f24ac4ffffff" "871f24ac0ffffff"
+                                                    "871f24ac1ffffff" "871f24aeaffffff" "871f24aeeffffff"]
+             (sut/hex-range "871f24ac5ffffff" 1) => [["871f24ac5ffffff"]
+                                                     ["871f24ac4ffffff" "871f24ac0ffffff" "871f24ac1ffffff"
+                                                      "871f24aeaffffff" "871f24aeeffffff" "871f24ae3ffffff"]])
        (fact "polyfill"
              (sut/polyfill (geohash/geohash "u4pruy") 9) => ["891f24ac54bffff"
                                                              "891f24ac097ffff"
