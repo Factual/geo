@@ -7,7 +7,7 @@
            (com.uber.h3core H3Core)
            (com.uber.h3core.util GeoCoord)
            (geo.spatial Point Shapelike)
-           (org.locationtech.jts.geom LinearRing Polygon)
+           (org.locationtech.jts.geom LinearRing MultiPolygon Polygon)
            (org.locationtech.spatial4j.shape.impl RectangleImpl)))
 
 (def ^H3Core h3-inst (H3Core/newInstance))
@@ -216,24 +216,37 @@
   (neighbors? [this cell] (neighbors?-long this cell)))
 
 (defprotocol Polygonal
-  (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries."))
+  (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries.")
+  (polyfill [this res] "Return all resolution 'res' cells that cover a given Shapelike, excluding internal holes."))
+
+(declare polyfill-p)
+(declare polyfill-mp)
 
 (extend-protocol Polygonal
   GeoHash
   (to-polygon ([this] (spatial/to-jts this))
     ([this srid] (spatial/to-jts this srid)))
+  (polyfill [this res] (polyfill-p this res))
 
   RectangleImpl
   (to-polygon ([this] (spatial/to-jts this))
     ([this srid] (spatial/to-jts this srid)))
+  (polyfill [this res] (polyfill-p this res))
 
   Polygon
   (to-polygon ([this] this)
     ([this srid] (spatial/to-jts this srid)))
+  (polyfill [this res] (polyfill-p this res))
 
   LinearRing
   (to-polygon ([this] (jts/polygon this))
-    ([this srid] (jts/polygon (jts/transform-geom this srid)))))
+    ([this srid] (jts/polygon (jts/transform-geom this srid))))
+  (polyfill [this res] (polyfill-p this res))
+
+  MultiPolygon
+  (to-polygon ([this] this)
+    ([this srid] (spatial/to-jts this srid)))
+  (polyfill [this res] (polyfill-mp this res)))
 
 (defn pt->h3
   "Return the index of the resolution 'res' cell that a point or lat/lng pair is contained within."
@@ -247,14 +260,25 @@
   [^Shapelike s]
   (map spatial/h3-point (jts/coordinates (spatial/to-jts s))))
 
-(defn polyfill
-  "Return all resolution 'res' cells that cover a given Shapelike, excluding internal holes."
+(defn- polyfill-p
+  "Polygon helper to return all resolution 'res' cells that cover a given shape,
+  excluding internal holes."
   [s ^Integer res]
   (let [s (to-polygon s jts/default-srid)
         num-interior-rings (.getNumInteriorRing ^Polygon s)
         ext-ring (.getExteriorRing ^Polygon s)
         int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
     (.polyfillAddress h3-inst (geo-coords ext-ring) (map geo-coords int-rings) res)))
+
+(defn- polyfill-mp
+  "Multipolygon helper to return all resolution 'res' cells that cover a given shape,
+   excluding internal holes."
+  [mp ^Integer res]
+  (let [pf-polys (fn [p] (mapcat #(polyfill-p % res) p))]
+    (into [] (-> mp
+                 jts/polygons
+                 pf-polys
+                 flatten))))
 
 (defn compact
   "Given a set of H3 cells, return a compacted set of cells, at possibly coarser resolutions."

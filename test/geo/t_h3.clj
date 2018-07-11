@@ -60,6 +60,12 @@
                                                              "891f24ac0b3ffff"
                                                              "891f24ac543ffff"
                                                              "891f24ac55bffff"]
+             (-> (jts/multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
+                                     (spatial/to-jts (geohash/geohash "u4pruu"))])
+                 (sut/polyfill 9))
+             => ["891f24ac54bffff" "891f24ac097ffff" "891f24ac0b3ffff" "891f24ac543ffff"
+                 "891f24ac55bffff" "891f24ac00fffff" "891f24ac00bffff" "891f24ac007ffff"
+                 "891f24ac003ffff"]
              (count (sut/polyfill geohash-with-hole 12)) => 1648)
        (fact "compact/uncompact"
              (count (sut/compact (sut/polyfill geohash-with-hole 12))) => 310
