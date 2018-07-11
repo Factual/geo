@@ -3,10 +3,12 @@
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts]
             [clojure.walk :as walk])
-  (:import (org.locationtech.jts.geom Polygon)
+  (:import (ch.hsr.geohash GeoHash)
            (com.uber.h3core H3Core)
-           (geo.spatial Point Polygonal Shapelike)
-           (com.uber.h3core.util GeoCoord)))
+           (com.uber.h3core.util GeoCoord)
+           (geo.spatial Point Shapelike)
+           (org.locationtech.jts.geom LinearRing Polygon)
+           (org.locationtech.spatial4j.shape.impl RectangleImpl)))
 
 (def ^H3Core h3-inst (H3Core/newInstance))
 
@@ -143,7 +145,6 @@
   [^Long cell]
   (.h3IsPentagon h3-inst cell))
 
-
 (defprotocol H3Index
   (to-string [this] "Return index as a string.")
   (to-long [this] "Return index as a long.")
@@ -190,6 +191,26 @@
   (edge-boundary [this] (edge-boundary-long this))
   (pentagon? [this] (pentagon?-long this)))
 
+(defprotocol Polygonal
+  (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries."))
+
+(extend-protocol Polygonal
+  GeoHash
+  (to-polygon ([this] (spatial/to-jts this))
+    ([this srid] (spatial/to-jts this srid)))
+
+  RectangleImpl
+  (to-polygon ([this] (spatial/to-jts this))
+    ([this srid] (spatial/to-jts this srid)))
+
+  Polygon
+  (to-polygon ([this] this)
+    ([this srid] (spatial/to-jts this srid)))
+
+  LinearRing
+  (to-polygon ([this] (jts/polygon this))
+    ([this srid] (jts/polygon (jts/transform-geom this srid)))))
+
 (defn pt->h3
   "Return the index of the resolution 'res' cell that a point or lat/lng pair is contained within."
   ([^Point pt ^Integer res]
@@ -204,8 +225,8 @@
 
 (defn polyfill
   "Return all resolution 'res' cells that cover a given Shapelike, excluding internal holes."
-  [^Polygonal s ^Integer res]
-  (let [s (spatial/to-polygon s jts/default-srid)
+  [s ^Integer res]
+  (let [s (to-polygon s jts/default-srid)
         num-interior-rings (.getNumInteriorRing ^Polygon s)
         ext-ring (.getExteriorRing ^Polygon s)
         int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
