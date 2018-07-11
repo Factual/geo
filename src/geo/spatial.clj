@@ -150,8 +150,8 @@
   (to-h3-point [this] (h3-point this))
 
   org.locationtech.jts.geom.Point
-  (latitude [this] (.getY (jts/transform-geom this jts/default-srid)))
-  (longitude [this] (.getX (jts/transform-geom this jts/default-srid)))
+  (latitude [this] (.getY ^org.locationtech.jts.geom.Point (jts/transform-geom this jts/default-srid)))
+  (longitude [this] (.getX ^org.locationtech.jts.geom.Point (jts/transform-geom this jts/default-srid)))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
   (to-h3-point [this] (h3-point this))
