@@ -65,21 +65,22 @@
   (.hexRange h3-inst h k))
 
 (defn- jts-boundary-common
-  "Convert a geo boundary to JTS LinearRing."
+  "Convert a geo boundary to JTS Polygon."
   [g]
   (as-> g v
         (into [] v)
         (conj v (first v))
         (map #(jts/coordinate (spatial/longitude %) (spatial/latitude %)) v)
-        (jts/linear-ring v)))
+        (jts/linear-ring v)
+        (jts/polygon v)))
 
 (defn- jts-boundary-string
-  "String helper for: given an H3 identifier, return a LinearRing of that cell's boundary."
+  "String helper for: given an H3 identifier, return a Polygon of that cell."
   [^String h]
   (jts-boundary-common (.h3ToGeoBoundary h3-inst h)))
 
 (defn- jts-boundary-long
-  "Long helper for: given an H3 identifier, return a LinearRing of that cell's boundary."
+  "Long helper for: given an H3 identifier, return a Polygon of that cell."
   [^Long h]
   (jts-boundary-common (.h3ToGeoBoundary h3-inst h)))
 
@@ -170,7 +171,7 @@
   (get-resolution [this] "Return the resolution of a cell.")
   (hex-ring [this k] "Return a list of indices with distance 'k' from a cell.")
   (hex-range [this k] "Return a list of 'k' rings, each of which is a list of addresses, from closest to farthest.")
-  (jts-boundary [this] "Given an H3 identifier, return a LinearRing of that cell's boundary.")
+  (to-jts [this] "Given an H3 identifier, return a Polygon of that cell.")
   (edge [from to] "Given both 'from' and 'to' cells, get a unidirectional edge index.")
   (edge-origin [this] "Given a unidirectional edge, get its origin.")
   (edge-destination [this] "Given a unidirectional edge, get its destination.")
@@ -188,7 +189,7 @@
   (get-resolution [this] (get-resolution-string this))
   (hex-ring [this k] (hex-ring-string this k))
   (hex-range [this k] (hex-range-string this k))
-  (jts-boundary [this] (jts-boundary-string this))
+  (to-jts [this] (jts-boundary-string this))
   (edge [from to] (edge-string from to))
   (edge-origin [this] (edge-origin-string this))
   (edge-destination [this] (edge-destination-string this))
@@ -205,7 +206,7 @@
   (get-resolution [this] (get-resolution-long this))
   (hex-ring [this k] (hex-ring-long this k))
   (hex-range [this k] (hex-range-long this k))
-  (jts-boundary [this] (jts-boundary-long this))
+  (to-jts [this] (jts-boundary-long this))
   (edge [from to] (edge-long from to))
   (edge-origin [this] (edge-origin-long this))
   (edge-destination [this] (edge-destination-long this))

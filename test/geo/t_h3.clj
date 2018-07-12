@@ -4,7 +4,7 @@
             [geo.jts :as jts]
             [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts falsey truthy]])
-  (:import (org.locationtech.jts.geom Geometry LinearRing)
+  (:import (org.locationtech.jts.geom Geometry Polygon)
            (com.uber.h3core.util GeoCoord)))
 
 (def geohash-with-hole (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
@@ -22,8 +22,8 @@
        (fact "resolution"
              (sut/get-resolution "871f24ac5ffffff") => 7
              (sut/get-resolution (sut/to-long "871f24ac5ffffff")) => 7)
-       (fact "boundary"
-             (type (sut/jts-boundary "871f24ac5ffffff")) => LinearRing)
+       (fact "jts boundary"
+             (type (sut/to-jts "871f24ac5ffffff")) => Polygon)
        (fact "geo coord"
              (type (first (sut/geo-coords (geohash/geohash "u4pruy")))) => GeoCoord)
        (fact "edges"
