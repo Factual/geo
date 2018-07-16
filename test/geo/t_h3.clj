@@ -34,6 +34,9 @@
              (sut/edges "871f24ac4ffffff") => ["1171f24ac4ffffff" "1271f24ac4ffffff" "1371f24ac4ffffff"
                                                "1471f24ac4ffffff" "1571f24ac4ffffff" "1671f24ac4ffffff"]
              (type (first (sut/edge-boundary "1371f24ac4ffffff"))) => GeoCoord)
+       (fact "h3->pt"
+             (str (spatial/to-jts (sut/h3->pt "871f24ac5ffffff")))
+             => "POINT (10.423520614389421 57.65506363212537)")
        (fact "pentagon"
              (sut/pentagon? "8f28308280f18f2") => falsey
              (sut/pentagon? "821c07fffffffff") => truthy)
