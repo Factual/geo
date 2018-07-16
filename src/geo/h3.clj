@@ -64,7 +64,7 @@
   [^Long h ^Integer k]
   (.hexRange h3-inst h k))
 
-(defn- jts-boundary-common
+(defn- to-jts-common
   "Convert a geo boundary to JTS Polygon."
   [g]
   (as-> g v
@@ -74,15 +74,15 @@
         (jts/linear-ring v)
         (jts/polygon v)))
 
-(defn- jts-boundary-string
+(defn- to-jts-string
   "String helper for: given an H3 identifier, return a Polygon of that cell."
   [^String h]
-  (jts-boundary-common (.h3ToGeoBoundary h3-inst h)))
+  (to-jts-common (.h3ToGeoBoundary h3-inst h)))
 
-(defn- jts-boundary-long
+(defn- to-jts-long
   "Long helper for: given an H3 identifier, return a Polygon of that cell."
   [^Long h]
-  (jts-boundary-common (.h3ToGeoBoundary h3-inst h)))
+  (to-jts-common (.h3ToGeoBoundary h3-inst h)))
 
 (defn- edge-string
   "String helper for: given both 'from' and 'to' cells, get a unidirectional edge index."
@@ -189,7 +189,7 @@
   (get-resolution [this] (get-resolution-string this))
   (hex-ring [this k] (hex-ring-string this k))
   (hex-range [this k] (hex-range-string this k))
-  (to-jts [this] (jts-boundary-string this))
+  (to-jts [this] (to-jts-string this))
   (edge [from to] (edge-string from to))
   (edge-origin [this] (edge-origin-string this))
   (edge-destination [this] (edge-destination-string this))
@@ -206,7 +206,7 @@
   (get-resolution [this] (get-resolution-long this))
   (hex-ring [this k] (hex-ring-long this k))
   (hex-range [this k] (hex-range-long this k))
-  (to-jts [this] (jts-boundary-long this))
+  (to-jts [this] (to-jts-long this))
   (edge [from to] (edge-long from to))
   (edge-origin [this] (edge-origin-long this))
   (edge-destination [this] (edge-destination-long this))
