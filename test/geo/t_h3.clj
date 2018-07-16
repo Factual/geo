@@ -1,6 +1,7 @@
 (ns geo.t-h3
   (:require [geo.h3 :as sut]
             [geo.geohash :as geohash]
+            [geo.io :as io]
             [geo.jts :as jts]
             [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts falsey truthy]])
@@ -72,4 +73,14 @@
              (count (sut/uncompact (sut/polyfill geohash-with-hole 12) 13)) => 11536)
        (fact "multi-polygon"
              (count (jts/coordinates
-                      (sut/multi-polygon (sut/polyfill geohash-with-hole 12)))) => 402))
+                      (sut/multi-polygon (sut/polyfill geohash-with-hole 12)))) => 402)
+       (fact "interoperability with geometry collections"
+             (->> (sut/hex-range "871f24ac5ffffff" 3)
+                  (map sut/multi-polygon)
+                  jts/geometry-collection
+                  io/to-features
+                  (#(nth % 1))
+                  :geometry
+                  jts/coordinates
+                  count)
+             => 26))
