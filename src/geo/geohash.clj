@@ -57,6 +57,15 @@
           (iterate #(.next ^GeoHash %))
           (take number)))))
 
+(defn subdivide-levels
+  "Given a geohash and a range of levels, return all geohashes inside the
+   given geohash at all the levels in the range"
+  [^GeoHash geohash min-precision max-precision]
+  (let [start-precision (max (.significantBits geohash) min-precision)
+        end-precision (max start-precision max-precision)]
+    (->> (range start-precision (inc end-precision))
+         (mapcat #(subdivide geohash %)))))
+
 (defn square-ring
   "Given a geohash at the northeast corner of a square (n-2) geohashes on a
   side, returns a list of geohashes in a path around the square, such that the
@@ -194,22 +203,44 @@
 
 (defn- queue [] clojure.lang.PersistentQueue/EMPTY)
 
+(defn- geohashes-intersecting-matches!
+  "Given geohash and shape-relation, modify the matches list as necessary
+   :disjoint    no matches
+   :intersects  part of geohash is in shape, but can't extend assertion to all geohash subdivisions
+   :within      same logic as :intersects
+   :contains    all of geohash in shape, all subdivisions at all valid levels match"
+  [min-level max-level gh shape-relation matches]
+  (case shape-relation
+    ;; gh fully in shape. Add subdivisions of all valid
+    ;; levels into matches
+    :contains
+    (->> (subdivide-levels gh min-level max-level)
+         (reduce conj! matches))
+    ;; disjoint, no new geohash matches
+    :disjoint matches
+    ;; within or intersects: shape partially covers geohash. Current
+    ;; geohash match if level is appropriate
+    (if (<= min-level (significant-bits gh) max-level)
+      (conj! matches gh)
+      matches)))
+
 (defn geohashes-intersecting
   ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
   ([shape min-level max-level]
-     (let [shape (spatial/to-shape shape)]
-       (loop [matches (transient [])
-              queue (conj (queue) (geohash ""))]
-         (if (empty? queue)
-           (persistent! matches)
-           (let [^GeoHash current (peek queue)
-                 level (significant-bits current)
-                 intersects (and (<= level max-level) (spatial/intersects? shape current))]
-             (cond
-              (not intersects) (recur matches (pop queue))
-              (= level max-level) (recur (conj! matches current) (pop queue))
-              (>= level min-level) (recur (conj! matches current) (into (pop queue) (subdivide current)))
-              :else (recur matches (into (pop queue) (subdivide current))))))))))
+     (let [shape (spatial/to-shape shape)
+           update-matches! (partial geohashes-intersecting-matches! min-level max-level)]
+       (loop [current (geohash "")
+              matches (transient [])
+              gh-q (queue)]
+         (let [relation (spatial/relate shape current)
+               matches (update-matches! current relation matches)
+               gh-q (if (or (= :intersects relation) (= :within relation))
+                      (reduce conj (pop gh-q) (subdivide current))
+                      (pop gh-q))
+               next (peek gh-q)]
+           (if (and next (<= (significant-bits next) max-level))
+             (recur next matches gh-q)
+             (persistent! matches)))))))
 
 (defn geohashes-near
   "Returns a list of geohashes of the given precision within radius meters of

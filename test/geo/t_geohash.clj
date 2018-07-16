@@ -31,6 +31,15 @@
                  "scu2p" "scu2q" "scu2r" "scu2s" "scu2t" "scu2u" "scu2v"
                  "scu2w" "scu2x" "scu2y" "scu2z"]))
 
+(facts "subdivide for level range"
+       (let [subdivided (subdivide-levels (geohash "0") 5 8)
+             level-checker (fn [level]
+                             #(= level (significant-bits %)))
+             ]
+         (fact (count subdivided) => 15)
+         ;; (range 2^k) where k = (level - min_level) for each level in range
+         (fact (map #(.ord ^GeoHash %) subdivided) => (mapcat range [1 2 4 8]))))
+
 (with-redefs
   ; For debugging purposes, we'll treat hashes as [lat long] pairs on an
   ; infinite grid.
