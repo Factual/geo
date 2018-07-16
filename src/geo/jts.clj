@@ -87,6 +87,17 @@
   (-> (get-factory (first geometries))
       (.createGeometryCollection (geom-array geometries))))
 
+(defn geometries
+  "Given a GeometryCollection, generate a sequence of Geometries"
+  [^GeometryCollection c]
+  (let [n (.getNumGeometries c)
+        srid (get-srid c)
+        geom-n (fn [^GeometryCollection c ^Integer n]
+                 (-> c
+                     (.getGeometryN n)
+                     (set-srid srid)))]
+    (into [] (map #(geom-n c %) (range n)))))
+
 (defn wkt->coords-array
   [flat-coord-list]
   (->> flat-coord-list

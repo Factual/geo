@@ -42,6 +42,16 @@
                  first
                  get-srid) => 4326))
 
+(facts "geometries <-> geometrycollection"
+       (fact "points"
+             (str (first (geometries (geometry-collection [(point 0 0)
+                                                           (point 1 1)]))))
+             => "POINT (0 0)")
+       (fact "srids"
+             (get-srid (first (geometries (geometry-collection [(point 0 0 2229)
+                                                                (point 0 0 2229)]))))
+             => 2229))
+
 (facts "linestrings"
        (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3
        (type (first (coords (linestring-wkt [0 0 0 1 0 2])))) => org.locationtech.jts.geom.Coordinate
