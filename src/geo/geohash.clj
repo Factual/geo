@@ -57,6 +57,15 @@
           (iterate #(.next ^GeoHash %))
           (take number)))))
 
+(defn subdivide-levels
+  "Given a geohash and a range of levels, return all geohashes inside the
+   given geohash at all the levels in the range"
+  [^GeoHash geohash min-precision max-precision]
+  (let [start-precision (max (.significantBits geohash) min-precision)
+        end-precision (max start-precision max-precision)]
+    (->> (range start-precision (inc end-precision))
+         (mapcat #(subdivide geohash %)))))
+
 (defn square-ring
   "Given a geohash at the northeast corner of a square (n-2) geohashes on a
   side, returns a list of geohashes in a path around the square, such that the
@@ -197,27 +206,23 @@
 (defn- geohashes-intersecting-matches!
   "Given geohash and shape-relation, modify the matches list as necessary
    :disjoint    no matches
-   :intersects  current geohash matches, but can't extend assertion to subdivisions
-   :within      same as within
-   :contains    all subdivisions at all valid levels match"
+   :intersects  part of geohash is in shape, but can't extend assertion to all geohash subdivisions
+   :within      same logic as :intersects
+   :contains    all of geohash in shape, all subdivisions at all valid levels match"
   [min-level max-level gh shape-relation matches]
   (case shape-relation
-   ;; gh fully in shape. Add subdivisions of all valid
-   ;; levels into matches
+    ;; gh fully in shape. Add subdivisions of all valid
+    ;; levels into matches
     :contains
-   (let [start-level (max (significant-bits gh) min-level)
-         end-level (min start-level max-level)]
-     (->> (range start-level (inc end-level))
-          (mapcat #(subdivide gh %))
-          (reduce conj! matches))
-     )
-   ;; disjoint, no new geohash matches
-   :disjoint matches
-   ;; shape partially covers geohash. Current geohash match
-   ;; if level is appropriate
-   (if (<= min-level (significant-bits gh) max-level)
-     (conj! matches gh)
-     matches)))
+    (->> (subdivide-levels gh min-level max-level)
+         (reduce conj! matches))
+    ;; disjoint, no new geohash matches
+    :disjoint matches
+    ;; within or intersects: shape partially covers geohash. Current
+    ;; geohash match if level is appropriate
+    (if (<= min-level (significant-bits gh) max-level)
+      (conj! matches gh)
+      matches)))
 
 (defn geohashes-intersecting
   ([shape desired-level] (geohashes-intersecting shape desired-level desired-level))
