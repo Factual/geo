@@ -19,10 +19,11 @@
   (:require [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point)
            (ch.hsr.geohash.util VincentyGeodesy)
+           (com.uber.h3core.util GeoCoord)
            (org.locationtech.spatial4j.shape SpatialRelation
                                              Shape
                                              Rectangle)
-           (org.locationtech.jts.geom Geometry Coordinate)
+           (org.locationtech.jts.geom Coordinate Geometry)
            (org.locationtech.spatial4j.shape.impl GeoCircle PointImpl RectangleImpl)
            (org.locationtech.spatial4j.shape.jts JtsGeometry
                                                  JtsPoint
@@ -35,6 +36,7 @@
 (declare spatial4j-point)
 (declare geohash-point)
 (declare jts-point)
+(declare h3-point)
 
 (defn square [x]
   (Math/pow x 2))
@@ -125,13 +127,19 @@
   Geometry
   (to-shape [this] (.makeShape jts-earth (jts/transform-geom this jts/default-srid) true true))
   (to-jts ([this] this)
-          ([this srid] (jts/transform-geom this srid))))
+          ([this srid] (jts/transform-geom this srid)))
+
+  GeoCoord
+  (to-shape [this] (spatial4j-point this))
+  (to-jts ([this] (jts-point this))
+          ([this srid] (jts/transform-geom (to-jts this) srid))))
 
 (defprotocol Point
   (latitude [this])
   (longitude [this])
   (to-spatial4j-point [this])
-  (to-geohash-point [this]))
+  (to-geohash-point [this])
+  (to-h3-point [this]))
 
 (extend-protocol Point
   WGS84Point
@@ -139,24 +147,35 @@
   (longitude [this] (.getLongitude this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] this)
+  (to-h3-point [this] (h3-point this))
 
   org.locationtech.jts.geom.Point
-  (latitude [this] (.getY (jts/transform-geom this jts/default-srid)))
-  (longitude [this] (.getX (jts/transform-geom this jts/default-srid)))
+  (latitude [this] (.getY ^org.locationtech.jts.geom.Point (jts/transform-geom this jts/default-srid)))
+  (longitude [this] (.getX ^org.locationtech.jts.geom.Point (jts/transform-geom this jts/default-srid)))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
+  (to-h3-point [this] (h3-point this))
 
   org.locationtech.jts.geom.Coordinate
   (latitude [this] (.y this))
   (longitude [this] (.x this))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
+  (to-h3-point [this] (h3-point this))
 
   org.locationtech.spatial4j.shape.Point
   (latitude [this] (.getY this))
   (longitude [this] (.getX this))
   (to-spatial4j-point [this] this)
-  (to-geohash-point [this] (geohash-point this)))
+  (to-geohash-point [this] (geohash-point this))
+  (to-h3-point [this] (h3-point this))
+
+  com.uber.h3core.util.GeoCoord
+  (latitude [this] (.lat this))
+  (longitude [this] (.lng this))
+  (to-spatial4j-point [this] (spatial4j-point this))
+  (to-geohash-point [this] (geohash-point this))
+  (to-h3-point [this] this))
 
 (defn degrees->radians
   [degrees]
@@ -240,6 +259,13 @@
    (WGS84Point. (latitude point) (longitude point)))
   ([lat long]
    (WGS84Point. lat long)))
+
+(defn h3-point
+  "Returns a GeoCoord used by the H3 library."
+  ([point]
+   (GeoCoord. (latitude point) (longitude point)))
+  ([lat long]
+   (GeoCoord. lat long)))
 
 (def point spatial4j-point)
 
