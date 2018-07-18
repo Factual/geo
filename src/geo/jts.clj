@@ -235,7 +235,7 @@
 (defn- tf-set-srid
   "When the final projection for a tf is an SRID or EPSG, set the Geometry's SRID."
   [g c]
-  (cond (int? c) (set-srid g c)
+  (cond (integer? c) (set-srid g c)
         (crs/epsg-str? c) (set-srid g (crs/epsg-str->srid c))
         :else g))
 
