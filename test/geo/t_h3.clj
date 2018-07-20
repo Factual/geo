@@ -56,12 +56,24 @@
 
 (facts "h3 algorithms"
        (fact "rings"
-             (sut/hex-ring h3-example-str 0) => ["871f24ac5ffffff"]
-             (sut/hex-ring h3-example-str 1) => ["871f24ae3ffffff" "871f24ac4ffffff" "871f24ac0ffffff"
-                                                 "871f24ac1ffffff" "871f24aeaffffff" "871f24aeeffffff"]
-             (sut/hex-range h3-example-str 1) => [["871f24ac5ffffff"]
-                                                  ["871f24ac4ffffff" "871f24ac0ffffff" "871f24ac1ffffff"
-                                                   "871f24aeaffffff" "871f24aeeffffff" "871f24ae3ffffff"]])
+             (sut/k-ring h3-example-str 0) => ["871f24ac5ffffff"]
+             (sut/k-ring h3-example-str 1) => ["871f24ac5ffffff" "871f24ac4ffffff" "871f24ac0ffffff"
+                                               "871f24ac1ffffff" "871f24aeaffffff" "871f24aeeffffff"
+                                               "871f24ae3ffffff"]
+             (sut/k-ring h3-example-str 2) => ["871f24ac5ffffff" "871f24ac4ffffff" "871f24ac0ffffff"
+                                               "871f24ac1ffffff" "871f24aeaffffff" "871f24aeeffffff"
+                                               "871f24ae3ffffff" "871f24ae2ffffff" "871f24af1ffffff"
+                                               "871f24ac6ffffff" "871f24ac2ffffff" "871f24ac3ffffff"
+                                               "871f24aceffffff" "871f24accffffff" "871f24aebffffff"
+                                               "871f24ae8ffffff" "871f24aecffffff" "871f24ae1ffffff"
+                                               "871f24ae0ffffff"]
+             (sut/k-ring-distances h3-example-str 2) => [["871f24ac5ffffff"]
+                                                         ["871f24ac4ffffff" "871f24ac0ffffff" "871f24ac1ffffff"
+                                                          "871f24aeaffffff" "871f24aeeffffff" "871f24ae3ffffff"]
+                                                         ["871f24ae2ffffff" "871f24af1ffffff" "871f24ac6ffffff"
+                                                          "871f24ac2ffffff" "871f24ac3ffffff" "871f24aceffffff"
+                                                          "871f24accffffff" "871f24aebffffff" "871f24ae8ffffff"
+                                                          "871f24aecffffff" "871f24ae1ffffff" "871f24ae0ffffff"]])
        (fact "polyfill"
              (sut/polyfill (geohash/geohash "u4pruy") 9) => ["891f24ac54bffff"
                                                              "891f24ac097ffff"
@@ -82,7 +94,7 @@
              (count (jts/coordinates
                       (sut/multi-polygon (sut/polyfill geohash-with-hole 12)))) => 402)
        (fact "interoperability with geometry collections"
-             (->> (sut/hex-range h3-example-str 3)
+             (->> (sut/k-ring-distances h3-example-str 3)
                   (map sut/multi-polygon)
                   jts/geometry-collection
                   io/to-features

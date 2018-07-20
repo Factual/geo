@@ -42,27 +42,27 @@
   [^Long h]
   (.h3GetResolution h3-inst h))
 
-(defn- hex-ring-string
-  "String helper to return a list of indices with distance 'k' from a cell."
+(defn- k-ring-string
+  "String helper to return a list of neighboring indices in all directions for 'k' rings."
   [^String h ^Integer k]
-  (.hexRing h3-inst h k))
+  (.kRing h3-inst h k))
 
-(defn- hex-ring-long
-  "Long helper to return a list of indices with distance 'k' from a cell."
+(defn- k-ring-long
+  "Long helper to return a list of neighboring indices in all directions for 'k' rings."
   [^Long h ^Integer k]
-  (.hexRing h3-inst h k))
+  (.kRing h3-inst h k))
 
-(defn- hex-range-string
-  "String helper to return a list of 'k' rings, each of which is a
-  list of addresses, from closest to farthest."
+(defn- k-ring-distances-string
+  "String helper to return a list of neighboring indices in all directions for 'k' rings,
+  ordered by distance from the origin index."
   [^String h ^Integer k]
-  (.hexRange h3-inst h k))
+  (.kRingDistances h3-inst h k))
 
-(defn- hex-range-long
-  "Long helper to return a list of 'k' rings, each of which is a
-  list of addresses, from closest to farthest."
+(defn- k-ring-distances-long
+  "String helper to return a list of neighboring indices in all directions for 'k' rings,
+  ordered by distance from the origin index."
   [^Long h ^Integer k]
-  (.hexRange h3-inst h k))
+  (.kRingDistances h3-inst h k))
 
 (defn- to-jts-common
   "Convert a geo boundary to JTS Polygon."
@@ -169,8 +169,8 @@
   (to-long [this] "Return index as a long.")
   (h3->pt [this] "Return a GeoCoord of the center point of a cell.")
   (get-resolution [this] "Return the resolution of a cell.")
-  (hex-ring [this k] "Return a list of indices with distance 'k' from a cell.")
-  (hex-range [this k] "Return a list of 'k' rings, each of which is a list of addresses, from closest to farthest.")
+  (k-ring [this k] "Return a list of neighboring indices in all directions for 'k' rings.")
+  (k-ring-distances [this k] "Return a list of neighboring indices in all directions for 'k' rings, ordered by distance from the origin index.")
   (to-jts [this] "Given an H3 identifier, return a Polygon of that cell.")
   (edge [from to] "Given both 'from' and 'to' cells, get a unidirectional edge index.")
   (edge-origin [this] "Given a unidirectional edge, get its origin.")
@@ -187,8 +187,8 @@
   (to-long [this] (string->long this))
   (h3->pt [this] (h3->pt-string this))
   (get-resolution [this] (get-resolution-string this))
-  (hex-ring [this k] (hex-ring-string this k))
-  (hex-range [this k] (hex-range-string this k))
+  (k-ring [this k] (k-ring-string this k))
+  (k-ring-distances [this k] (k-ring-distances-string this k))
   (to-jts [this] (to-jts-string this))
   (edge [from to] (edge-string from to))
   (edge-origin [this] (edge-origin-string this))
@@ -204,8 +204,8 @@
   (to-long [this] this)
   (h3->pt [this] (h3->pt-long this))
   (get-resolution [this] (get-resolution-long this))
-  (hex-ring [this k] (hex-ring-long this k))
-  (hex-range [this k] (hex-range-long this k))
+  (k-ring [this k] (k-ring-long this k))
+  (k-ring-distances [this k] (k-ring-distances-long this k))
   (to-jts [this] (to-jts-long this))
   (edge [from to] (edge-long from to))
   (edge-origin [this] (edge-origin-long this))
