@@ -2,6 +2,7 @@
   "Working with H3."
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts]
+            [clojure.string :as string]
             [clojure.walk :as walk]
             [clojure.math.numeric-tower :as numeric-tower])
   (:import (ch.hsr.geohash GeoHash)
@@ -276,11 +277,23 @@
   (polyfill-address [this res] (polyfill-address-mp this res)))
 
 (defn pt->h3
-  "Return the index of the resolution 'res' cell that a point or lat/lng pair is contained within."
+  "Return the Long index of the resolution 'res' cell that a point or lat/lng pair is contained within."
   ([^Point pt ^Integer res]
    (pt->h3 (spatial/latitude pt) (spatial/longitude pt) res))
   ([^Double lat ^Double lng ^Integer res]
-   (.geoToH3Address h3-inst lat lng res)))
+   (try (.geoToH3 h3-inst lat lng res)
+        (catch Exception e
+          (throw (Exception. (string/join ["Failed to complete pt->h3 for lat " lat ", long " lng, ", res " res ". H3 exception message: " e])))))))
+
+(defn pt->h3-address
+  "Return the String index of the resolution 'res' cell that a point or lat/lng pair is contained within."
+  ([^Point pt ^Integer res]
+   (pt->h3-address (spatial/latitude pt) (spatial/longitude pt) res))
+  ([^Double lat ^Double lng ^Integer res]
+   (try (.geoToH3Address h3-inst lat lng res)
+        (catch Exception e
+          (throw (Exception. (string/join ["Failed to complete pt->h3-address for lat " lat ", long " lng, ", res " res ". H3 exception message: " e])))))))
+
 
 (defn geo-coords
   "Return all coordinates for a given Shapelike as GeoCoords"

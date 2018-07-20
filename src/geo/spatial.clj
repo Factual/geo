@@ -263,7 +263,7 @@
 (defn h3-point
   "Returns a GeoCoord used by the H3 library."
   ([point]
-   (GeoCoord. (latitude point) (longitude point)))
+   (h3-point (latitude point) (longitude point)))
   ([lat long]
    (GeoCoord. lat long)))
 

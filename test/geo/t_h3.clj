@@ -18,9 +18,11 @@
 
 (facts "h3 core functions"
        (fact "from coordinates"
-             (sut/pt->h3 h3-example-latitude h3-example-longitude 7) => h3-example-str)
+             (sut/pt->h3 h3-example-latitude h3-example-longitude 7) => h3-example-long
+             (sut/pt->h3-address h3-example-latitude h3-example-longitude 7) => h3-example-str)
        (fact "from point"
-             (sut/pt->h3 (jts/point h3-example-latitude h3-example-longitude) 7) => h3-example-str)
+             (sut/pt->h3 (jts/point h3-example-latitude h3-example-longitude) 7) => h3-example-long
+             (sut/pt->h3-address (jts/point h3-example-latitude h3-example-longitude) 7) => h3-example-str)
        (fact "strings and longs"
              (sut/to-long h3-example-str) => h3-example-long
              (sut/to-string h3-example-long) => h3-example-str)
