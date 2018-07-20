@@ -114,6 +114,11 @@
              (< (float (/ (count (sut/polyfill (geo.geohash/geohash "dr") 9))
                           (count (sut/polyfill (geo.geohash/geohash "dr") 8)))) 7)
              => truthy)
+       (fact "polyfill is graceful on bad shapes"
+             (sut/polyfill (geo.io/read-wkt "POLYGON EMPTY") 10)
+             => []
+             (sut/polyfill-address (geo.io/read-wkt "POLYGON EMPTY") 10)
+             => [])
        (fact "multi-polygon"
              (count (jts/coordinates
                       (sut/multi-polygon (sut/polyfill geohash-with-hole 12)))) => 402)

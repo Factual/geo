@@ -380,13 +380,17 @@
   "Helper to polyfill a single polygon, returning indexes in string form."
   [s ^Integer res]
   (let [h (polyfill-p-common s)]
-    (compact (.polyfillAddress h3-inst (geo-coords (:e h)) (map geo-coords (:i h)) res))))
+    (if (.isEmpty (geo.spatial/to-jts s))
+      []
+      (compact (.polyfillAddress h3-inst (geo-coords (:e h)) (map geo-coords (:i h)) res)))))
 
 (defn- polyfill-p
   "Helper to polyfill a single polygon, returning indexes in long form."
   [s ^Integer res]
   (let [h (polyfill-p-common s)]
-    (compact (.polyfill h3-inst (geo-coords (:e h)) (map geo-coords (:i h)) res))))
+    (if (.isEmpty (geo.spatial/to-jts s))
+      []
+      (compact (.polyfill h3-inst (geo-coords (:e h)) (map geo-coords (:i h)) res)))))
 
 (defn- hex-radius-in-meters
   "See h3's bbox.c."
@@ -434,8 +438,13 @@
          remaining-geoms shapes]
     (if (not (empty? remaining-geoms))
       (let [current-poly (first remaining-geoms)
-            max-hexagons (max-polyfill-size current-poly res)]
-        (cond (instance? MultiPolygon current-poly)
+            max-hexagons (if (.isEmpty (spatial/to-jts current-poly))
+                           0
+                           (max-polyfill-size current-poly res))]
+        (cond (zero? max-hexagons)
+              ; If max-hexagons yields zero, the shape is either too small or invalid, so skip.
+              (recur good-geoms (rest remaining-geoms))
+              (instance? MultiPolygon current-poly)
               ; If a subdivided quadrant became a multipolygon, split that into its polygons and recur
               (recur good-geoms (concat (jts/polygons current-poly) (rest remaining-geoms)))
               (< max-hexagons safe-polyfill-hexagon-maximum)
@@ -450,13 +459,13 @@
   "Apply polyfill-check-common to polyfill-address."
   [shapes ^Integer res]
   (let [h (polyfill-check-common shapes res)]
-    (safe-uncompact (flatten (mapcat #(polyfill-address-p % res) h)) res)))
+    (concat [] (safe-uncompact (flatten (mapcat #(polyfill-address-p % res) h)) res))))
 
 (defn- polyfill-check
   "Apply polyfill-check-common to polyfill."
   [shapes ^Integer res]
   (let [h (polyfill-check-common shapes res)]
-    (safe-uncompact (flatten (mapcat #(polyfill-p % res) h)) res)))
+    (concat [] (safe-uncompact (flatten (mapcat #(polyfill-p % res) h)) res))))
 
 (defn- polyfill-address-mp
   "Multipolygon helper to return all resolution 'res' cells that cover a given shape,
