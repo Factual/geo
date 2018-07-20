@@ -4,7 +4,7 @@
             [geo.io :as io]
             [geo.jts :as jts]
             [geo.spatial :as spatial]
-            [midje.sweet :refer [fact facts falsey truthy]])
+            [midje.sweet :refer [fact facts falsey roughly truthy]])
   (:import (org.locationtech.jts.geom Geometry Polygon)
            (com.uber.h3core.util GeoCoord)))
 
@@ -75,21 +75,43 @@
                                                           "871f24accffffff" "871f24aebffffff" "871f24ae8ffffff"
                                                           "871f24aecffffff" "871f24ae1ffffff" "871f24ae0ffffff"]])
        (fact "polyfill"
-             (sut/polyfill (geohash/geohash "u4pruy") 9) => ["891f24ac54bffff"
-                                                             "891f24ac097ffff"
-                                                             "891f24ac0b3ffff"
-                                                             "891f24ac543ffff"
-                                                             "891f24ac55bffff"]
+             (sut/polyfill (geohash/geohash "u4pruy") 9) => [617541026878062591
+                                                             617541026799157247
+                                                             617541026800992255
+                                                             617541026877538303
+                                                             617541026879111167]
+             (sut/polyfill-address (geohash/geohash "u4pruy") 9) => ["891f24ac54bffff"
+                                                                     "891f24ac097ffff"
+                                                                     "891f24ac0b3ffff"
+                                                                     "891f24ac543ffff"
+                                                                     "891f24ac55bffff"]
              (-> (jts/multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                      (spatial/to-jts (geohash/geohash "u4pruu"))])
                  (sut/polyfill 9))
+             => [617541026878062591 617541026799157247 617541026800992255 617541026877538303
+                 617541026879111167 617541026790244351 617541026789982207 617541026789720063
+                 617541026789457919]
+             (-> (jts/multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
+                                     (spatial/to-jts (geohash/geohash "u4pruu"))])
+                 (sut/polyfill-address 9))
              => ["891f24ac54bffff" "891f24ac097ffff" "891f24ac0b3ffff" "891f24ac543ffff"
                  "891f24ac55bffff" "891f24ac00fffff" "891f24ac00bffff" "891f24ac007ffff"
                  "891f24ac003ffff"]
              (count (sut/polyfill geohash-with-hole 12)) => 1648)
+       (fact "polyfill works recursively on large shapes"
+             (count (sut/polyfill (jts/polygon-wkt [[-70 42 -70 44 -68 44 -68 42 -70 42]]) 7)) => 6769
+             (count (sut/polyfill (jts/polygon-wkt [[-70 42 -70 44 -68 44 -68 42 -70 42]]) 9)) => 331662)
        (fact "compact/uncompact"
              (count (sut/compact (sut/polyfill geohash-with-hole 12))) => 310
              (count (sut/uncompact (sut/polyfill geohash-with-hole 12) 13)) => 11536)
+       (fact "polyfills returning smaller results are uncompacted"
+             (float (/ (count (sut/polyfill (geo.geohash/geohash "dr") 6))
+                       (count (sut/polyfill (geo.geohash/geohash "dr") 5))))
+             => (roughly 7 0.01))
+       (fact "polyfills returning larger arrays are not uncompacted"
+             (< (float (/ (count (sut/polyfill (geo.geohash/geohash "dr") 9))
+                          (count (sut/polyfill (geo.geohash/geohash "dr") 8)))) 7)
+             => truthy)
        (fact "multi-polygon"
              (count (jts/coordinates
                       (sut/multi-polygon (sut/polyfill geohash-with-hole 12)))) => 402)

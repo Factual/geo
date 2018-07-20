@@ -2,15 +2,27 @@
   "Working with H3."
   (:require [geo.spatial :as spatial]
             [geo.jts :as jts]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [clojure.math.numeric-tower :as numeric-tower])
   (:import (ch.hsr.geohash GeoHash)
-           (com.uber.h3core H3Core)
+           (com.uber.h3core AreaUnit H3Core LengthUnit)
            (com.uber.h3core.util GeoCoord)
            (geo.spatial Point Shapelike)
-           (org.locationtech.jts.geom LinearRing MultiPolygon Polygon)
+           (org.locationtech.jts.geom Geometry LinearRing MultiPolygon Polygon)
            (org.locationtech.spatial4j.shape.impl RectangleImpl)))
 
 (def ^H3Core h3-inst (H3Core/newInstance))
+
+(def ^:internal safe-polyfill-hexagon-maximum
+  "Lowering this will reduce the likelihood of H3's polyfill crashing, but
+  will cause this library's polyfill to run more slowly due to more frequent subdivision"
+  60000)
+
+(def ^:internal safe-uncompact-hexagon-maximum
+  "Lowering this will reduce the likelihood of this library's internal safe-uncompact
+   throwing a heap error, but will make this library's polyfill more likely
+   to return an uncompacted set"
+  5000000)
 
 (defn- long->string
   "Convert a long representation of an H3 cell to a string."
@@ -218,36 +230,50 @@
 
 (defprotocol Polygonal
   (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries.")
-  (polyfill [this res] "Return all resolution 'res' cells that cover a given Shapelike, excluding internal holes."))
+  (polyfill [this res] "Return all resolution 'res' cells in Long form that cover a given Shapelike,
+                        excluding internal holes. If the set of cells is especially large, the set
+                        may return partially compacted.")
+  (polyfill-address [this res] "Return all resolution 'res' cells in String form that cover a given
+                                Shapelike, excluding internal holes. If the set of cells is especially large,
+                                the set may return partially compacted."))
 
+(declare polyfill-address-p)
+(declare polyfill-address-mp)
+(declare polyfill-address-check)
 (declare polyfill-p)
 (declare polyfill-mp)
+(declare polyfill-check)
 
 (extend-protocol Polygonal
   GeoHash
   (to-polygon ([this] (spatial/to-jts this))
     ([this srid] (spatial/to-jts this srid)))
-  (polyfill [this res] (polyfill-p this res))
+  (polyfill [this res] (polyfill-check [this] res))
+  (polyfill-address [this res] (polyfill-address-check [this] res))
 
   RectangleImpl
   (to-polygon ([this] (spatial/to-jts this))
     ([this srid] (spatial/to-jts this srid)))
-  (polyfill [this res] (polyfill-p this res))
+  (polyfill [this res] (polyfill-check [this] res))
+  (polyfill-address [this res] (polyfill-address-check [this] res))
 
   Polygon
   (to-polygon ([this] this)
     ([this srid] (spatial/to-jts this srid)))
-  (polyfill [this res] (polyfill-p this res))
+  (polyfill [this res] (polyfill-check [this] res))
+  (polyfill-address [this res] (polyfill-address-check [this] res))
 
   LinearRing
   (to-polygon ([this] (jts/polygon this))
     ([this srid] (jts/polygon (jts/transform-geom this srid))))
-  (polyfill [this res] (polyfill-p this res))
+  (polyfill [this res] (polyfill-check [this] res))
+  (polyfill-address [this res] (polyfill-address-check [this] res))
 
   MultiPolygon
   (to-polygon ([this] this)
     ([this srid] (spatial/to-jts this srid)))
-  (polyfill [this res] (polyfill-mp this res)))
+  (polyfill [this res] (polyfill-mp this res))
+  (polyfill-address [this res] (polyfill-address-mp this res)))
 
 (defn pt->h3
   "Return the index of the resolution 'res' cell that a point or lat/lng pair is contained within."
@@ -261,25 +287,46 @@
   [^Shapelike s]
   (map spatial/h3-point (jts/coordinates (spatial/to-jts s))))
 
-(defn- polyfill-p
-  "Polygon helper to return all resolution 'res' cells that cover a given shape,
-  excluding internal holes."
-  [s ^Integer res]
-  (let [s (to-polygon s jts/default-srid)
-        num-interior-rings (.getNumInteriorRing ^Polygon s)
-        ext-ring (.getExteriorRing ^Polygon s)
-        int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
-    (.polyfillAddress h3-inst (geo-coords ext-ring) (map geo-coords int-rings) res)))
+(defn hex-area
+  "Average area for indices at resolution 'res.' Optional second argument allows
+  returning area in :m2 or :km2. Defaults to m2."
+  ([res]
+   (hex-area res :m2))
+  ([res unit]
+   (case unit
+     :m2
+     (.hexArea h3-inst res AreaUnit/m2)
+     :km2
+     (.hexArea h3-inst res AreaUnit/km2))))
 
-(defn- polyfill-mp
-  "Multipolygon helper to return all resolution 'res' cells that cover a given shape,
-   excluding internal holes."
-  [mp ^Integer res]
-  (let [pf-polys (fn [p] (mapcat #(polyfill-p % res) p))]
-    (into [] (-> mp
-                 jts/polygons
-                 pf-polys
-                 flatten))))
+(defn edge-length
+  "Average edge length for indices at resolution 'res.' Optional second
+  argument allows returning length in :m or :km. Defaults to m."
+  ([res]
+   (edge-length res :m))
+  ([res unit]
+   (case unit
+     :m
+     (.edgeLength h3-inst res LengthUnit/m)
+     :km
+     (.edgeLength h3-inst res LengthUnit/km))))
+
+(defn- max-uncompact-size-helper
+  "See h3's h3Index.c."
+  [cell res]
+  (let [cell-res (get-resolution cell)]
+    (cond (= res cell-res)
+          1
+          (> res cell-res)
+          (numeric-tower/expt 7 (- res cell-res))
+          (< res cell-res)
+          0)))
+
+(defn- max-uncompact-size
+  "The maximum number of cells that an uncompacted sequence would need."
+  [cells res]
+  (->> (map #(max-uncompact-size-helper % res) cells)
+       (reduce +)))
 
 (defn compact
   "Given a set of H3 cells, return a compacted set of cells, at possibly coarser resolutions."
@@ -297,6 +344,127 @@
         (string? (first cells))
         (.uncompactAddress h3-inst cells res)))
 
+(defn- safe-uncompact
+  "Given a set of H3 cells, if the maximum size of the uncompacted set is below a
+  safe limit, uncompact the set. Otherwise, return the original set."
+  [cells res]
+  (let [m (max-uncompact-size cells res)]
+    (if (< m safe-uncompact-hexagon-maximum)
+      (uncompact cells res)
+      cells)))
+
+(defn- polyfill-p-common
+  "Common logic used to polyfill a shapelike made of a single polygon.
+  Used for both the string and long methods."
+  [s]
+  (let [s (to-polygon s jts/default-srid)
+        num-interior-rings (.getNumInteriorRing ^Polygon s)
+        ext-ring (.getExteriorRing ^Polygon s)
+        int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
+    {:e ext-ring :i int-rings}))
+
+(defn- polyfill-address-p
+  "Helper to polyfill a single polygon, returning indexes in string form."
+  [s ^Integer res]
+  (let [h (polyfill-p-common s)]
+    (compact (.polyfillAddress h3-inst (geo-coords (:e h)) (map geo-coords (:i h)) res))))
+
+(defn- polyfill-p
+  "Helper to polyfill a single polygon, returning indexes in long form."
+  [s ^Integer res]
+  (let [h (polyfill-p-common s)]
+    (compact (.polyfill h3-inst (geo-coords (:e h)) (map geo-coords (:i h)) res))))
+
+(defn- hex-radius-in-meters
+  "See h3's bbox.c."
+  [pt res]
+  (let [h (pt->h3 pt res)
+        h-jts (h3->pt h)
+        h-centroid (spatial/point h-jts)
+        h-boundary (to-jts h)
+        c1 (first (.getCoordinates ^Geometry h-boundary))
+        s1 (spatial/to-spatial4j-point c1)]
+    (spatial/distance h-centroid s1)))
+
+(defn- max-kring-size
+  "Maximum indices that result from k-ring with a given k. See h3's algos.c."
+  [k]
+  (->> (for [i (range k)
+             :let [r (* 6 (+ i 1))]]
+         r)
+       (reduce +)
+       inc))
+
+(defn- max-polyfill-size
+  "Maximum number of indices used by h3's circular/k-ring polyfill method.
+  See h3's algos.c. If h3's polyfill method is made more efficient, this should
+  also change accordingly."
+  [shape ^Integer res]
+  (let [bbox (spatial/bounding-box shape)
+        closest-side-vertex (if (< (Math/abs (.getMinY bbox))
+                                   (Math/abs (.getMaxY bbox)))
+                                (spatial/point (.getMinY bbox) (.getMinX bbox))
+                                (spatial/point (.getMaxY bbox) (.getMaxY bbox)))
+
+        centroid (spatial/center bbox)
+        bbox-radius-m (spatial/distance closest-side-vertex centroid)
+        center-hex-radius-m (hex-radius-in-meters (h3->pt (pt->h3 centroid res)) res)
+        bbox-hex-radius (Math/ceil (/ bbox-radius-m (* 1.5 center-hex-radius-m)))]
+    (max-kring-size bbox-hex-radius)))
+
+(defn- polyfill-check-common
+  "Common logic needed to see if a all shapes in a set are single polygons that
+  are sufficiently small to be polyfilled. If h3's polyfill method is made more efficient,
+  modifying max-polyfill-size accordingly should make this run faster."
+  [shapes ^Integer res]
+  (loop [good-geoms []
+         remaining-geoms shapes]
+    (if (not (empty? remaining-geoms))
+      (let [current-poly (first remaining-geoms)
+            max-hexagons (max-polyfill-size current-poly res)]
+        (cond (instance? MultiPolygon current-poly)
+              ; If a subdivided quadrant became a multipolygon, split that into its polygons and recur
+              (recur good-geoms (concat (jts/polygons current-poly) (rest remaining-geoms)))
+              (< max-hexagons safe-polyfill-hexagon-maximum)
+              ; If less than the safe maximum, the geometry is good to be polyfilled
+              (recur (conj good-geoms current-poly) (rest remaining-geoms))
+              :else
+              ; Otherwise, if it's a polygon but larger than the safe maximum, divide into quadrants and recur
+              (recur good-geoms (concat (jts/subdivide (spatial/to-jts current-poly)) (rest remaining-geoms)))))
+      good-geoms)))
+
+(defn- polyfill-address-check
+  "Apply polyfill-check-common to polyfill-address."
+  [shapes ^Integer res]
+  (let [h (polyfill-check-common shapes res)]
+    (safe-uncompact (flatten (mapcat #(polyfill-address-p % res) h)) res)))
+
+(defn- polyfill-check
+  "Apply polyfill-check-common to polyfill."
+  [shapes ^Integer res]
+  (let [h (polyfill-check-common shapes res)]
+    (safe-uncompact (flatten (mapcat #(polyfill-p % res) h)) res)))
+
+(defn- polyfill-address-mp
+  "Multipolygon helper to return all resolution 'res' cells that cover a given shape,
+   excluding internal holes."
+  [mp ^Integer res]
+  (let [pf-polys (fn [p] (mapcat #(polyfill-address-check [%] res) p))]
+    (into [] (-> mp
+                 jts/polygons
+                 pf-polys
+                 flatten))))
+
+(defn- polyfill-mp
+  "Multipolygon helper to return all resolution 'res' cells that cover a given shape,
+   excluding internal holes."
+  [mp ^Integer res]
+  (let [pf-polys (fn [p] (mapcat #(polyfill-check [%] res) p))]
+    (into [] (-> mp
+                 jts/polygons
+                 pf-polys
+                 flatten))))
+
 (defn- geocoord-array-wkt
   "Create a wkt-style data structure from a collection of GeoCoords."
   [coords]
@@ -311,7 +479,6 @@
   (if (instance? GeoCoord (first v))
     (geocoord-array-wkt v)
     v))
-
 
 (defn- multi-polygon-n
   "Multi-polygon generator for numbers"

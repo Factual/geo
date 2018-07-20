@@ -5,6 +5,7 @@
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequence
                                       CoordinateSequenceFilter
+                                      Envelope
                                       Geometry
                                       GeometryCollection
                                       GeometryFactory
@@ -287,3 +288,44 @@
    (if (= crs1 crs2)
      (tf-set-srid g crs2)
      (tf (.copy g) crs1 crs2))))
+
+(defn ^Point centroid
+  "Get the centroid of a JTS object."
+  [^Geometry g]
+  (let [srid (get-srid g)]
+       (set-srid (.getCentroid g) srid)))
+
+(defn intersection
+  "Get the intersection of two geometries."
+  [^Geometry g1 ^Geometry g2]
+  (let [srid (get-srid g1)]
+    (set-srid (.intersection g1 g2) srid)))
+
+(defn ^Envelope get-envelope-internal
+  "Get a JTS envelope from a geometry."
+  [^Geometry g]
+  (.getEnvelopeInternal g))
+
+(defn envelope
+  "Create a JTS envelope from two coordinates."
+  [c1 c2]
+  (Envelope. c1 c2))
+
+(defn subdivide
+  "Subdivide a Geometry into quadrants around its centroid."
+  [^Geometry g]
+  (let [e (get-envelope-internal g)
+        c (centroid g)
+        c-x (.getX c)
+        c-y (.getY c)
+        min-x (.getMinX e)
+        min-y (.getMinY e)
+        max-x (.getMaxX e)
+        max-y (.getMaxY e)
+        gf (get-factory g)
+        make-quadrant (fn [c1 c2] (.toGeometry gf (envelope c1 c2)))
+        q1 (make-quadrant (coord c) (coordinate max-x max-y))
+        q2 (make-quadrant (coordinate min-x c-y) (coordinate c-x max-y))
+        q3 (make-quadrant (coordinate min-x min-y) (coord c))
+        q4 (make-quadrant (coordinate c-x min-y) (coordinate max-x c-y))]
+    (map #(intersection g %) [q1 q2 q3 q4])))
