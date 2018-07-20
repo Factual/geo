@@ -96,7 +96,7 @@
                  (-> c
                      (.getGeometryN n)
                      (set-srid srid)))]
-    (into [] (map #(geom-n c %) (range n)))))
+    (mapv #(geom-n c %) (range n))))
 
 (defn wkt->coords-array
   [flat-coord-list]
@@ -195,7 +195,7 @@
                  (-> m
                      (.getGeometryN n)
                      (set-srid srid)))]
-    (into [] (map #(geom-n m %) (range n)))))
+    (mapv #(geom-n m %) (range n))))
 
 (defn multi-polygon-wkt
   "Creates a MultiPolygon from a WKT-style data structure, e.g. [[[0 0 1 0 2 2
