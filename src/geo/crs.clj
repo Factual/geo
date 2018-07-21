@@ -55,7 +55,7 @@
   "Create a CRS system. If given an integer, assume it is an EPSG code.
   If given a valid CRS name or proj4 string, use that as the CRS identifier."
   [c]
-  (cond (int? c)
+  (cond (integer? c)
         (create-crs-int c)
         (crs-name? c)
         (create-crs-name c)
