@@ -7,7 +7,7 @@
             [clojure.walk :refer [keywordize-keys stringify-keys]])
   (:import (java.util Arrays Arrays$ArrayList)
            (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
-           (org.locationtech.jts.geom Geometry)
+           (org.locationtech.jts.geom Geometry GeometryCollection)
            (org.wololo.geojson Feature FeatureCollection GeoJSONFactory)
            (org.wololo.jts2geojson GeoJSONReader GeoJSONWriter)))
 
@@ -89,6 +89,12 @@
 (extend-protocol GeoJSONFeatures
   org.wololo.geojson.Geometry
   (to-features [this] [{:properties {} :geometry (read-geometry this)}])
+  org.wololo.geojson.GeometryCollection
+  (to-features [this] (mapcat to-features (jts/geometries (read-geometry this))))
+  Geometry
+  (to-features [this] [{:properties {} :geometry this}])
+  GeometryCollection
+  (to-features [this] (mapcat to-features (jts/geometries this)))
   Feature
   (to-features [this] [{:properties (properties this) :geometry (read-geometry this)}])
   FeatureCollection

@@ -5,6 +5,7 @@
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequence
                                       CoordinateSequenceFilter
+                                      Envelope
                                       Geometry
                                       GeometryCollection
                                       GeometryFactory
@@ -12,6 +13,7 @@
                                       LinearRing
                                       LineSegment
                                       LineString
+                                      MultiPolygon
                                       Polygon
                                       PrecisionModel)
            (org.osgeo.proj4j CoordinateTransform ProjCoordinate)))
@@ -85,6 +87,17 @@
   [geometries]
   (-> (get-factory (first geometries))
       (.createGeometryCollection (geom-array geometries))))
+
+(defn geometries
+  "Given a GeometryCollection, generate a sequence of Geometries"
+  [^GeometryCollection c]
+  (let [n (.getNumGeometries c)
+        srid (get-srid c)
+        geom-n (fn [^GeometryCollection c ^Integer n]
+                 (-> c
+                     (.getGeometryN n)
+                     (set-srid srid)))]
+    (mapv #(geom-n c %) (range n))))
 
 (defn wkt->coords-array
   [flat-coord-list]
@@ -168,8 +181,22 @@
 (defn multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
-  (.createMultiPolygon (get-factory (first polygons))
-                       (polygon-array polygons)))
+  (let [f (first polygons)
+        srid (get-srid f)]
+       (-> (.createMultiPolygon (get-factory f)
+                                (polygon-array polygons))
+           (set-srid srid))))
+
+(defn polygons
+  "Given a MultiPolygon, generate a sequence of Polygons"
+  [^MultiPolygon m]
+  (let [n (.getNumGeometries m)
+        srid (get-srid m)
+        geom-n (fn [^MultiPolygon m ^Integer n]
+                 (-> m
+                     (.getGeometryN n)
+                     (set-srid srid)))]
+    (mapv #(geom-n m %) (range n))))
 
 (defn multi-polygon-wkt
   "Creates a MultiPolygon from a WKT-style data structure, e.g. [[[0 0 1 0 2 2
@@ -261,3 +288,44 @@
    (if (= crs1 crs2)
      (tf-set-srid g crs2)
      (tf (.copy g) crs1 crs2))))
+
+(defn ^Point centroid
+  "Get the centroid of a JTS object."
+  [^Geometry g]
+  (let [srid (get-srid g)]
+       (set-srid (.getCentroid g) srid)))
+
+(defn intersection
+  "Get the intersection of two geometries."
+  [^Geometry g1 ^Geometry g2]
+  (let [srid (get-srid g1)]
+    (set-srid (.intersection g1 g2) srid)))
+
+(defn ^Envelope get-envelope-internal
+  "Get a JTS envelope from a geometry."
+  [^Geometry g]
+  (.getEnvelopeInternal g))
+
+(defn envelope
+  "Create a JTS envelope from two coordinates."
+  [c1 c2]
+  (Envelope. c1 c2))
+
+(defn subdivide
+  "Subdivide a Geometry into quadrants around its centroid."
+  [^Geometry g]
+  (let [e (get-envelope-internal g)
+        c (centroid g)
+        c-x (.getX c)
+        c-y (.getY c)
+        min-x (.getMinX e)
+        min-y (.getMinY e)
+        max-x (.getMaxX e)
+        max-y (.getMaxY e)
+        gf (get-factory g)
+        make-quadrant (fn [c1 c2] (.toGeometry gf (envelope c1 c2)))
+        q1 (make-quadrant (coord c) (coordinate max-x max-y))
+        q2 (make-quadrant (coordinate min-x c-y) (coordinate c-x max-y))
+        q3 (make-quadrant (coordinate min-x min-y) (coord c))
+        q4 (make-quadrant (coordinate c-x min-y) (coordinate max-x c-y))]
+    (map #(intersection g %) [q1 q2 q3 q4])))

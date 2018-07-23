@@ -1,5 +1,6 @@
 (ns geo.t-jts
   (:require [geo.jts :refer :all]
+            [geo.geohash :as geohash]
             [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts throws roughly truthy]])
   (:import (org.locationtech.jts.geom Coordinate)))
@@ -21,6 +22,35 @@
                                        [20 20, 20 30, 30 30, 30 20, 20 20],
                                        [40 20, 40 30, 50 30, 50 20, 40 20]]]))
              => "MULTIPOLYGON (((10 10, 110 10, 110 110, 10 110, 10 10), (20 20, 20 30, 30 30, 30 20, 20 20), (40 20, 40 30, 50 30, 50 20, 40 20)))"))
+
+(facts "polygons <-> multipolygon"
+       (fact "multipolygon to polygons"
+             (str (first (polygons (multi-polygon-wkt [[[-1 -1 11 -1 11 11 -1 -1]],
+                                                       [[0 0 10 0 10 10 0 0]]]))))
+             => "POLYGON ((-1 -1, 11 -1, 11 11, -1 -1))")
+       (fact "polygons to multipolygon"
+             (str (multi-polygon [(polygon-wkt [[-1 -1 11 -1 11 11 -1 -1]])
+                                  (polygon-wkt [[0 0 10 0 10 10 0 0]])]))
+             => "MULTIPOLYGON (((-1 -1, 11 -1, 11 11, -1 -1)), ((0 0, 10 0, 10 10, 0 0)))")
+       (fact "multipolygon SRIDs"
+             (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
+                                 (spatial/to-jts (geohash/geohash "u4pruu"))])
+                 get-srid) => 4326
+             (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
+                                 (spatial/to-jts (geohash/geohash "u4pruu"))])
+                 polygons
+                 first
+                 get-srid) => 4326))
+
+(facts "geometries <-> geometrycollection"
+       (fact "points"
+             (str (first (geometries (geometry-collection [(point 0 0)
+                                                           (point 1 1)]))))
+             => "POINT (0 0)")
+       (fact "srids"
+             (get-srid (first (geometries (geometry-collection [(point 0 0 2229)
+                                                                (point 0 0 2229)]))))
+             => 2229))
 
 (facts "linestrings"
        (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3

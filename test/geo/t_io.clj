@@ -159,3 +159,10 @@
       (map (comp jts/get-srid :geometry) (sut/read-geojson geometry 2229)) => [2229]
       (map (comp jts/get-srid :geometry) (sut/read-geojson feature 2229)) => [2229]
       (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1 2229)) => [2229])
+
+(fact "convert geometrycollection to features"
+      (let [gc (jts/geometry-collection [(sut/read-geojson-geometry null-island-geometry)
+                                         (sut/read-geojson-geometry one-island-geometry)])
+            features (sut/to-features gc)]
+       (:geometry (first features)))
+      => (sut/read-geojson-geometry null-island-geometry))
