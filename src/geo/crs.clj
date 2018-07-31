@@ -1,9 +1,13 @@
 (ns geo.crs
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
-  (:require [clojure.string :refer [starts-with?]])
   (:import (org.osgeo.proj4j CoordinateTransform
                              CoordinateTransformFactory
                              CRSFactory)))
+
+(defn starts-with? [string prefix]
+  (.startsWith string prefix))
+(defn includes? [string substring]
+  (.contains string substring))
 
 (def epsg-str? (partial re-matches #"EPSG:(\d+)"))
 (def srid->epsg-str
@@ -37,7 +41,7 @@
 (defn proj4-string?
   "Check if input appears to be a proj4 string"
   [crs-str]
-  (clojure.string/includes? crs-str "+proj="))
+  (includes? crs-str "+proj="))
 
 (defn- create-crs-int
   [^Integer c]
