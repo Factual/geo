@@ -24,4 +24,6 @@
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
                                   [cheshire "5.8.0"]
-                                  [midje "1.9.2"]]}})
+                                  [midje "1.9.2"]]}
+             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}})
