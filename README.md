@@ -211,6 +211,13 @@ The project uses [Midje](https://github.com/marick/Midje/).
 watcher on the code files. If they change, only the relevant tests will be
 run again.
 
+## Generating Codox Docs
+
+* Checkout appropriate release branch (e.g. `release/2.0.0`)
+* Generate docs with `lein codox` (This will generate the HTML/CSS/JS docs under `target/doc`)
+* Move generated docs out of `target` into appropriate dir under `docs`: `mv target/doc/ docs/2.0.0`
+* Commit changes, and merge that doc update to `master`
+
 # License
 
 This project and many of its dependencies are licensed under the Eclipse Public
