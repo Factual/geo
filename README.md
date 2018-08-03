@@ -44,7 +44,7 @@ Leiningen Dependency Vector:
 
 ## Documentation
 
-Available on Github Pages here: http://factual.github.io/geo/index.html
+Available on Github Pages here: http://factual.github.io/geo/2.0.0/index.html
 
 ## Examples
 
