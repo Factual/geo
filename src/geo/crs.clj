@@ -4,9 +4,9 @@
                              CoordinateTransformFactory
                              CRSFactory)))
 
-(defn starts-with? [string prefix]
+(defn starts-with? [^String string prefix]
   (.startsWith string prefix))
-(defn includes? [string substring]
+(defn includes? [^String string substring]
   (.contains string substring))
 
 (def epsg-str? (partial re-matches #"EPSG:(\d+)"))
