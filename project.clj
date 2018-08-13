@@ -10,7 +10,7 @@
   [[org.clojure/math.numeric-tower "0.0.4"]
    [ch.hsr/geohash "1.3.0"]
    [com.uber/h3 "3.0.4"]
-   [org.locationtech.geotrellis/geotrellis-proj4_2.11 "1.2.1"]
+   [org.locationtech.geotrellis/geotrellis-proj4_2.11 "2.0.0"]
    [org.locationtech.spatial4j/spatial4j "0.7"]
    [org.locationtech.jts/jts-core "1.15.1"]
    [org.locationtech.jts.io/jts-io-common "1.15.1"]
@@ -19,7 +19,7 @@
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-midje "3.2.1"]
-                             [lein-codox "0.10.3"]]
+                             [lein-codox "0.10.4"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
