@@ -9,7 +9,7 @@
            (com.uber.h3core AreaUnit H3Core LengthUnit)
            (com.uber.h3core.util GeoCoord)
            (geo.spatial Point Shapelike)
-           (org.locationtech.jts.geom Geometry LinearRing MultiPolygon Polygon)
+           (org.locationtech.jts.geom LineString Geometry LinearRing MultiPolygon Polygon)
            (org.locationtech.spatial4j.shape.impl RectangleImpl)))
 
 (def ^H3Core h3-inst (H3Core/newInstance))
@@ -527,3 +527,16 @@
         (multi-polygon-n cells)
         (string? (first cells))
         (multi-polygon-s cells)))
+
+(defn linestring-covering-hexes [^LineString ls level]
+  (let [start (pt->h3 (jts/set-srid (.getStartPoint ls) jts/default-srid) level)
+        shape (spatial/to-shape ls)]
+    (loop [hexes #{}
+           visited #{}
+           [curr & queue] [start]]
+      (cond
+        (nil? curr) hexes
+        (spatial/intersects? shape (to-jts curr)) (recur (conj hexes curr)
+                                                         (conj visited curr)
+                                                         (into queue (filter (comp not visited) (k-ring curr 1))))
+        :else (recur hexes (conj visited curr) queue)))))
