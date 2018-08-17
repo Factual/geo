@@ -1,5 +1,51 @@
 # Changelog
 
+## 2.0.0 to 2.1.0
+
+### New namespace `geo.h3` for interacing with [Uber's H3 tiling library](https://github.com/uber/h3)
+
+This namespace contains a variety of functions for interoperating with H3 via Uber's [H3 Java Bindings](https://github.com/uber/h3-java). Some highlights include these functions implemented for H3 Cells expressed as either Longs or Strings:
+
+**(Via protocol `geo.h3/H3Index`)**
+
+This protocl is implemented for `String` and `Long` which are the 2 ways of representing an H3 cell.
+
+* `to-string`
+* `to-long`
+* `h3->pt`
+* `get-resolution`
+* `k-ring`
+* `k-ring-distances`
+* `to-jts`
+* `edge`
+* `edge-origin`
+* `edge-destination`
+* `edges`
+* `edge-boundary`
+* `pentagon?`
+* `is-valid?`
+* `neighbors?`
+
+**Via protocol `geo.h3/Polygonal`**
+
+This protocol includes interfaces to H3's Polyfill functionality for tiling a polygon with H3 cells.
+
+It is implemented for `ch.hsr.geohash.GeoHash`, `org.locationtech.spatial4j.shape.impl.RectangleImpl`, `org.locationtech.jts.geom.Polygon`, `org.locationtech.jts.geom.LinearRing`, and `org.locationtech.jts.geom.MultiPolygon`.
+
+* `to-polygon`
+* `polyfill`
+* `polyfill-address`
+
+**Additional H3 Functions**
+
+* `compact`
+* `uncompact`
+* `multi-polygon`
+
+Additionally, we've added the H3 `GeoCoord` class to `geo`'s `Shapelike` and `Point` protocols, so they can interoperate with all of the existing spatial types.
+
+See the full API docs for more detailed information.
+
 ## 1.2.0 to 2.0.0
 
 ### JTS Major Version Upgrade
