@@ -39,12 +39,12 @@ Install via [clojars](https://clojars.org/factual/geo)
 Leiningen Dependency Vector:
 
 ```
-[factual/geo "1.2.0"]
+[factual/geo "2.1.0"]
 ```
 
 ## Documentation
 
-Available on Github Pages here: http://factual.github.io/geo/2.0.0/index.html
+Available on Github Pages here: http://factual.github.io/geo/2.1.0/index.html
 
 ## Examples
 
