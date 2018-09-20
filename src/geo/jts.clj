@@ -5,6 +5,7 @@
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequence
                                       CoordinateSequenceFilter
+                                      CoordinateXYZM
                                       Envelope
                                       Geometry
                                       GeometryCollection
@@ -49,7 +50,9 @@
   ([^double x ^double y]
    (Coordinate. x y))
   ([^double x ^double y ^double z]
-   (Coordinate. x y z)))
+   (Coordinate. x y z))
+  ([^double x ^double y ^double z ^double m]
+   (CoordinateXYZM. x y z m)))
 
 (defn point
   "Creates a Point from a Coordinate, a lat/long, or an x,y pair with an SRID."

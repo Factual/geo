@@ -3,10 +3,32 @@
             [geo.geohash :as geohash]
             [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts throws roughly truthy]])
-  (:import (org.locationtech.jts.geom Coordinate)))
+  (:import (org.locationtech.jts.geom Coordinate CoordinateXYZM)))
 
 (facts "coordinate"
-       (fact (coordinate 1 2) => (Coordinate. 1 2)))
+       (fact "XY coordinate"
+             (coordinate 1 2) => (Coordinate. 1 2)
+             (.getX (coordinate 1 2)) => 1.0
+             (.getY (coordinate 1 2)) => 2.0
+             (Double/isNaN (.getZ (coordinate 1 2))) => true)
+       (fact "XYZ coordinate"
+             (coordinate 1 2 3) => (Coordinate. 1 2 3)
+             (.getX (coordinate 1 2 3)) => 1.0
+             (.getY (coordinate 1 2 3)) => 2.0
+             (.getZ (coordinate 1 2 3)) => 3.0)
+       (fact "XYZM coordinate"
+             (coordinate 1 2 3 4) => (CoordinateXYZM. 1 2 3 4)
+             (.getX (coordinate 1 2 3 4)) => 1.0
+             (.getY (coordinate 1 2 3 4)) => 2.0
+             (.getZ (coordinate 1 2 3 4)) => 3.0
+             (.getM (coordinate 1 2 3 4)) => 4.0))
+
+(facts "coordinate sequence"
+       (fact "XY/XYZ coordinate sequence"
+             (.getDimension (coordinate-sequence [(coordinate 1 1) (coordinate 2 2)])) => 3
+             (.getDimension (coordinate-sequence [(coordinate 1 1 1) (coordinate 2 2 2)])) => 3)
+       (fact "XYZM coordinate sequence"
+             (.getDimension (coordinate-sequence [(coordinate 1 1 1 1) (coordinate 2 2 2 2)])) => 4))
 
 (facts "polygon"
        (fact (->> [0 0 10 0 10 10 0 0]
