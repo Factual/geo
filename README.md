@@ -127,11 +127,16 @@ user=> (gio/read-wkt "POLYGON ((-70 30, -70 30, -70 30, -70 30, -70 30))")
 user=> (gio/to-wkt (gio/read-wkt "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"))
 "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"
 
-user=> (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70,30],[-70,31],[-71,31],[-71,30],[-70,30]]]}")
-#object[org.locationtech.jts.geom.Polygon 0x57a1c5f5 "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"]
 
-user=> (gio/to-geojson (gio/read-geojson "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"))
-"{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"
+user=> (gio/read-geojson "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[0.0,0.0]},\"properties\":{\"name\":\"null island\"}}\")
+[{:properties {:name \"null island\"}
+  :geometry #object[org.locationtech.jts.geom.Point(...)]}]
+
+user=> (->> "{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"
+            gio/read-geojson
+            (map :geometry)
+            (map gio/to-geojson))
+["{\"type\":\"Polygon\",\"coordinates\":[[[-70.0,30.0],[-70.0,31.0],[-71.0,31.0],[-71.0,30.0],[-70.0,30.0]]]}"]
 
 user=> (gio/to-wkb (gio/read-wkt "POLYGON ((-70 30, -70 31, -71 31, -71 30, -70 30))"))
 #object["[B" 0xe62e731 "[B@e62e731"]
