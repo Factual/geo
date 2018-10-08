@@ -9,7 +9,7 @@
   :dependencies
   [[org.clojure/math.numeric-tower "0.0.4"]
    [ch.hsr/geohash "1.3.0"]
-   [com.uber/h3 "3.0.4"]
+   [com.uber/h3 "3.1.0"]
    [org.locationtech.geotrellis/geotrellis-proj4_2.11 "2.0.0"]
    [org.locationtech.spatial4j/spatial4j "0.7"]
    [org.locationtech.jts/jts-core "1.15.1"]

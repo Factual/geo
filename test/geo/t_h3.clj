@@ -53,7 +53,20 @@
        (fact "neighbor checks"
              (sut/neighbors? "871f24ac4ffffff" "871f24ac0ffffff") => truthy
              (sut/neighbors? 608533827618340863 608533827551231999) => truthy
-             (sut/neighbors? "871f24ac0ffffff" "871f24aeeffffff") => falsey))
+             (sut/neighbors? "871f24ac0ffffff" "871f24aeeffffff") => falsey)
+       (fact "distance"
+             (sut/h3-distance "85283083fffffff" "85283083fffffff") => 0
+             (sut/h3-distance 599685771850416127 599685771850416127) => 0
+             (sut/h3-distance "85283083fffffff" "85283093fffffff") => 1
+             (sut/h3-distance 599685771850416127 599685776145383423) => 1
+             (sut/h3-distance "85283083fffffff" "8528342bfffffff") => 2
+             (sut/h3-distance 599685771850416127 599686023106002943) => 2
+             (sut/h3-distance "85283083fffffff" "85283477fffffff") => 3
+             (sut/h3-distance 599685771850416127 599686043507097599) => 3
+             (sut/h3-distance "85283083fffffff" "85283473fffffff") => 4
+             (sut/h3-distance 599685771850416127 599686042433355775) => 4
+             (sut/h3-distance "85283083fffffff" "85283447fffffff") => 5
+             (sut/h3-distance 599685771850416127 599686030622195711) => 5))
 
 
 (facts "h3 algorithms"
