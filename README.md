@@ -212,7 +212,8 @@ systems. Can create transformations used in the geo.jts namespace.
 ## geo.h3
 
 Defines hexagonal cells using the com.uber.h3 library. Extends H3's GeoCoord
-to support the Point protocol.
+to support the Point protocol. H3 cells can be referenced either as strings or longs,
+and the corresponding Java functions will be called accordingly using the H3Index protocol.
 
 Given a certain H3 cell, can compute surrounding rings, get the boundary in JTS format,
 or get the resolution.
@@ -221,6 +222,8 @@ Given a Shapelike geometry, can polyfill a list of H3 cells at a given level of 
 
 Given a list of H3 cells, can compact the list to remove redundant cells, uncompact the list
 to a desired resolution, or merge contiguous cells into a JTS multipolygon.
+
+Given two different H3 cells, can get the grid distance between them.
 
 Can create unidirectional edges based on different configurations of cells, and can check
 for the 12 pentagonal cells at each resolution.
