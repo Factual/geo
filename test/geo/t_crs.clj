@@ -13,8 +13,10 @@
        (fact (->> sut/valid-crs-prefixes
                   (map #(str % ":2000"))
                   (every? sut/crs-name?)) => true)
+       (fact "+proj=merc +lat_ts=56.5 +ellps=GRS80" => sut/proj4-str?)
+       (fact "pizza" => (comp not sut/proj4-str?))
+       ; Maintain alias of proj4-str? until at least version 3.0
        (fact "+proj=merc +lat_ts=56.5 +ellps=GRS80" => sut/proj4-string?)
-       (fact "pizza" => (comp not sut/proj4-string?))
        (fact (sut/epsg-str->srid "EPSG:4326") => 4326)
        (fact (sut/epsg-str->srid "pizza") => (m/throws AssertionError))
        (fact (sut/epsg-str->srid "EPSG:4326.0") => (m/throws AssertionError)))
