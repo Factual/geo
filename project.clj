@@ -9,13 +9,13 @@
   :dependencies
   [[org.clojure/math.numeric-tower "0.0.4"]
    [ch.hsr/geohash "1.3.0"]
-   [com.uber/h3 "3.1.0"]
-   [org.locationtech.geotrellis/geotrellis-proj4_2.11 "2.0.0"]
+   [com.uber/h3 "3.2.0"]
+   [org.locationtech.geotrellis/geotrellis-proj4_2.11 "2.1.0"]
    [org.locationtech.spatial4j/spatial4j "0.7"]
    [org.locationtech.jts/jts-core "1.16.0"]
    [org.locationtech.jts.io/jts-io-common "1.16.0"]
    [org.noggit/noggit "0.8"]
-   [org.wololo/jts2geojson "0.12.0"]]
+   [org.wololo/jts2geojson "0.13.0"]]
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-midje "3.2.1"]
@@ -24,6 +24,6 @@
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
                                   [cheshire "5.8.1"]
-                                  [midje "1.9.3"]]}
+                                  [midje "1.9.4"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}})
