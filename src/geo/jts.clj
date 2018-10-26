@@ -270,23 +270,33 @@
         :else g))
 
 (defn- tf
-  "Transform a Geometry from one CRS to another.
-  When the target transformation is an EPSG code, set the Geometry's SRID to that integer."
-  [^Geometry g c1 c2]
-  (let [tcsf (transform-coord-seq-filter (crs/create-transform c1 c2))]
-    (.apply g tcsf)
-    (tf-set-srid g c2)))
+  "Transform a Geometry.
+  When two CRSs are passed as arguments, transform from one CRS to another.
+  When the target transformation is an EPSG code, set the Geometry's SRID to that integer.
+  When only a single CoordinateTransform is passed, do not attempt to change the Geometry's SRID."
+  ([^Geometry g ^CoordinateTransform transform]
+   (.apply g (transform-coord-seq-filter transform))
+   (tf-set-srid g 0))
+  ([^Geometry g c1 c2]
+   (let [tcsf (transform-coord-seq-filter (crs/create-transform c1 c2))]
+     (.apply g tcsf)
+     (tf-set-srid g c2))))
 
 (defn ^Geometry transform-geom
   "Transform a Geometry using a proj4j transform, if needed. Returns a new Geometry if a transform occurs.
   When only one CRS is given, get the CRS of the existing geometry.
   When two are given, force the transformation to occur between those two systems."
-  ([g crs]
-   (let [geom-srid (get-srid g)]
-     (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
-     (if (or (= geom-srid crs) (= (crs/srid->epsg-str geom-srid) crs))
-       g
-       (transform-geom g geom-srid crs))))
+  ([^Geometry g transform]
+   (cond (instance? CoordinateTransform transform)
+         ;; If transform is a transformation, apply that directly.
+         (tf (.copy g) transform)
+         :else
+         ;; Otherwise, assume that the argument is a destination CRS identifier.
+         (let [geom-srid (get-srid g)]
+           (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
+           (if (or (= geom-srid transform) (= (crs/srid->epsg-str geom-srid) transform))
+             g
+             (transform-geom g geom-srid transform)))))
   ([^Geometry g crs1 crs2]
    (if (= crs1 crs2)
      (tf-set-srid g crs2)

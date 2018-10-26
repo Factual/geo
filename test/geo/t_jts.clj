@@ -1,5 +1,6 @@
 (ns geo.t-jts
   (:require [geo.jts :refer :all]
+            [geo.crs :as crs]
             [geo.geohash :as geohash]
             [geo.spatial :as spatial]
             [midje.sweet :refer [fact facts throws roughly truthy]])
@@ -135,6 +136,10 @@
                (transform-geom (point 10 10 0) 4326 4326)
                (point 10 10 4326))
              => truthy)
+       (fact "geometry: projection can happen using an external transform object, though SRID will be set to 0."
+             (same-geom?
+               (transform-geom (point 3.8142776 51.285914 4326) (crs/create-transform 4326 23031))
+               (set-srid (point 556878.9016076007 5682145.166264554 23031) 0)))
        (fact "An EPSG can be specified as an int or as an 'EPSG:XXXX' string. as an equivalent proj4 string"
              (let [p1 (point 3.8142776 51.285914 4326)
                    p2 (point 556878.9016076007 5682145.166264554 23031)]
