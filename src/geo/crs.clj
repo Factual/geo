@@ -1,8 +1,8 @@
 (ns geo.crs
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
-  (:import (org.osgeo.proj4j CoordinateTransform
-                             CoordinateTransformFactory
-                             CRSFactory)))
+  (:import (org.locationtech.proj4j CoordinateTransform
+                                    CoordinateTransformFactory
+                                    CRSFactory)))
 
 (defn starts-with? [^String string prefix]
   (.startsWith string prefix))
