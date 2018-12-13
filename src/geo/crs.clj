@@ -1,6 +1,6 @@
 (ns geo.crs
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
-  (:import (org.locationtech.proj4j CoordinateTransform
+  (:import (org.locationtech.proj4j CoordinateReferenceSystem
                                     CoordinateTransformFactory
                                     CRSFactory)))
 
@@ -43,36 +43,55 @@
   [crs-str]
   (includes? crs-str "+proj="))
 
-(defn- create-crs-int
-  [^Integer c]
+(defn- create-crs-number
+  [c]
   (.createFromName crs-factory (srid->epsg-str c)))
 
 (defn- create-crs-name
-  [^String c]
+  [c]
   (.createFromName crs-factory c))
 
 (defn- create-crs-parameters
   [^String c]
   (.createFromParameters crs-factory "" c))
 
-(defn- create-crs
-  "Create a CRS system. If given an integer, assume it is an EPSG code.
-  If given a valid CRS name or proj4 string, use that as the CRS identifier."
-  [c]
-  (cond (integer? c)
-        (create-crs-int c)
-        (crs-name? c)
-        (create-crs-name c)
-        (proj4-str? c)
-        (create-crs-parameters c)))
+(defprotocol Transformable
+  (create-crs [this] "Create a CRS system. If given an integer or long, assume it is an EPSG code.
+                      If given a valid CRS name or proj4 string, use that as the CRS identifier.
+                      If given a proj4j CoordinateReferenceSystem, return that.")
+  (get-srid [this]   "Attempt to get the SRID for a CRS identifier. If unable, return 0."))
 
-(defn ^CoordinateTransform create-transform
+(extend-protocol Transformable
+  Long
+  (create-crs [this] (create-crs-number this))
+  (get-srid [this] this)
+
+  Integer
+  (create-crs [this] (create-crs-number this))
+  (get-srid [this] this)
+
+  String
+  (create-crs [this] (cond (crs-name? this)
+                           (create-crs-name this)
+                           (proj4-str? this)
+                           (create-crs-parameters this)))
+  (get-srid [this] (let [epsg? (epsg-str? this)]
+                     (if epsg?
+                       (read-string (last epsg?))
+                       0)))
+
+  CoordinateReferenceSystem
+  (create-crs [this] this)
+  (get-srid [this] (get-srid (.getName this))))
+
+(defn create-transform
+  [c1 c2]
   "Creates a proj4j transform between two projection systems.
   c1 or c2 can be:
-   - integers (which will be interpreted as that EPSG)
+   - a long (which will be interpreted as that EPSG)
+   - an integer (which will be interpreted as that EPSG)
    - a string identifier for types EPSG:XXXX, ESRI:XXXX, WORLD:XXXX, NAD83:XXXX, or NAD27:XXXX
-   - proj4 string."
-  [c1 c2]
-  (.createTransform ctf-factory
-                    (create-crs c1)
-                    (create-crs c2)))
+   - a proj4 string, or
+   - a proj4j CoordinateReferenceSystem"
+  (.createTransform ctf-factory (create-crs c1) (create-crs c2)))
+

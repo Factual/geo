@@ -140,13 +140,20 @@
              (same-geom?
                (transform-geom (point 3.8142776 51.285914 4326) (crs/create-transform 4326 23031))
                (set-srid (point 556878.9016076007 5682145.166264554 23031) 0)))
-       (fact "An EPSG can be specified as an int or as an 'EPSG:XXXX' string. as an equivalent proj4 string"
+       (fact "An EPSG can be specified as a number, an 'EPSG:XXXX' string, as an equivalent proj4 string,
+              or a proj4j CRS object."
              (let [p1 (point 3.8142776 51.285914 4326)
                    p2 (point 556878.9016076007 5682145.166264554 23031)]
                (same-geom? (transform-geom p1 23031) p2)
                => truthy
                (same-geom? (transform-geom p1 "EPSG:23031") p2)
-               => truthy))
+               => truthy
+               (get-srid (transform-geom p1 23031))
+               => 23031
+               (get-srid (transform-geom p1 "EPSG:23031"))
+               => 23031
+               (get-srid (transform-geom p1 (crs/create-crs 23031)))
+               => 23031))
        (fact "If using a different CRS name or proj4 string, SRID is not automatically set"
              (let [p1 (point 3.8142776 51.285914 4326)
                    p2 (point 556878.9016076007 5682145.166264554 23031)]
