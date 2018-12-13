@@ -43,9 +43,6 @@
   [crs-str]
   (includes? crs-str "+proj="))
 
-;; Maintain old proj4-string? function name until at least version 3.0, but deprecate.
-(def proj4-string? proj4-str?)
-
 (defn- create-crs-int
   [^Integer c]
   (.createFromName crs-factory (srid->epsg-str c)))
