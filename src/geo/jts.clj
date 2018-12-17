@@ -268,10 +268,9 @@
   When the target transformation can be identified with an EPSG code, set the Geometry's SRID to that integer.
   When only a single CoordinateTransform is passed, set the SRID to 0."
   ([^Geometry g ^CoordinateTransform transform]
-   (let [g (.copy g)
-         target-srid (crs/get-srid (crs/get-target-crs transform))]
+   (let [g (.copy g)]
      (.apply g (transform-coord-seq-filter transform))
-     (set-srid g target-srid)))
+     (set-srid g (crs/get-srid (crs/get-target-crs transform)))))
   ([^Geometry g c1 c2]
    (tf g (crs/create-transform c1 c2))))
 
