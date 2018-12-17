@@ -37,8 +37,8 @@
 
 (defn set-srid
   "Sets a geometry's SRID to a new value, and returns that geometry."
-  [^Geometry geom ^Integer srid]
-  (doto geom (.setSRID srid)))
+  [^Geometry geom crs]
+  (doto geom (.setSRID (crs/get-srid crs))))
 
 (defn ^GeometryFactory get-factory
   "Gets a GeometryFactory for a given geometry."
@@ -264,9 +264,9 @@
 
 (defn- tf
   "Transform a Geometry.
-  When two CRSs are passed as arguments, transform from one CRS to another.
-  When the target transformation can be identified with an EPSG code, set the Geometry's SRID to that integer.
-  When only a single CoordinateTransform is passed, set the SRID to 0."
+  When a single CoordinateTransform is passed, apply that transform to the Geometry. When the target CRS
+  has an SRID, set the geometry's SRID to that.
+  When two CRSs are passed as arguments, generate an appropriate CoordinateTransform and apply accordingly."
   ([^Geometry g ^CoordinateTransform transform]
    (let [g (.copy g)]
      (.apply g (transform-coord-seq-filter transform))

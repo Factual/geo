@@ -162,6 +162,12 @@
                                (set-srid 23031))
                            p2)
                => truthy))
+       (fact "crs/set-srid can take any Transformable"
+             (let [p1 (point 10 10 0)]
+               (get-srid (set-srid p1 (crs/create-crs 23031)))
+               => 23031
+               (get-srid (set-srid p1 (crs/create-crs "EPSG:23031")))
+               => 23031))
        (fact "CRS systems with different names"
              (let [p1 (point 42.3601 -71.0589)
                    p2 (transform-geom p1 26986)]
