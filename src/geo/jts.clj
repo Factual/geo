@@ -263,18 +263,19 @@
       true)))
 
 (defn- tf
-  "Transform a Geometry.
-  When a single CoordinateTransform is passed, apply that transform to the Geometry. When the target CRS
-  has an SRID, set the geometry's SRID to that.
-  When two CRSs are passed as arguments, generate an appropriate CoordinateTransform and apply accordingly."
-  ([^Geometry g ^CoordinateTransform transform]
-   (let [g (.copy g)]
-     (.apply g (transform-coord-seq-filter transform))
-     (set-srid g (crs/get-srid (crs/get-target-crs transform)))))
-  ([^Geometry g c1 c2]
-   (tf g (crs/create-transform c1 c2))))
+  "Transform a Geometry by applying CoordinateTransform to the Geometry.
+  When the target CRS has an SRID, set the geometry's SRID to that."
+  [^Geometry g ^CoordinateTransform transform]
+  (let [g (.copy g)]
+    (.apply g (transform-coord-seq-filter transform))
+    (set-srid g (crs/get-srid (crs/get-target-crs transform)))))
 
 (defn transform-geom
+  "Transform a Geometry.
+  When a single CoordinateTransform is passed, apply that transform to the Geometry. When the target CRS
+  has an SRID, set the geometry's SRID to that. When a single Transformable target is passed, attempt to
+  find the geometry's CRS to generate and apply a CoordinateTransform. When two CRSs are passed as
+  arguments, generate a CoordinateTransform and apply accordingly."
   ([g t]
    (cond (instance? CoordinateTransform t)
          (tf g t)
@@ -285,7 +286,7 @@
              g
              (transform-geom g geom-srid t)))))
   ([g c1 c2]
-   (tf g c1 c2)))
+   (transform-geom g (crs/create-transform c1 c2))))
 
 (defn ^Point centroid
   "Get the centroid of a JTS object."
