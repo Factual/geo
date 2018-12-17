@@ -20,10 +20,11 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-midje "3.2.1"]
                              [lein-codox "0.10.5"]]
-                   :dependencies [[org.clojure/clojure "1.9.0"]
+                   :dependencies [[org.clojure/clojure "1.10.0"]
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
                                   [cheshire "5.8.1"]
                                   [midje "1.9.4"]]}
+             :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}})
