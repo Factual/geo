@@ -136,10 +136,11 @@
                (transform-geom (point 10 10 0) 4326 4326)
                (point 10 10 4326))
              => truthy)
-       (fact "geometry: projection can happen using an external transform object, though SRID will be set to 0."
+       (fact "geometry: projection can happen using an external transform object, though SRID may be set to 0 if it cannot be determined."
              (same-geom?
                (transform-geom (point 3.8142776 51.285914 4326) (crs/create-transform 4326 23031))
-               (set-srid (point 556878.9016076007 5682145.166264554 23031) 0)))
+               (point 556878.9016076007 5682145.166264554 23031))
+             => truthy)
        (fact "An EPSG can be specified as a number, an 'EPSG:XXXX' string, as an equivalent proj4 string,
               or a proj4j CRS object."
              (let [p1 (point 3.8142776 51.285914 4326)

@@ -1,6 +1,7 @@
 (ns geo.crs
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
   (:import (org.locationtech.proj4j CoordinateReferenceSystem
+                                    CoordinateTransform
                                     CoordinateTransformFactory
                                     CRSFactory)))
 
@@ -55,6 +56,21 @@
   [^String c]
   (.createFromParameters crs-factory "" c))
 
+(defn get-name
+  "Get the name of a coordinate reference system."
+  [^CoordinateReferenceSystem c]
+  (.getName c))
+
+(defn get-source-crs
+  "Get the source coordinate reference system of a transform."
+  [^CoordinateTransform t]
+  (.getSourceCRS t))
+
+(defn get-target-crs
+  "Get the source coordinate reference system of a transform."
+  [^CoordinateTransform t]
+  (.getTargetCRS t))
+
 (defprotocol Transformable
   (create-crs [this] "Create a CRS system. If given an integer or long, assume it is an EPSG code.
                       If given a valid CRS name or proj4 string, use that as the CRS identifier.
@@ -82,7 +98,7 @@
 
   CoordinateReferenceSystem
   (create-crs [this] this)
-  (get-srid [this] (get-srid (.getName this))))
+  (get-srid [this] (get-srid (get-name this))))
 
 (defn create-transform
   [c1 c2]
