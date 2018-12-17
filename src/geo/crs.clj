@@ -1,8 +1,8 @@
 (ns geo.crs
   "Helper functions for identifying and manipulating Coordinate Reference Systems."
-  (:import (org.osgeo.proj4j CoordinateTransform
-                             CoordinateTransformFactory
-                             CRSFactory)))
+  (:import (org.locationtech.proj4j CoordinateTransform
+                                    CoordinateTransformFactory
+                                    CRSFactory)))
 
 (defn starts-with? [^String string prefix]
   (.startsWith string prefix))
@@ -42,9 +42,6 @@
   "Check if input appears to be a proj4 string"
   [crs-str]
   (includes? crs-str "+proj="))
-
-;; Maintain old proj4-string? function name until at least version 3.0, but deprecate.
-(def proj4-string? proj4-str?)
 
 (defn- create-crs-int
   [^Integer c]

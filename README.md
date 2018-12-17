@@ -13,7 +13,7 @@ We unify five open-source JVM geospatial libraries: The [JTS topology
 suite](https://github.com/locationtech/jts),
 [spatial4j](https://github.com/spatial4j/spatial4j),
 [geohash-java](https://github.com/kungfoo/geohash-java),
-[proj4j](https://github.com/locationtech/geotrellis/tree/master/proj4),
+[proj4j](https://github.com/locationtech/proj4j),
 and [h3](https://github.com/uber/h3-java). Clojure
 protocols allow these libraries' disparate representations of points, shapes,
 and spatial reference systems to interoperate, so you can, for instance, ask

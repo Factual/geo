@@ -17,7 +17,7 @@
                                       MultiPolygon
                                       Polygon
                                       PrecisionModel)
-           (org.osgeo.proj4j CoordinateTransform ProjCoordinate)))
+           (org.locationtech.proj4j CoordinateTransform ProjCoordinate)))
 
 (def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
