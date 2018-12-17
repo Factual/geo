@@ -283,7 +283,7 @@
            (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
            (if (= (crs/get-srid t) geom-srid)
              g
-             (tf g geom-srid t)))))
+             (transform-geom g geom-srid t)))))
   ([g c1 c2]
    (tf g c1 c2)))
 
