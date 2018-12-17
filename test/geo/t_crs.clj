@@ -25,13 +25,17 @@
                    src (sut/get-source-crs transform)
                    target (sut/get-target-crs transform)]
                (sut/get-name src) => "EPSG:4326"
-               (sut/get-name target) => "EPSG:2000"))
+               (sut/get-srid (sut/get-name src)) => 4326
+               (sut/get-name target) => "EPSG:2000"
+               (sut/get-srid (sut/get-name target)) => 2000))
        (fact "Creating transform from CRS Strings"
              (let [transform (sut/create-transform "ESRI:37211" "ESRI:37220")
                    src (sut/get-source-crs transform)
                    target (sut/get-target-crs transform)]
                (sut/get-name src) => "ESRI:37211"
-               (sut/get-name target) => "ESRI:37220"))
+               (sut/get-srid (sut/get-name src)) => 0
+               (sut/get-name target) => "ESRI:37220"
+               (sut/get-srid (sut/get-name target)) => 0))
        (fact "Creating transform from proj4 parameter strings"
              (let [transform (sut/create-transform "+proj=longlat +a=6378270 +b=6356794.343434343 +no_defs"
                                                    "+proj=longlat +a=6376896 +b=6355834.846687363 +no_defs")
