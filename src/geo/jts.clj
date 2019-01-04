@@ -1,7 +1,7 @@
 (ns geo.jts
   "Wrapper for the locationtech JTS spatial library. Constructors for points,
   coordinate sequences, rings, polygons, multipolygons, and so on."
-  (:require [geo.crs :as crs])
+  (:require [geo.crs :as crs :refer [Transformable]])
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequence
                                       CoordinateSequenceFilter
@@ -37,8 +37,8 @@
 
 (defn set-srid
   "Sets a geometry's SRID to a new value, and returns that geometry."
-  [^Geometry geom ^Integer srid]
-  (doto geom (.setSRID srid)))
+  [^Geometry geom crs]
+  (doto geom (.setSRID (crs/get-srid crs))))
 
 (defn ^GeometryFactory get-factory
   "Gets a GeometryFactory for a given geometry."
@@ -252,7 +252,7 @@
     (.setOrdinate cseq i 1 (.y transformed))))
 
 (defn- ^CoordinateSequenceFilter transform-coord-seq-filter
-  "Implement JTS's CoordinateSequenceFilter, to be applied to a Geometry using transform-geom."
+  "Implement JTS's CoordinateSequenceFilter, to be applied to a Geometry using tf and transform-geom."
   [transform]
   (reify CoordinateSequenceFilter
     (filter [_ seq i]
@@ -262,35 +262,31 @@
     (isGeometryChanged [_]
       true)))
 
-(defn- tf-set-srid
-  "When the final projection for a tf is an SRID or EPSG, set the Geometry's SRID."
-  [g c]
-  (cond (integer? c) (set-srid g c)
-        (crs/epsg-str? c) (set-srid g (crs/epsg-str->srid c))
-        :else g))
-
 (defn- tf
-  "Transform a Geometry from one CRS to another.
-  When the target transformation is an EPSG code, set the Geometry's SRID to that integer."
-  [^Geometry g c1 c2]
-  (let [tcsf (transform-coord-seq-filter (crs/create-transform c1 c2))]
-    (.apply g tcsf)
-    (tf-set-srid g c2)))
+  "Transform a Geometry by applying CoordinateTransform to the Geometry.
+  When the target CRS has an SRID, set the geometry's SRID to that."
+  [^Geometry g ^CoordinateTransform transform]
+  (let [g (.copy g)]
+    (.apply g (transform-coord-seq-filter transform))
+    (set-srid g (crs/get-srid (crs/get-target-crs transform)))))
 
-(defn ^Geometry transform-geom
-  "Transform a Geometry using a proj4j transform, if needed. Returns a new Geometry if a transform occurs.
-  When only one CRS is given, get the CRS of the existing geometry.
-  When two are given, force the transformation to occur between those two systems."
-  ([g crs]
-   (let [geom-srid (get-srid g)]
-     (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
-     (if (or (= geom-srid crs) (= (crs/srid->epsg-str geom-srid) crs))
-       g
-       (transform-geom g geom-srid crs))))
-  ([^Geometry g crs1 crs2]
-   (if (= crs1 crs2)
-     (tf-set-srid g crs2)
-     (tf (.copy g) crs1 crs2))))
+(defn transform-geom
+  "Transform a Geometry.
+  When a single CoordinateTransform is passed, apply that transform to the Geometry. When the target CRS
+  has an SRID, set the geometry's SRID to that. When a single Transformable target is passed, attempt to
+  find the geometry's CRS to generate and apply a CoordinateTransform. When two CRSs are passed as
+  arguments, generate a CoordinateTransform and apply accordingly."
+  ([g t]
+   (cond (instance? CoordinateTransform t)
+         (tf g t)
+         (satisfies? Transformable t)
+         (let [geom-srid (get-srid g)]
+           (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
+           (if (= (crs/get-srid t) geom-srid)
+             g
+             (transform-geom g geom-srid t)))))
+  ([g c1 c2]
+   (transform-geom g (crs/create-transform c1 c2))))
 
 (defn ^Point centroid
   "Get the centroid of a JTS object."
