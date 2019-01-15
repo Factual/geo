@@ -11,16 +11,6 @@
            (org.wololo.geojson Feature FeatureCollection GeoJSONFactory)
            (org.wololo.jts2geojson GeoJSONReader GeoJSONWriter)))
 
-(def ^WKTReader wkt-reader (WKTReader. gf-wgs84))
-(def ^WKTWriter wkt-writer (WKTWriter.))
-
-(def ^WKBReader wkb-reader (WKBReader. gf-wgs84))
-(def ^WKBWriter wkb-writer (WKBWriter.))
-(def ^WKBWriter wkb-writer-2d-srid (WKBWriter. 2 true))
-
-(def ^GeoJSONReader geojson-reader (GeoJSONReader.))
-(def ^GeoJSONWriter geojson-writer (GeoJSONWriter.))
-
 (defn ^Arrays$ArrayList feature-list
   [features]
   (Arrays/asList (into-array Feature features)))
@@ -28,15 +18,15 @@
 (defn read-wkt
   "Read a WKT string and convert to a Geometry.
    Can optionally pass in SRID. Defaults to WGS84"
-  ([^String wkt] (.read wkt-reader wkt))
+  ([^String wkt] (.read (WKTReader. gf-wgs84) wkt))
   ([^String wkt srid] (.read (WKTReader. (jts/gf srid)) wkt)))
 
-(defn to-wkt [shapelike] (.write wkt-writer (to-jts shapelike)))
+(defn to-wkt [shapelike] (.write (WKTWriter.) (to-jts shapelike)))
 
 (defn read-wkb
   "Read a WKB byte array and convert to a Geometry.
    Can optionally pass in SRID. Defaults to WGS84"
-  ([^bytes bytes] (.read wkb-reader bytes))
+  ([^bytes bytes] (.read (WKBReader. gf-wgs84) bytes))
   ([^bytes bytes srid]
    (.read (WKBReader. (jts/gf srid)) bytes)))
 
@@ -50,11 +40,11 @@
 (defn to-wkb
   "Write a WKB, excluding any SRID"
   [shapelike]
-  (.write wkb-writer (to-jts shapelike)))
+  (.write (WKBWriter.) (to-jts shapelike)))
 
 (defn to-ewkb [shapelike]
   "Write an EWKB, including the SRID"
-  (.write wkb-writer-2d-srid (to-jts shapelike)))
+  (.write (WKBWriter. 2 true) (to-jts shapelike)))
 
 (defn to-wkb-hex
   "Write a WKB as a hex string, excluding any SRID"
@@ -79,7 +69,7 @@
 
 (extend-protocol GeoJSONGeometry
   org.wololo.geojson.Geometry
-  (read-geometry [this] (.read geojson-reader this))
+  (read-geometry [this] (.read (GeoJSONReader.) this))
   Feature
   (read-geometry [this] (read-geometry (.getGeometry this))))
 
@@ -136,11 +126,11 @@
        read-geometry
        (jts/set-srid srid))))
 
-(defn to-geojson [shapelike] (.toString (.write geojson-writer (to-jts shapelike jts/default-srid))))
+(defn to-geojson [shapelike] (.toString (.write (GeoJSONWriter.) (to-jts shapelike jts/default-srid))))
 
 (defn- ^Feature gj-feature
   [{shapelike :geometry properties :properties}]
-  (let [gj-geom (.write geojson-writer (to-jts shapelike jts/default-srid))]
+  (let [gj-geom (.write (GeoJSONWriter.) (to-jts shapelike jts/default-srid))]
     (Feature. gj-geom (stringify-keys properties))))
 
 (defn to-geojson-feature
@@ -150,4 +140,4 @@
 (defn to-geojson-feature-collection
   [feature-maps]
   (let [features (feature-list (map gj-feature feature-maps))]
-    (.toString (.write geojson-writer features))))
+    (.toString (.write (GeoJSONWriter.) features))))
