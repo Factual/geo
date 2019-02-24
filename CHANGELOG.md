@@ -2,16 +2,16 @@
 
 ## 2.1.1 to 3.0.0
 
-* Breaking change: switch upstream `proj4j` to use `[org.locationtech.proj4j/proj4j "1.0.0"]`, changing namespace from `org.osgeo.proj4j` to `org.locationtech.proj4j`
-* Breaking change: rename `proj4-string?` to `proj4-str?`, to maintain naming consistency in the API
+* **Breaking change**: switch upstream `proj4j` to use `[org.locationtech.proj4j/proj4j "1.0.0"]`, changing namespace from `org.osgeo.proj4j` to `org.locationtech.proj4j`
+* **Breaking change**: rename `proj4-string?` to `proj4-str?`, to maintain naming consistency in the API
 * Allow `transform-geom` to use externally created `proj4j` `CoordinateTransform` objects
 * `geo.io` readers and writers are now thread-safe
 * Add `h3-line` function to H3 protocol, which returns the line of indexes between two cells
 * Add `get-res-0-indexes` function for H3, which returns a collection of all indexes at resolution 0
 * Add testing support for JDK11 and Clojure 1.10
-* Bump H3 to 3.4.0, enabling support for functions described above
-* Bump core dependencies to keep up with upstream changes: `jts2geojson` and `jts`
-* Bump internal dependencies for testing and documentation: ``midje`, `cheshire`, and `lein-codox`
+* Bump `h3` to 3.4.0, enabling support for functions described above
+* Bump other core dependencies to keep up with upstream changes: `jts2geojson` to 0.13.0, and `jts` to 1.16.1
+* Bump internal dependencies for testing and documentation: `midje` to 1.9.6, `cheshire` to 5.8.1, and `lein-codox` to 0.10.6
 
 ## 2.1.0 to 2.1.1
 
