@@ -66,8 +66,59 @@
              (sut/h3-distance "85283083fffffff" "85283473fffffff") => 4
              (sut/h3-distance 599685771850416127 599686042433355775) => 4
              (sut/h3-distance "85283083fffffff" "85283447fffffff") => 5
-             (sut/h3-distance 599685771850416127 599686030622195711) => 5))
+             (sut/h3-distance 599685771850416127 599686030622195711) => 5)
+       (fact "get resolution 0 indexes"
+             (count (sut/get-res-0-indexes)) => 122))
 
+(facts "line checks"
+       (let [p1 (jts/point 37.5 -122)
+             p2 (jts/point 25 -120)
+             c1 (fn [res] (sut/pt->h3 p1 res))
+             c2 (fn [res] (sut/pt->h3 p2 res))
+             line (fn [res] (sut/h3-line (c1 res) (c2 res)))
+             distance (fn [res] (sut/h3-distance (c1 res) (c2 res)))]
+         (facts "resolution 0"
+                (fact "distance matches expected"
+                      (count (line 0)) => (inc (distance 0)))
+                (fact "line contains start"
+                      (some #{(c1 0)} (line 0)) => truthy)
+                (fact "line contains end"
+                      (some #{(c2 0)} (line 0)) => truthy))
+         (facts "resolution 1"
+                (fact "distance matches expected"
+                      (count (line 1)) => (inc (distance 1)))
+                (fact "line contains start"
+                      (some #{(c1 1)} (line 1)) => truthy)
+                (fact "line contains end"
+                      (some #{(c2 1)} (line 1)) => truthy))
+         (facts "resolution 2"
+                (fact "distance matches expected"
+                      (count (line 2)) => (inc (distance 2)))
+                (fact "line contains start"
+                      (some #{(c1 2)} (line 2)) => truthy)
+                (fact "line contains end"
+                      (some #{(c2 2)} (line 2)) => truthy))
+         (facts "resolution 10"
+                (fact "distance matches expected"
+                      (count (line 10)) => (inc (distance 10)))
+                (fact "line contains start"
+                      (some #{(c1 10)} (line 10)) => truthy)
+                (fact "line contains end"
+                      (some #{(c2 10)} (line 10)) => truthy))
+         (facts "resolution 11"
+                (fact "distance matches expected"
+                      (count (line 11)) => (inc (distance 11)))
+                (fact "line contains start"
+                      (some #{(c1 11)} (line 11)) => truthy)
+                (fact "line contains end"
+                      (some #{(c2 11)} (line 11)) => truthy))
+         (facts "resolution 12"
+                (fact "distance matches expected"
+                      (count (line 12)) => (inc (distance 12)))
+                (fact "line contains start"
+                      (some #{(c1 12)} (line 12)) => truthy)
+                (fact "line contains end"
+                      (some #{(c2 12)} (line 12)) => truthy))))
 
 (facts "h3 algorithms"
        (fact "rings"
