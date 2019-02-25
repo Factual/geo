@@ -29,19 +29,23 @@
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
-  :release-tasks [["vcs" "assert-committed"]
-                  ["deploy"]
-                  ["vcs" "tag" "v" "--no-sign"]
-                  ["vcs" "push"]]
-  :repositories [["snapshots" {:url "https://clojars.org"
+  :repositories [["snapshots" {:url "https://clojars.org/repo"
                                :username :env/clojars_username
-                               :password :env/clojars_password}]
-                 ["releases"  {:url "https://clojars.org"
+                               :password :env/clojars_password
+                               :sign-releases false}]
+                 ["releases"  {:url "https://clojars.org/repo"
                                :username :env/clojars_username
-                               :password :env/clojars_password}]]
-  :deploy-repositories [["snapshots" {:url "https://clojars.org"
+                               :password :env/clojars_password
+                               :sign-releases false}]]
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
+                                    :username :env/clojars_username
+                                    :password :env/clojars_password
+                                    :sign-releases false}]
+                        ["snapshots" {:url "https://clojars.org/repo"
                                       :username :env/clojars_username
-                                      :password :env/clojars_password}]
-                        ["releases"  {:url "https://clojars.org"
+                                      :password :env/clojars_password
+                                      :sign-releases false}]
+                        ["releases"  {:url "https://clojars.org/repo"
                                       :username :env/clojars_username
-                                      :password :env/clojars_password}]])
+                                      :password :env/clojars_password
+                                      :sign-releases false}]])
