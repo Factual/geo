@@ -19,7 +19,8 @@
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-midje "3.2.1"]
-                             [lein-codox "0.10.6"]]
+                             [lein-codox "0.10.6"]
+                             [lein-project-version "0.1.0"]]
                    :dependencies [[org.clojure/clojure "1.10.0"]
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.4"]
