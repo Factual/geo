@@ -1,6 +1,9 @@
 language: clojure
 script: lein with-profile dev:+1.9:+1.8:+1.7 midje
 jdk:
-  - oraclejdk8
-  - openjdk8
-  - openjdk11
+- oraclejdk8
+- openjdk8
+- openjdk11
+before_install:
+- openssl aes-256-cbc -K $encrypted_193118c4cca9_key -iv $encrypted_193118c4cca9_iv
+  -in geo_deploy_key.enc -out geo_deploy_key -d
