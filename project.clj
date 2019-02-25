@@ -28,4 +28,16 @@
                                   [midje "1.9.6"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}})
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
+  :release-tasks [["vcs" "assert-committed"]
+                  ["deploy"]
+                  ["vcs" "tag" "v" "--no-sign"]
+                  ["vcs" "push"]]
+  :deploy-repositories [["snapshots" {:url "https://clojars.org/factual/geo"
+                                      :username :env/clojars_username
+                                      :password :env/clojars_password
+                                      :sign-releases false}]
+                        ["releases"  {:url "https://clojars.org/factual/geo"
+                                      :username :env/clojars_username
+                                      :password :env/clojars_password
+                                      :sign-releases false}]])
