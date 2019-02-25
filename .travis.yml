@@ -12,3 +12,7 @@ deploy:
   script: scripts/release.sh
   on:
     branch: master
+env:
+  global:
+  - secure: QYOLwEqrVn8dlT3qwznYXujR3x4ZE0WJcBeQoMVbofVMqwcC+xA4uOnfI1M0xQwzfYCD92mIUSoc0KGQGI7jCT2dcr2di2BEJZvIV4ra+CqgoHMJYd9S/hZCZuQWygX3MhBPl17jSKi2NQPAKu7tuP12Yd5GNBttiYOOyRFMdjY=
+  - secure: Ny8wgc/tZqRR9/mv3vHupyKz1hvl7krMx+qCEILwsvgPZZg0fVTzZ+48HHzQ0CoNKY+u9PBHLuxPBkma5NM4NpdbsCySN6stqpIQJW7IwYvm6i2TkYHTD3BFv4MAkzxwON71Z1rUjCD3moh3TQGNVW+xNUv17UxUDB6KlK9BGS8=
