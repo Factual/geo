@@ -33,11 +33,11 @@
                   ["deploy"]
                   ["vcs" "tag" "v" "--no-sign"]
                   ["vcs" "push"]]
-  :deploy-repositories [["snapshots" {:url "https://clojars.org/factual/geo"
+  :deploy-repositories [["snapshots" {:url "https://clojars.org"
                                       :username :env/clojars_username
                                       :password :env/clojars_password
                                       :sign-releases false}]
-                        ["releases"  {:url "https://clojars.org/factual/geo"
+                        ["releases"  {:url "https://clojars.org"
                                       :username :env/clojars_username
                                       :password :env/clojars_password
                                       :sign-releases false}]])
