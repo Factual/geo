@@ -187,6 +187,16 @@
   [^Long c1 ^Long c2]
   (.h3Distance h3-inst c1 c2))
 
+(defn- h3-line-string
+  "String helper to return the line of indexes between cells"
+  [^String c1 ^String c2]
+  (.h3Line h3-inst c1 c2))
+
+(defn- h3-line-long
+  "Long helper to return the line of indexes between cells"
+  [^Long c1 ^Long c2]
+  (.h3Line h3-inst c1 c2))
+
 (defprotocol H3Index
   (to-string [this] "Return index as a string.")
   (to-long [this] "Return index as a long.")
@@ -203,7 +213,8 @@
   (pentagon? [this] "Check if an index is a pentagon.")
   (is-valid? [this] "Check if an index is valid.")
   (neighbors? [this cell] "Check if two indexes are neighbors.")
-  (h3-distance [this cell] "Return the grid distance, which is the distance expressed in number of cells."))
+  (h3-distance [this cell] "Return the grid distance, which is the distance expressed in number of cells.")
+  (h3-line [this cell] "Return the line of indexes between two cells"))
 
 (extend-protocol H3Index
   String
@@ -223,6 +234,7 @@
   (is-valid? [this] (is-valid?-string this))
   (neighbors? [this cell] (neighbors?-string this cell))
   (h3-distance [this cell] (h3-distance-string this cell))
+  (h3-line [this cell] (h3-line-string this cell))
 
   Long
   (to-string [this] (long->string this))
@@ -240,7 +252,8 @@
   (pentagon? [this] (pentagon?-long this))
   (is-valid? [this] (is-valid?-long this))
   (neighbors? [this cell] (neighbors?-long this cell))
-  (h3-distance [this cell] (h3-distance-long this cell)))
+  (h3-distance [this cell] (h3-distance-long this cell))
+  (h3-line [this cell] (h3-line-long this cell)))
 
 (defprotocol Polygonal
   (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries.")
@@ -540,3 +553,8 @@
         (multi-polygon-n cells)
         (string? (first cells))
         (multi-polygon-s cells)))
+
+(defn get-res-0-indexes
+  "Return a collection of all base cells"
+  []
+  (.getRes0Indexes h3-inst))
