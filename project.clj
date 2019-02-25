@@ -35,17 +35,13 @@
                   ["vcs" "push"]]
   :repositories [["snapshots" {:url "https://clojars.org"
                                :username :env/clojars_username
-                               :password :env/clojars_password
-                               :sign-releases false}]
+                               :password :env/clojars_password}]
                  ["releases"  {:url "https://clojars.org"
                                :username :env/clojars_username
-                               :password :env/clojars_password
-                               :sign-releases false}]]
+                               :password :env/clojars_password}]]
   :deploy-repositories [["snapshots" {:url "https://clojars.org"
                                       :username :env/clojars_username
-                                      :password :env/clojars_password
-                                      :sign-releases false}]
+                                      :password :env/clojars_password}]
                         ["releases"  {:url "https://clojars.org"
                                       :username :env/clojars_username
-                                      :password :env/clojars_password
-                                      :sign-releases false}]])
+                                      :password :env/clojars_password}]])
