@@ -7,14 +7,14 @@ jdk:
 before_install:
 - openssl aes-256-cbc -K $encrypted_193118c4cca9_key -iv $encrypted_193118c4cca9_iv
   -in geo_deploy_key.enc -out geo_deploy_key -d
-deploy:
-  jdk:
-    - openjdk11
-  skip_cleanup: true
-  provider: script
-  script: scripts/release.sh
-  on:
-    branch: master
+jobs:
+  include:
+    - stage: deploy
+      on:
+        branch: master
+      skip_cleanup: true
+      jdk: openjdk11
+      script: scripts/release.sh
 env:
   global:
   - secure: QYOLwEqrVn8dlT3qwznYXujR3x4ZE0WJcBeQoMVbofVMqwcC+xA4uOnfI1M0xQwzfYCD92mIUSoc0KGQGI7jCT2dcr2di2BEJZvIV4ra+CqgoHMJYd9S/hZCZuQWygX3MhBPl17jSKi2NQPAKu7tuP12Yd5GNBttiYOOyRFMdjY=
