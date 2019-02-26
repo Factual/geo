@@ -3,7 +3,7 @@ set -euo pipefail
 
 mkdir -p ~/.ssh
 ssh-keyscan github.com >> ~/.ssh/known_hosts
-cp geo_deploy_key ~/.ssh/id_rsa
+mv geo_deploy_key ~/.ssh/id_rsa
 
 VERSION=$(lein project-version)
 
