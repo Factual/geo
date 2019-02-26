@@ -21,6 +21,10 @@ if git ls-remote --tags origin | grep "$VERSION"; then
   echo "$VERSION tag already exists in GitHub. Continuing."
 else
   echo "$VERSION tag does not exist in GitHub. Will push it."
+  # By default Travis provides the HTTPS github remote,
+  # but we have a Deploy SSH key so we need to use the SSH one instead
+  git remote rm origin
+  git remote add origin git@github.com:Factual/geo.git
   git tag $VERSION
   git push origin $VERSION
 fi
