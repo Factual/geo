@@ -23,6 +23,7 @@ else
   echo "$VERSION tag does not exist in GitHub. Will push it."
   # By default Travis provides the HTTPS github remote,
   # but we have a Deploy SSH key so we need to use the SSH one instead
+  chmod 0600 ~/.ssh/id_rsa
   git remote rm origin
   git remote add origin git@github.com:Factual/geo.git
   git tag $VERSION
