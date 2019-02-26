@@ -2,18 +2,18 @@
   "Helper functions for converting JTS geometries to and from various
    geospatial IO formats (geojson, wkt, wkb)."
   (:require [geo.jts :refer [gf-wgs84] :as jts]
-            [geo.spatial :refer [Shapelike to-jts]]
+            [geo.spatial :as spatial :refer [Shapelike to-jts]]
             [clojure.data]
             [clojure.walk :refer [keywordize-keys stringify-keys]])
   (:import (java.util Arrays Arrays$ArrayList)
            (org.locationtech.jts.io WKTReader WKTWriter WKBReader WKBWriter)
            (org.locationtech.jts.geom Geometry GeometryCollection)
-           (org.wololo.geojson Feature FeatureCollection GeoJSONFactory)
+           (org.wololo.geojson FeatureCollection GeoJSONFactory)
            (org.wololo.jts2geojson GeoJSONReader GeoJSONWriter)))
 
 (defn ^Arrays$ArrayList feature-list
   [features]
-  (Arrays/asList (into-array Feature features)))
+  (Arrays/asList (into-array org.wololo.geojson.Feature features)))
 
 (defn read-wkt
   "Read a WKT string and convert to a Geometry.
@@ -61,7 +61,7 @@
   [^String geojson]
   (GeoJSONFactory/create geojson))
 
-(defn properties [^Feature feature]
+(defn properties [^org.wololo.geojson.Feature feature]
   (keywordize-keys (into {} (.getProperties feature))))
 
 (defprotocol GeoJSONGeometry
@@ -70,7 +70,7 @@
 (extend-protocol GeoJSONGeometry
   org.wololo.geojson.Geometry
   (read-geometry [this] (.read (GeoJSONReader.) this))
-  Feature
+  org.wololo.geojson.Feature
   (read-geometry [this] (read-geometry (.getGeometry this))))
 
 (defprotocol GeoJSONFeatures
@@ -78,15 +78,15 @@
 
 (extend-protocol GeoJSONFeatures
   org.wololo.geojson.Geometry
-  (to-features [this] [{:properties {} :geometry (read-geometry this)}])
+  (to-features [this] [(spatial/->Feature (read-geometry this) {})])
   org.wololo.geojson.GeometryCollection
   (to-features [this] (mapcat to-features (jts/geometries (read-geometry this))))
   Geometry
-  (to-features [this] [{:properties {} :geometry this}])
+  (to-features [this] [(spatial/->Feature this {})])
   GeometryCollection
   (to-features [this] (mapcat to-features (jts/geometries this)))
-  Feature
-  (to-features [this] [{:properties (properties this) :geometry (read-geometry this)}])
+  org.wololo.geojson.Feature
+  (to-features [this] [(spatial/->Feature (read-geometry this) (properties this))])
   FeatureCollection
   (to-features [this] (mapcat to-features (.getFeatures this))))
 
@@ -128,14 +128,14 @@
 
 (defn to-geojson [shapelike] (.toString (.write (GeoJSONWriter.) (to-jts shapelike jts/default-srid))))
 
-(defn- ^Feature gj-feature
-  [{shapelike :geometry properties :properties}]
-  (let [gj-geom (.write (GeoJSONWriter.) (to-jts shapelike jts/default-srid))]
-    (Feature. gj-geom (stringify-keys properties))))
+(defn- ^org.wololo.geojson.Feature gj-feature
+  [^geo.spatial.Feature feature]
+  (let [gj-geom (.write (GeoJSONWriter.) (to-jts (:geometry feature) jts/default-srid))]
+    (org.wololo.geojson.Feature. gj-geom (stringify-keys (:properties feature)))))
 
 (defn to-geojson-feature
-  [feature-map]
-  (.toString (gj-feature feature-map)))
+  [^geo.spatial.Feature feature]
+  (.toString (gj-feature feature)))
 
 (defn to-geojson-feature-collection
   [feature-maps]

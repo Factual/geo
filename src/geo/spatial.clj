@@ -177,6 +177,8 @@
   (to-geohash-point [this] (geohash-point this))
   (to-h3-point [this] this))
 
+(defrecord Feature [geometry properties])
+
 (defn degrees->radians
   [degrees]
   (DistanceUtils/toRadians degrees))

@@ -100,11 +100,11 @@
 (fact "Reading GeoJSON Geometry"
       (count (sut/read-geojson geometry)) => 1
       (let [parsed (first (sut/read-geojson geometry))]
-        parsed => map?
-        (keys parsed) => [:properties :geometry]
+        (type parsed) => geo.spatial.Feature
+        (keys parsed) => [:geometry :properties]
         (-> parsed :geometry .getNumPoints) => 5
         (->> parsed :geometry .getCoordinates (map (fn [c] [(.x c) (.y c)]))) => coords
-        (-> parsed :geometry sut/to-geojson sut/read-geojson parsed)))
+        (-> parsed :geometry sut/to-geojson sut/read-geojson first) => parsed))
 
 (fact "Reading GeoJSON Feature"
       (count (sut/read-geojson feature)) => 1

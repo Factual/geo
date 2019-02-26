@@ -254,3 +254,20 @@
                         (map dist)
                         (filter (partial > 50))
                         count) => (roughly 250 10))))))
+
+(facts "features"
+       (let [g1 (s/jts-point 0 0)
+             p1 {:name "null"}
+             f1 (s/->Feature g1 p1)
+             f2 (s/map->Feature {:geometry g1
+                                 :properties p1
+                                 :additional "information"})]
+         (fact "feature record is recognized"
+               (type f1) => geo.spatial.Feature
+               (type f2) => geo.spatial.Feature)
+         (fact "feature record has a geometry field"
+               (:geometry f1) => g1
+               (:geometry f2) => g1)
+         (fact "feature record has a properties field"
+               (:properties f1) => p1
+               (:properties f2) => p1)))
