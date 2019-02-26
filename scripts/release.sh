@@ -13,7 +13,7 @@ if curl -If "https://clojars.org/factual/geo/versions/$VERSION"; then
   echo "$VERSION already exists in clojars. Continuing."
 else
   echo "$VERSION does not exist in clojars. Will push it."
-  lein midge
+  lein midje
   lein deploy clojars
 fi
 
