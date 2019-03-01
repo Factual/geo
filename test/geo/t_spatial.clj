@@ -232,7 +232,7 @@
 
            (fact "Accepts custom distribution function"
                  (let [distrib (fn [] 1)
-                       points (take 20 )]
+                       points (take 20)]
                    (->> (partial s/rand-point-in-radius 0 0 100 distrib)
                         (repeatedly)
                         (take 20)
@@ -270,4 +270,7 @@
                (:geometry f2) => g1)
          (fact "feature record has a properties field"
                (:properties f1) => p1
-               (:properties f2) => p1)))
+               (:properties f2) => p1)
+         (fact "features generated from maps retain additional fields"
+               (:additional f2) => "information"
+               (:additional f1) => nil)))
