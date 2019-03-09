@@ -67,6 +67,10 @@
   [coordinates]
   (into-array Coordinate coordinates))
 
+(defn ^"[Lorg.locationtech.jts.geom.Point;" point-array
+  [points]
+  (into-array Point points))
+
 (defn ^"[Lorg.locationtech.jts.geom.Geometry;" geom-array
   [geoms]
   (into-array Geometry geoms))
@@ -75,9 +79,22 @@
   [rings]
   (into-array LinearRing rings))
 
+(defn ^"[Lorg.locationtech.jts.geom.LineString;" linestring-array
+  [linestrings]
+  (into-array LineString linestrings))
+
 (defn ^"[Lorg.locationtech.jts.geom.Polygon;" polygon-array
   [polygons]
   (into-array Polygon polygons))
+
+(defn multi-point
+  "Given a list of points, generates a MultiPoint."
+  [points]
+  (let [f (first points)
+        srid (get-srid f)]
+    (-> (.createMultiPoint (get-factory f)
+                           (point-array points))
+        (set-srid srid))))
 
 (defn ^CoordinateSequence coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
@@ -115,6 +132,15 @@
   ([coordinates srid]
    (.createLineString (gf srid) (coord-array coordinates))))
 
+(defn multi-linestring
+  "Given a list of LineStrings, generates a MultiLineString."
+  [linestrings]
+  (let [f (first linestrings)
+        srid (get-srid f)]
+    (-> (.createMultiLineString (get-factory f)
+                                (linestring-array linestrings))
+        (set-srid srid))))
+
 (defn linestring-wkt
   "Makes a LineString from a WKT-style data structure: a flat sequence of
   coordinate pairs, e.g. [0 0, 1 0, 0 2, 0 0]. Allows an optional SRID argument at end."
@@ -122,6 +148,14 @@
    (-> coordinates wkt->coords-array linestring))
   ([coordinates srid]
    (-> coordinates wkt->coords-array (linestring srid))))
+
+(defn multi-linestring-wkt
+  "Creates a MultiLineString from a WKT-style data structure, e.g. [[0 0, 1 0, 0 2, 0 0] [0 -1 1 2]].
+  Allows an optional SRID argument at end."
+  ([wkt]
+   (multi-linestring (map linestring-wkt wkt)))
+  ([wkt srid]
+   (multi-linestring (map #(linestring-wkt % srid) wkt))))
 
 (defn coords
   [^LineString linestring]

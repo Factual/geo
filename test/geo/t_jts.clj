@@ -24,6 +24,10 @@
              (.getZ (coordinate 1 2 3 4)) => 3.0
              (.getM (coordinate 1 2 3 4)) => 4.0))
 
+(facts "multi-point"
+       (fact (str (multi-point [(point 0 0) (point 1 1)]))
+             => "MULTIPOINT ((0 0), (1 1))"))
+
 (facts "coordinate sequence"
        (fact "XY/XYZ coordinate sequence"
              (.getDimension (coordinate-sequence [(coordinate 1 1) (coordinate 2 2)])) => 3
@@ -88,6 +92,16 @@
          (-> segment .p0 .y) => -1.0
          (-> segment .p1 .x) => 1.0
          (-> segment .p1 .y) => 2.0))
+
+(facts "multi-linestrings"
+       (fact (str (multi-linestring
+                    [(linestring [(coordinate 0 0) (coordinate 1 1)])
+                     (linestring [(coordinate 2 2) (coordinate 3 3)])]))
+             => "MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))"))
+
+(facts "multi-linestring-wkt"
+       (fact (str (multi-linestring-wkt [[0 0, 1 0, 0 2, 0 0] [0 -1 1 2]]))
+             => "MULTILINESTRING ((0 0, 1 0, 0 2, 0 0), (0 -1, 1 2))"))
 
 (facts "Comparing geometry SRIDs"
        (let [g1 (linestring-wkt [0 0 0 1 0 2])
