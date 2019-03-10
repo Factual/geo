@@ -14,6 +14,8 @@
                                       LinearRing
                                       LineSegment
                                       LineString
+                                      MultiPoint
+                                      MultiLineString
                                       MultiPolygon
                                       Polygon
                                       PrecisionModel)
@@ -54,7 +56,7 @@
   ([^double x ^double y ^double z ^double m]
    (CoordinateXYZM. x y z m)))
 
-(defn point
+(defn ^Point point
   "Creates a Point from a Coordinate, a lat/long, or an x,y pair with an SRID."
   ([^Coordinate coordinate]
    (.createPoint gf-wgs84 coordinate))
@@ -87,7 +89,7 @@
   [polygons]
   (into-array Polygon polygons))
 
-(defn multi-point
+(defn ^MultiPoint multi-point
   "Given a list of points, generates a MultiPoint."
   [points]
   (let [f (first points)
@@ -125,14 +127,14 @@
        (partition 2)
        (map (partial apply coordinate))))
 
-(defn linestring
+(defn ^LineString linestring
   "Given a list of Coordinates, creates a LineString. Allows an optional SRID argument at end."
   ([coordinates]
    (.createLineString gf-wgs84 (coord-array coordinates)))
   ([coordinates srid]
    (.createLineString (gf srid) (coord-array coordinates))))
 
-(defn multi-linestring
+(defn ^MultiLineString multi-linestring
   "Given a list of LineStrings, generates a MultiLineString."
   [linestrings]
   (let [f (first linestrings)
@@ -215,7 +217,7 @@
    (let [rings (map #(linear-ring-wkt % srid) rings)]
      (polygon (first rings) (into-array LinearRing (rest rings))))))
 
-(defn multi-polygon
+(defn ^MultiPolygon multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
   (let [f (first polygons)
