@@ -17,12 +17,22 @@
              (.getX (coordinate 1 2 3)) => 1.0
              (.getY (coordinate 1 2 3)) => 2.0
              (.getZ (coordinate 1 2 3)) => 3.0)
+       (fact "XYZ coordinates can still be pulled out from geometries that don't support higher dimensions"
+             (.getCoordinate (point (coordinate 1 2 3))) => (Coordinate. 1 2 3)
+             (.getCoordinateN (linestring [(coordinate 1 2 3) (coordinate 4 5 6)]) 0) => (Coordinate. 1 2 3))
        (fact "XYZM coordinate"
              (coordinate 1 2 3 4) => (CoordinateXYZM. 1 2 3 4)
              (.getX (coordinate 1 2 3 4)) => 1.0
              (.getY (coordinate 1 2 3 4)) => 2.0
              (.getZ (coordinate 1 2 3 4)) => 3.0
-             (.getM (coordinate 1 2 3 4)) => 4.0))
+             (.getM (coordinate 1 2 3 4)) => 4.0)
+       (fact "XYZM coordinates can still be pulled out from geometries that don't support higher dimensions"
+             (.getCoordinate (point (coordinate 1 2 3 4))) => (CoordinateXYZM. 1 2 3 4)
+             (.getCoordinateN (linestring [(coordinate 1 2 3 4) (coordinate 4 5 6 7)]) 0) => (CoordinateXYZM. 1 2 3 4)))
+
+(facts "multi-point"
+       (fact (str (multi-point [(point 0 0) (point 1 1)]))
+             => "MULTIPOINT ((0 0), (1 1))"))
 
 (facts "coordinate sequence"
        (fact "XY/XYZ coordinate sequence"
@@ -88,6 +98,16 @@
          (-> segment .p0 .y) => -1.0
          (-> segment .p1 .x) => 1.0
          (-> segment .p1 .y) => 2.0))
+
+(facts "multi-linestrings"
+       (fact (str (multi-linestring
+                    [(linestring [(coordinate 0 0) (coordinate 1 1)])
+                     (linestring [(coordinate 2 2) (coordinate 3 3)])]))
+             => "MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))"))
+
+(facts "multi-linestring-wkt"
+       (fact (str (multi-linestring-wkt [[0 0, 1 0, 0 2, 0 0] [0 -1 1 2]]))
+             => "MULTILINESTRING ((0 0, 1 0, 0 2, 0 0), (0 -1, 1 2))"))
 
 (facts "Comparing geometry SRIDs"
        (let [g1 (linestring-wkt [0 0 0 1 0 2])

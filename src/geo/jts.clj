@@ -14,6 +14,8 @@
                                       LinearRing
                                       LineSegment
                                       LineString
+                                      MultiPoint
+                                      MultiLineString
                                       MultiPolygon
                                       Polygon
                                       PrecisionModel)
@@ -54,7 +56,7 @@
   ([^double x ^double y ^double z ^double m]
    (CoordinateXYZM. x y z m)))
 
-(defn point
+(defn ^Point point
   "Creates a Point from a Coordinate, a lat/long, or an x,y pair with an SRID."
   ([^Coordinate coordinate]
    (.createPoint gf-wgs84 coordinate))
@@ -67,6 +69,10 @@
   [coordinates]
   (into-array Coordinate coordinates))
 
+(defn ^"[Lorg.locationtech.jts.geom.Point;" point-array
+  [points]
+  (into-array Point points))
+
 (defn ^"[Lorg.locationtech.jts.geom.Geometry;" geom-array
   [geoms]
   (into-array Geometry geoms))
@@ -75,9 +81,22 @@
   [rings]
   (into-array LinearRing rings))
 
+(defn ^"[Lorg.locationtech.jts.geom.LineString;" linestring-array
+  [linestrings]
+  (into-array LineString linestrings))
+
 (defn ^"[Lorg.locationtech.jts.geom.Polygon;" polygon-array
   [polygons]
   (into-array Polygon polygons))
+
+(defn ^MultiPoint multi-point
+  "Given a list of points, generates a MultiPoint."
+  [points]
+  (let [f (first points)
+        srid (get-srid f)]
+    (-> (.createMultiPoint (get-factory f)
+                           (point-array points))
+        (set-srid srid))))
 
 (defn ^CoordinateSequence coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
@@ -108,12 +127,21 @@
        (partition 2)
        (map (partial apply coordinate))))
 
-(defn linestring
+(defn ^LineString linestring
   "Given a list of Coordinates, creates a LineString. Allows an optional SRID argument at end."
   ([coordinates]
    (.createLineString gf-wgs84 (coord-array coordinates)))
   ([coordinates srid]
    (.createLineString (gf srid) (coord-array coordinates))))
+
+(defn ^MultiLineString multi-linestring
+  "Given a list of LineStrings, generates a MultiLineString."
+  [linestrings]
+  (let [f (first linestrings)
+        srid (get-srid f)]
+    (-> (.createMultiLineString (get-factory f)
+                                (linestring-array linestrings))
+        (set-srid srid))))
 
 (defn linestring-wkt
   "Makes a LineString from a WKT-style data structure: a flat sequence of
@@ -122,6 +150,14 @@
    (-> coordinates wkt->coords-array linestring))
   ([coordinates srid]
    (-> coordinates wkt->coords-array (linestring srid))))
+
+(defn multi-linestring-wkt
+  "Creates a MultiLineString from a WKT-style data structure, e.g. [[0 0, 1 0, 0 2, 0 0] [0 -1 1 2]].
+  Allows an optional SRID argument at end."
+  ([wkt]
+   (multi-linestring (map linestring-wkt wkt)))
+  ([wkt srid]
+   (multi-linestring (map #(linestring-wkt % srid) wkt))))
 
 (defn coords
   [^LineString linestring]
@@ -181,7 +217,7 @@
    (let [rings (map #(linear-ring-wkt % srid) rings)]
      (polygon (first rings) (into-array LinearRing (rest rings))))))
 
-(defn multi-polygon
+(defn ^MultiPolygon multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
   (let [f (first polygons)

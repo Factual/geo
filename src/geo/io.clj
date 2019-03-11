@@ -52,7 +52,7 @@
   (WKBWriter/toHex (to-wkb (to-jts shapelike))))
 
 (defn to-ewkb-hex
-  "Write an EWKB as a hex string, excluding any SRID"
+  "Write an EWKB as a hex string, including any SRID"
   [shapelike]
   (WKBWriter/toHex (to-ewkb (to-jts shapelike))))
 
