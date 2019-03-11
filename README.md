@@ -251,6 +251,16 @@ run again.
 * Move generated docs out of `target` into appropriate dir under `docs`: `mv target/doc/ docs/2.0.0`
 * Commit changes, and merge that doc update to `master`
 
+# Updating deps.edn
+
+While the project is based on leiningen, the use of [depify](https://github.com/hagmonk/depify)
+can create a `deps.edn` file to enable a `tools.deps.alpha`-based development workflow. When dependencies in
+`project.clj` are updated, the `deps.edn` file can be updated manually or automatically. Based on
+[depify's instructions](https://github.com/hagmonk/depify/blob/master/README.org#usage), the command to
+update the `deps.edn` from the project root is:
+
+`clj -A:depify | clj -A:zprint > deps.edn.tmp ; mv deps.edn.tmp deps.edn`
+
 # License
 
 This project and many of its dependencies are licensed under the Eclipse Public

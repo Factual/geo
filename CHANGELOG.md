@@ -14,6 +14,7 @@
 * Bump `h3` to 3.4.0, enabling support for functions described above
 * Bump other core dependencies to keep up with upstream changes: `jts2geojson` to 0.13.0, and `jts` to 1.16.1
 * Bump internal dependencies for testing and documentation: `midje` to 1.9.6, `cheshire` to 5.8.1, and `lein-codox` to 0.10.6
+* Add `deps.edn` based on `project.clj`
 
 ## 2.1.0 to 2.1.1
 
