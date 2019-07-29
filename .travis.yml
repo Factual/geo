@@ -1,5 +1,6 @@
 language: clojure
 script: lein with-profile dev:+1.9:+1.8:+1.7 midje
+dist: trusty
 jdk:
   - oraclejdk8
   - openjdk8
