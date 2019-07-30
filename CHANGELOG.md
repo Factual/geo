@@ -8,7 +8,7 @@
 * `geo.io` readers and writers are now thread-safe
 * Add `h3-line` function to H3 protocol, which returns the line of indexes between two cells
 * Add `get-res-0-indexes` function for H3, which returns a collection of all indexes at resolution 0
-* Add `multi-point`, `multi-linestring`, and `multi-linestring-wkt` functions to `geo.jts`
+* Add `line-segment`, `multi-point`, `multi-linestring`, and `multi-linestring-wkt` functions to `geo.jts`
 * Add testing support for JDK11, JDK12, JDK13, and Clojure 1.10
 * Fix reflection on geometry creation functions in the `jts` namespace
 * Bump `h3` to 3.4.1, enabling support for functions described above

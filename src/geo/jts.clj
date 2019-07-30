@@ -172,10 +172,15 @@
   [^LineString linestring idx]
   (.getPointN linestring idx))
 
+(defn line-segment
+  "Given two Coordinates, creates a LineSegment."
+  [^Coordinate c1 ^Coordinate c2]
+  (LineSegment. c1 c2))
+
 (defn segment-at-idx
   "LineSegment from a LineString's point at index to index + 1."
   [^LineString linestring idx]
-  (LineSegment. (coord (point-n linestring idx))
+  (line-segment (coord (point-n linestring idx))
                 (coord (point-n linestring (inc idx)))))
 
 (defn ^LinearRing linear-ring
