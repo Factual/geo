@@ -85,6 +85,14 @@
                                                                 (point 0 0 2229)]))))
              => 2229))
 
+(facts "line segments"
+       (let [c1 (coordinate 0 0)
+             c2 (coordinate 1 1)
+             ls (line-segment (coordinate 0 0) (coordinate 1 1))]
+         (fact (type ls) => org.locationtech.jts.geom.LineSegment)
+         (fact (.getCoordinate ls 0) => c1)
+         (fact (.getCoordinate ls 1) => c2)))
+
 (facts "linestrings"
        (.getNumPoints (linestring-wkt [0 0 0 1 0 2])) => 3
        (type (first (coords (linestring-wkt [0 0 0 1 0 2])))) => org.locationtech.jts.geom.Coordinate
