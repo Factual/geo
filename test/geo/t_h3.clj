@@ -29,6 +29,9 @@
        (fact "resolution"
              (sut/get-resolution h3-example-str) => 7
              (sut/get-resolution (sut/to-long h3-example-str)) => 7)
+       (fact "faces"
+             (sut/get-faces h3-example-str) => [4]
+             (sut/get-faces (sut/to-long h3-example-str)) => [4])
        (fact "jts boundary"
              (type (sut/to-jts h3-example-str)) => Polygon)
        (fact "geo coord"
