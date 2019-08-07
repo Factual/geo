@@ -15,7 +15,7 @@
    [org.locationtech.jts/jts-core "1.16.1"]
    [org.locationtech.jts.io/jts-io-common "1.16.1"]
    [org.noggit/noggit "0.8"]
-   [org.wololo/jts2geojson "0.14.1"]]
+   [org.wololo/jts2geojson "0.14.2"]]
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-midje "3.2.1"]
