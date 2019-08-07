@@ -55,6 +55,18 @@
   [^Long h]
   (.h3GetResolution h3-inst h))
 
+(defn get-faces-string
+  "String helper to return the icosahedron faces intersected by a cell, represented
+  by integers 0-19."
+  [^String h]
+  (into [] (.h3GetFaces h3-inst h)))
+
+(defn get-faces-long
+  "Long helper to return the icosahedron faces intersected by a cell, represented
+  by integers 0-19."
+  [^Long h]
+  (into [] (.h3GetFaces h3-inst h)))
+
 (defn- k-ring-string
   "String helper to return a list of neighboring indices in all directions for 'k' rings."
   [^String h ^Integer k]
@@ -202,6 +214,7 @@
   (to-long [this] "Return index as a long.")
   (h3->pt [this] "Return a GeoCoord of the center point of a cell.")
   (get-resolution [this] "Return the resolution of a cell.")
+  (get-faces [this] "Return the icosahedron faces intersected by a cell, represented by integers 0-19.")
   (k-ring [this k] "Return a list of neighboring indices in all directions for 'k' rings.")
   (k-ring-distances [this k] "Return a list of neighboring indices in all directions for 'k' rings, ordered by distance from the origin index.")
   (to-jts [this] "Given an H3 identifier, return a Polygon of that cell.")
@@ -222,6 +235,7 @@
   (to-long [this] (string->long this))
   (h3->pt [this] (h3->pt-string this))
   (get-resolution [this] (get-resolution-string this))
+  (get-faces [this] (get-faces-string this))
   (k-ring [this k] (k-ring-string this k))
   (k-ring-distances [this k] (k-ring-distances-string this k))
   (to-jts [this] (to-jts-string this))
@@ -241,6 +255,7 @@
   (to-long [this] this)
   (h3->pt [this] (h3->pt-long this))
   (get-resolution [this] (get-resolution-long this))
+  (get-faces [this] (get-faces-long this))
   (k-ring [this k] (k-ring-long this k))
   (k-ring-distances [this k] (k-ring-distances-long this k))
   (to-jts [this] (to-jts-long this))

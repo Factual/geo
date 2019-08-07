@@ -8,12 +8,13 @@
 * `geo.io` readers and writers are now thread-safe
 * Add `h3-line` function to H3 protocol, which returns the line of indexes between two cells
 * Add `get-res-0-indexes` function for H3, which returns a collection of all indexes at resolution 0
+* Add `get-faces` function for H3, which returns the icosahedron faces intersected by a cell, represented by integers 0-19.
 * Add `line-segment`, `multi-point`, `multi-linestring`, and `multi-linestring-wkt` functions to `geo.jts`
 * Add testing support for JDK11, JDK12, JDK13, and Clojure 1.10
 * Fix reflection on geometry creation functions in the `jts` namespace
-* Bump `h3` to 3.4.1, enabling support for functions described above
-* Bump other core dependencies to keep up with upstream changes: `jts2geojson` to 0.14.0, and `jts` to 1.16.1
-* Bump internal dependencies for testing and documentation: `midje` to 1.9.9, `criterium` to 0.4.5, `cheshire` to 5.8.1, and `lein-codox` to 0.10.6
+* Bump `h3` to 3.5.0, enabling support for functions described above
+* Bump other core dependencies to keep up with upstream changes: `jts2geojson` to 0.14.1, and `jts` to 1.16.1
+* Bump internal dependencies for testing and documentation: `midje` to 1.9.9, `criterium` to 0.4.5, `cheshire` to 5.9.0, and `lein-codox` to 0.10.6
 * Add `deps.edn` based on `project.clj`
 
 ## 2.1.0 to 2.1.1
