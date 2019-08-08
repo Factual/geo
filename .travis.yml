@@ -11,7 +11,6 @@ env:
   - TRAVIS_JDK=amazon-corretto@1.8.222-10.1
   - TRAVIS_JDK=amazon-corretto@1.11.0-4.11.1
   - TRAVIS_JDK=openjdk@1.12.0-2
-  - TRAVIS_JDK=adopt-openj9@1.8.222-10
   - TRAVIS_JDK=adopt-openj9@1.11.0-4
 
 before_install:
