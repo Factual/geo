@@ -7,7 +7,6 @@ env:
   - secure: QYOLwEqrVn8dlT3qwznYXujR3x4ZE0WJcBeQoMVbofVMqwcC+xA4uOnfI1M0xQwzfYCD92mIUSoc0KGQGI7jCT2dcr2di2BEJZvIV4ra+CqgoHMJYd9S/hZCZuQWygX3MhBPl17jSKi2NQPAKu7tuP12Yd5GNBttiYOOyRFMdjY=
   - secure: Ny8wgc/tZqRR9/mv3vHupyKz1hvl7krMx+qCEILwsvgPZZg0fVTzZ+48HHzQ0CoNKY+u9PBHLuxPBkma5NM4NpdbsCySN6stqpIQJW7IwYvm6i2TkYHTD3BFv4MAkzxwON71Z1rUjCD3moh3TQGNVW+xNUv17UxUDB6KlK9BGS8=
   - JABBA_HOME: /home/travis/.jabba
-  - PATH: "/home/travis/bin:$PATH"
   matrix:
   - TRAVIS_JDK=amazon-corretto@1.8.222-10.1
   - TRAVIS_JDK=amazon-corretto@1.11.0-4.11.1
@@ -19,7 +18,6 @@ before_install:
   - openssl aes-256-cbc -K $encrypted_193118c4cca9_key -iv $encrypted_193118c4cca9_iv
     -in geo_deploy_key.enc -out geo_deploy_key -d
   - curl -sL https://raw.githubusercontent.com/shyiko/jabba/0.11.2/install.sh | bash && . ~/.jabba/jabba.sh
-  - mkdir /home/travis/bin
   - cd /home/travis/bin
   - curl -O https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
   - chmod +x /home/travis/bin/lein
