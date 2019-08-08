@@ -11,7 +11,9 @@ env:
   - TRAVIS_JDK=amazon-corretto@1.8.222-10.1
   - TRAVIS_JDK=amazon-corretto@1.11.0-4.11.1
   - TRAVIS_JDK=openjdk@1.12.0-2
+  - TRAVIS_JDK=adopt-openj9@1.8.222-10
   - TRAVIS_JDK=adopt-openj9@1.11.0-4
+  - TRAVIS_JDK=adopt-openj9@1.12.0-2
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_193118c4cca9_key -iv $encrypted_193118c4cca9_iv
@@ -46,4 +48,5 @@ jobs:
 cache:
   directories:
     - $HOME/.jabba/jdk
+    - $HOME/.m2
 
