@@ -21,6 +21,7 @@ before_install:
   - cd /home/travis/bin
   - curl -O https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
   - chmod +x /home/travis/bin/lein
+  - cd /home/travis/Factual/geo
   - lein deps
 
 install:
