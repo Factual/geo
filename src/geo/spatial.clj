@@ -26,12 +26,12 @@
            (org.locationtech.jts.geom Coordinate Geometry)
            (org.locationtech.spatial4j.shape.impl GeoCircle PointImpl RectangleImpl)
            (org.locationtech.spatial4j.shape.jts JtsGeometry
-                                                 JtsPoint
-                                                 JtsShapeFactory)
+                                                 JtsPoint)
            (org.locationtech.spatial4j.distance DistanceCalculator DistanceUtils)
            (org.locationtech.spatial4j.context SpatialContextFactory
                                                SpatialContext)
-           (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
+           (org.locationtech.spatial4j.context.jts JtsSpatialContext
+                                                   JtsSpatialContextFactory)))
 
 (declare spatial4j-point)
 (declare geohash-point)
@@ -49,16 +49,6 @@
     "spatialContextFactory" "org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory"
     "distCalculator" "vincentySphere"}
    (.getClassLoader JtsSpatialContext)))
-
-(def ^JtsShapeFactory jts-earth
-  "ShapeFactory for producing spatial4j Shapes from JTSGeometries based"
-  (->> (.getClassLoader JtsSpatialContext)
-       (SpatialContextFactory/makeSpatialContext
-        {"geo" "true"
-         "datelineRule" "width180"
-         "spatialContextFactory" "org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory"
-         "distCalculator" "vincentySphere"})
-       (.getShapeFactory)))
 
 (def earth-mean-radius
   "Earth's mean radius, in meters."
@@ -125,7 +115,7 @@
           ([this srid] (to-jts (to-jts this) srid)))
 
   Geometry
-  (to-shape [this] (.makeShape jts-earth (jts/transform-geom this jts/default-srid) true true))
+  (to-shape [this] (JtsGeometry. (jts/transform-geom this jts/default-srid) earth true true))
   (to-jts ([this] this)
           ([this srid] (jts/transform-geom this srid)))
 
@@ -249,9 +239,9 @@
 (defn spatial4j-point
   "A spatial4j point on the earth."
   ([point]
-   (.makePoint earth (longitude point) (latitude point)))
+   (PointImpl. (longitude point) (latitude point) earth))
   ([lat long]
-   (.makePoint earth long lat)))
+   (PointImpl. long lat earth)))
 
 (defn geohash-point
   "Returns a WGS84Point used by the geohash library."
@@ -284,7 +274,7 @@
                    (distance->radians meters)
                    (distance-at-point->radians meters point))
          degrees (radians->degrees radians)]
-     (.makeCircle earth point degrees))))
+     (GeoCircle. point degrees earth))))
 
 (defn distance
   "Distance between two points, in meters"
