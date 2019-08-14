@@ -4,6 +4,7 @@
             [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point GeoHash)
            (org.locationtech.spatial4j.shape Shape)
+           (org.locationtech.spatial4j.shape.impl RectangleImpl)
            (org.locationtech.spatial4j.context.jts JtsSpatialContext)))
 
 (defn geohash
@@ -20,11 +21,11 @@
 
 (defn bbox ^Shape [^GeoHash geohash]
   (let [box (.getBoundingBox geohash)]
-    (.rect spatial/jts-earth
-           (.getMinLon box)
-           (.getMaxLon box)
-           (.getMinLat box)
-           (.getMaxLat box))))
+    (RectangleImpl. (.getMinLon box)
+                    (.getMaxLon box)
+                    (.getMinLat box)
+                    (.getMaxLat box)
+                    spatial/earth)))
 
 (defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
   (jts/set-srid (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash))

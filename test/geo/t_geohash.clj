@@ -8,7 +8,8 @@
   (:import (ch.hsr.geohash GeoHash)
            (org.locationtech.jts.geom PrecisionModel
                                       Envelope
-                                      GeometryFactory)))
+                                      GeometryFactory)
+           (org.locationtech.spatial4j.shape.impl RectangleImpl)))
 
 (facts "geohash"
        (fact (geohash 50 20 64) => (partial instance? GeoHash))
@@ -212,7 +213,7 @@
 
 (facts "Getting bounding Shapes for geohashes"
        (let [gh (geohash "9q5")]
-         (bbox gh) => (.rect spatial/jts-earth -119.53125 -118.125 33.75 35.15625)
+         (bbox gh) => (RectangleImpl. -119.53125 -118.125 33.75 35.15625 spatial/earth)
          (bbox gh) => (spatial/to-shape gh)))
 
 (comment

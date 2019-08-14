@@ -4,13 +4,14 @@
 
 * **Breaking change**: switch upstream `proj4j` to use `[org.locationtech.proj4j/proj4j "1.0.0"]`, changing namespace from `org.osgeo.proj4j` to `org.locationtech.proj4j`
 * **Breaking change**: rename `proj4-string?` to `proj4-str?`, to maintain naming consistency in the API
+* **Breaking change**: remove `jts-earth` from `geo.spatial`, and replace all uses of deprecated `spatial4j` functions using that `JtsShapeFactory` with functions using the `SpatialContext` `earth`
 * Allow `transform-geom` to use externally created `proj4j` `CoordinateTransform` objects
 * `geo.io` readers and writers are now thread-safe
 * Add `h3-line` function to H3 protocol, which returns the line of indexes between two cells
 * Add `get-res-0-indexes` function for H3, which returns a collection of all indexes at resolution 0
 * Add `get-faces` function for H3, which returns the icosahedron faces intersected by a cell, represented by integers 0-19.
 * Add `line-segment`, `multi-point`, `multi-linestring`, and `multi-linestring-wkt` functions to `geo.jts`
-* Add testing support for JDK11, JDK12, JDK13, and Clojure 1.10
+* Add testing support for OpenJDK 8, OpenJDK 11, OpenJDK 12, OpenJ9 alongside HotSpot, and Clojure 1.10
 * Fix reflection on geometry creation functions in the `jts` namespace
 * Bump `h3` to 3.5.0, enabling support for functions described above
 * Bump other core dependencies to keep up with upstream changes: `jts2geojson` to 0.14.2, and `jts` to 1.16.1
