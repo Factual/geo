@@ -70,8 +70,22 @@
              (sut/h3-distance 599685771850416127 599686042433355775) => 4
              (sut/h3-distance "85283083fffffff" "85283447fffffff") => 5
              (sut/h3-distance 599685771850416127 599686030622195711) => 5)
+       (fact "to center child"
+             (sut/h3-to-center-child "8928308280fffff" 9) => "8928308280fffff"
+             (sut/h3-to-center-child (sut/to-long "8928308280fffff") 9) =>
+             (sut/to-long "8928308280fffff")
+             (sut/h3-to-center-child "8928308280fffff" 10) => "8a28308280c7fff"
+             (sut/h3-to-center-child (sut/to-long "8928308280fffff") 10) =>
+             (sut/to-long "8a28308280c7fff")
+             (sut/h3-to-center-child "8928308280fffff" 11) => "8b28308280c0fff"
+             (sut/h3-to-center-child (sut/to-long "8928308280fffff") 11) =>
+             (sut/to-long "8b28308280c0fff"))
        (fact "get resolution 0 indexes"
-             (count (sut/get-res-0-indexes)) => 122))
+             (count (sut/get-res-0-indexes)) => 122)
+       (fact "get pentagon indexes"
+             (count (sut/get-pentagon-indexes 0)) => 12
+             (count (sut/get-pentagon-indexes 1)) => 12
+             (count (sut/get-pentagon-indexes 15)) => 12))
 
 (facts "line checks"
        (let [p1 (jts/point 37.5 -122)

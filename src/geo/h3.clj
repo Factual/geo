@@ -209,6 +209,16 @@
   [^Long c1 ^Long c2]
   (.h3Line h3-inst c1 c2))
 
+(defn- h3-to-center-child-string
+  "String helper to return the center child at the given resolution"
+  [^String cell ^Integer child-res]
+  (.h3ToCenterChild h3-inst cell child-res))
+
+(defn- h3-to-center-child-long
+  "String helper to return the center child at the given resolution"
+  [^Long cell ^Integer child-res]
+  (.h3ToCenterChild h3-inst cell child-res))
+
 (defprotocol H3Index
   (to-string [this] "Return index as a string.")
   (to-long [this] "Return index as a long.")
@@ -227,7 +237,8 @@
   (is-valid? [this] "Check if an index is valid.")
   (neighbors? [this cell] "Check if two indexes are neighbors.")
   (h3-distance [this cell] "Return the grid distance, which is the distance expressed in number of cells.")
-  (h3-line [this cell] "Return the line of indexes between two cells"))
+  (h3-line [this cell] "Return the line of indexes between two cells")
+  (h3-to-center-child [this child-res] "Returns the center child at the given resolution."))
 
 (extend-protocol H3Index
   String
@@ -249,6 +260,8 @@
   (neighbors? [this cell] (neighbors?-string this cell))
   (h3-distance [this cell] (h3-distance-string this cell))
   (h3-line [this cell] (h3-line-string this cell))
+  (h3-to-center-child [this child-res]
+    (h3-to-center-child-string this child-res))
 
   Long
   (to-string [this] (long->string this))
@@ -268,7 +281,9 @@
   (is-valid? [this] (is-valid?-long this))
   (neighbors? [this cell] (neighbors?-long this cell))
   (h3-distance [this cell] (h3-distance-long this cell))
-  (h3-line [this cell] (h3-line-long this cell)))
+  (h3-line [this cell] (h3-line-long this cell))
+  (h3-to-center-child [this child-res]
+    (h3-to-center-child-long this child-res)))
 
 (defprotocol Polygonal
   (to-polygon [this] [this srid] "Ensure that an object is 2D, with lineal boundaries.")
@@ -573,3 +588,9 @@
   "Return a collection of all base cells"
   []
   (.getRes0Indexes h3-inst))
+
+(defn get-pentagon-indexes
+  "Return a collection of all topologically pentagonal
+  cells at the given resolution"
+  [res]
+  (.getPentagonIndexes h3-inst res))
