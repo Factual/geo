@@ -13,7 +13,7 @@
 * Add `get-pentagon-indexes` function for H3, which returns all topologically pentagonal cells at a given resolution
 * Add `get-faces` function for H3, which returns the icosahedron faces intersected by a cell, represented by integers 0-19.
 * Add `line-segment`, `multi-point`, `multi-linestring`, and `multi-linestring-wkt` functions to `geo.jts`
-* Add testing support for OpenJDK 8, OpenJDK 11, OpenJDK 12, OpenJ9 alongside HotSpot, and Clojure 1.10
+* Add testing support for OpenJDK 8, OpenJDK 11, OpenJDK 13, OpenJ9 alongside HotSpot, and Clojure 1.10
 * Fix reflection on geometry creation functions in the `jts` namespace
 * Bump `h3` to 3.6.0, enabling support for functions described above
 * Bump other core dependencies to keep up with upstream changes: `jts2geojson` to 0.14.2, and `jts` to 1.16.1
