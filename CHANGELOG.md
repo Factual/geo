@@ -2,7 +2,7 @@
 
 ## 2.1.1 to 3.0.0
 
-* **Breaking change**: switch upstream `proj4j` to use `[org.locationtech.proj4j/proj4j "1.0.0"]`, changing namespace from `org.osgeo.proj4j` to `org.locationtech.proj4j`
+* **Breaking change**: switch upstream `proj4j` to use `[org.locationtech.proj4j/proj4j "1.1.0"]`, changing namespace from `org.osgeo.proj4j` to `org.locationtech.proj4j`
 * **Breaking change**: rename `proj4-string?` to `proj4-str?`, to maintain naming consistency in the API
 * **Breaking change**: remove `jts-earth` from `geo.spatial`, and replace all uses of deprecated `spatial4j` functions using that `JtsShapeFactory` with functions using the `SpatialContext` `earth`
 * Allow `transform-geom` to use externally created `proj4j` `CoordinateTransform` objects

@@ -12,7 +12,7 @@
         org.clojure/math.numeric-tower #:mvn{:version "0.0.4"},
         org.locationtech.jts.io/jts-io-common #:mvn{:version "1.16.1"},
         org.locationtech.jts/jts-core #:mvn{:version "1.16.1"},
-        org.locationtech.proj4j/proj4j #:mvn{:version "1.0.0"},
+        org.locationtech.proj4j/proj4j #:mvn{:version "1.1.0"},
         org.locationtech.spatial4j/spatial4j #:mvn{:version "0.7"},
         org.noggit/noggit #:mvn{:version "0.8"},
         org.wololo/jts2geojson #:mvn{:version "0.14.2"}},
