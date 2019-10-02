@@ -39,11 +39,10 @@ jobs:
     - stage: deploy
       on:
         branch: master
-      jdk: openjdk11
       skip_cleanup: true
       env:
         - TRAVIS_JDK: amazon-corretto@1.11.0-4.11.1
-          script: scripts/release.sh
+      script: scripts/release.sh
 
 cache:
   directories:
