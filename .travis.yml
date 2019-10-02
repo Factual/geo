@@ -32,10 +32,9 @@ install:
   - jabba use $TRAVIS_JDK
   - java -version
 
-script: lein with-profile dev:+1.9:+1.8:+1.7 midje
-
 jobs:
   include:
+    - script: lein with-profile dev:+1.9:+1.8:+1.7 midje
     - stage: deploy
       on:
         branch: master
@@ -43,7 +42,7 @@ jobs:
       skip_cleanup: true
       env:
         - TRAVIS_JDK: amazon-corretto@1.11.0-4.11.1
-          script: scripts/release.sh
+      script: scripts/release.sh
 
 cache:
   directories:
