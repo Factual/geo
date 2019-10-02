@@ -1,5 +1,5 @@
 (defproject
-  factual/geo "3.0.0"
+  factual/geo "3.0.0-rc-3"
   :url     "https://github.com/factual/geo"
   :license {:name "Eclipse Public License - v 1.0"
             :url  "http://www.eclipse.org/legal/epl-v10.html"
@@ -14,7 +14,6 @@
    [org.locationtech.spatial4j/spatial4j "0.7"]
    [org.locationtech.jts/jts-core "1.16.1"]
    [org.locationtech.jts.io/jts-io-common "1.16.1"]
-   [org.noggit/noggit "0.8"]
    [org.wololo/jts2geojson "0.14.2"]]
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
