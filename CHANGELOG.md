@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 3.0.0 to 3.0.1
 
-* Bump `jts2geojson` to 0.14.3
+* Bump `jts2geojson` to 0.14.3, which uses `jackson` 2.10
 
 ## 2.1.1 to 3.0.0
 
