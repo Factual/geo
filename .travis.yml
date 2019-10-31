@@ -8,12 +8,12 @@ env:
   - secure: Ny8wgc/tZqRR9/mv3vHupyKz1hvl7krMx+qCEILwsvgPZZg0fVTzZ+48HHzQ0CoNKY+u9PBHLuxPBkma5NM4NpdbsCySN6stqpIQJW7IwYvm6i2TkYHTD3BFv4MAkzxwON71Z1rUjCD3moh3TQGNVW+xNUv17UxUDB6KlK9BGS8=
   - JABBA_HOME: /home/travis/.jabba
   matrix:
-  - TRAVIS_JDK=amazon-corretto@1.8.222-10.1
-  - TRAVIS_JDK=amazon-corretto@1.11.0-4.11.1
-  - TRAVIS_JDK=openjdk@1.13.0
-  - TRAVIS_JDK=adopt-openj9@1.8.0-222
-  - TRAVIS_JDK=adopt-openj9@1.11.0-4
-  - TRAVIS_JDK=adopt-openj9@1.13.0-0
+  - TRAVIS_JDK=amazon-corretto@1.8.232-09.1
+  - TRAVIS_JDK=amazon-corretto@1.11.0-5.10.1
+  - TRAVIS_JDK=openjdk@1.13.0-1
+  - TRAVIS_JDK=adopt-openj9@1.8.0-232
+  - TRAVIS_JDK=adopt-openj9@1.11.0-5
+  - TRAVIS_JDK=adopt-openj9@1.13.0-1
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_193118c4cca9_key -iv $encrypted_193118c4cca9_iv
@@ -41,7 +41,7 @@ jobs:
         branch: master
       skip_cleanup: true
       env:
-        - TRAVIS_JDK: amazon-corretto@1.11.0-4.11.1
+        - TRAVIS_JDK: amazon-corretto@1.11.0-5.10.1
       script: scripts/release.sh
 
 cache:

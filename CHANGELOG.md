@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* Bump `jts2geojson` to 0.14.3
+
 ## 2.1.1 to 3.0.0
 
 * **Breaking change**: switch upstream `proj4j` to use `[org.locationtech.proj4j/proj4j "1.1.0"]`, changing namespace from `org.osgeo.proj4j` to `org.locationtech.proj4j`
