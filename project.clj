@@ -8,7 +8,7 @@
   :description "Geospatial operations over points, lines, polys, geohashes, etc."
   :dependencies
   [[org.clojure/math.numeric-tower "0.0.4"]
-   [ch.hsr/geohash "1.3.0"]
+   [ch.hsr/geohash "1.4.0"]
    [com.uber/h3 "3.6.0"]
    [org.locationtech.proj4j/proj4j "1.1.0"]
    [org.locationtech.spatial4j/spatial4j "0.7"]
@@ -17,7 +17,7 @@
    [org.wololo/jts2geojson "0.14.3"]]
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
-                   :plugins [[lein-midje "3.2.1"]
+                   :plugins [[lein-midje "3.2.2"]
                              [lein-codox "0.10.7"]
                              [lein-project-version "0.1.0"]]
                    :dependencies [[org.clojure/clojure "1.10.1"]
@@ -25,9 +25,9 @@
                                   [criterium "0.4.5"]
                                   [cheshire "5.9.0"]
                                   ;; Can remove jackson dependency once cheshire cuts release
-                                  [com.fasterxml.jackson.core/jackson-core "2.10.0"]
-                                  [com.fasterxml.jackson.dataformat/jackson-dataformat-cbor "2.10.0"]
-                                  [com.fasterxml.jackson.dataformat/jackson-dataformat-smile "2.10.0"]
+                                  [com.fasterxml.jackson.core/jackson-core "2.10.1"]
+                                  [com.fasterxml.jackson.dataformat/jackson-dataformat-cbor "2.10.1"]
+                                  [com.fasterxml.jackson.dataformat/jackson-dataformat-smile "2.10.1"]
                                   [midje "1.9.9"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+* Bump `geohash` to 1.4.0, which can use bounding boxes over the meridian
+* For development, bump `lein-midje` to 3.2.2 and `jackson` to 2.10.1
+
 ## 3.0.0 to 3.0.1
 
 * Bump `jts2geojson` to 0.14.3, which uses `jackson` 2.10
