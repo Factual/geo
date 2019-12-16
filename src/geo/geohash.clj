@@ -21,10 +21,10 @@
 
 (defn bbox ^Shape [^GeoHash geohash]
   (let [box (.getBoundingBox geohash)]
-    (RectangleImpl. (.getMinLon box)
-                    (.getMaxLon box)
-                    (.getMinLat box)
-                    (.getMaxLat box)
+    (RectangleImpl. (.getWestLongitude box)
+                    (.getEastLongitude box)
+                    (.getSouthLatitude box)
+                    (.getNorthLatitude box)
                     spatial/earth)))
 
 (defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
@@ -136,7 +136,7 @@
 (defn geohash-center
   "Returns the center point of a geohash."
   [^GeoHash geohash]
-  (.getBoundingBoxCenterPoint geohash))
+  (.getBoundingBoxCenter geohash))
 
 (defn geohash-midline-dimensions
   "Returns a vector of [lat-extent long-extent], where lat-extent is the length
@@ -145,10 +145,10 @@
   figures in meters."
   [^GeoHash geohash]
   (let [box     (.getBoundingBox geohash)
-        min-lat (.getMinLat box)
-        max-lat (.getMaxLat box)
-        min-long (.getMinLon box)
-        max-long (.getMaxLon box)
+        min-lat (.getSouthLatitude box)
+        max-lat (.getNorthLatitude box)
+        min-long (.getWestLongitude box)
+        max-long (.getEastLongitude box)
         mean-lat (/ (+ min-lat max-lat) 2)
         mean-long (/ (+ min-long max-long) 2)]
     [(spatial/distance (spatial/geohash-point min-lat mean-long)
@@ -167,7 +167,7 @@
   the given geohash."
   [^GeoHash geohash]
   (let [box (.getBoundingBox geohash)]
-    (spatial/distance (.getLowerRight box) (.getUpperLeft box))))
+    (spatial/distance (.getSouthEastCorner box) (.getNorthWestCorner box))))
 
 (defn geohash-max-error
   "Returns the maximum error (i.e. the distance between opposite corners of the
