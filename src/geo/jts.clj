@@ -322,10 +322,10 @@
   CoordinateTransform from the two Transformables and use the supplied GeometryFactory for the
   target SRID."
   ([g t]
-   ;; t is either a Transform or a Transformable
+   ;; t is either a CoordinateTransform or a Transformable
    (if (instance? CoordinateTransform t)
          ; If t is CoordinateTransform
-         (tf g t (crs/get-target-crs t))
+         (transform-geom g t (crs/get-target-crs t))
          ; If t is Transformable, make sure that g has a source CRS
          (do
            (assert (geom-srid? g)
