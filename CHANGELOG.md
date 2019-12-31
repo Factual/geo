@@ -14,6 +14,7 @@
 * Modify `set-srid` to use `.createGeometry` instead of `.setSRID`, improving passthrough of projections within geometries and reducing need to manually set projections after operations
 * Add `get-geometry-factory` to `Transformable`, and extend `Transformable` to `Geometry` and `GeometryFactory`
 * Use improved `set-srid` and `Transformable` to streamline functionality
+* Allow `transform-geom` to accept `GeometryFactory` as a final argument
 
 ## 3.0.0 to 3.0.1
 
