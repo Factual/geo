@@ -99,26 +99,26 @@
 
   RectangleImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom ^JtsGeometry this) crs/default-srid))
+  (to-jts ([this] (jts/set-srid (.getGeom ^JtsGeometry this) crs/gf-wgs84))
           ([this srid] (to-jts (to-jts this) srid)))
 
   PointImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/default-srid))
+  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
           ([this srid] (to-jts (to-jts this) srid)))
 
   JtsGeometry
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom this) crs/default-srid))
+  (to-jts ([this] (jts/set-srid (.getGeom this) crs/gf-wgs84))
           ([this srid] (to-jts (to-jts this) srid)))
 
   JtsPoint
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/default-srid))
+  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
           ([this srid] (to-jts (to-jts this) srid)))
 
   Geometry
-  (to-shape [this] (JtsGeometry. (jts/transform-geom this crs/default-srid) earth true true))
+  (to-shape [this] (JtsGeometry. (jts/transform-geom this crs/gf-wgs84) earth true true))
   (to-jts ([this] this)
           ([this srid] (jts/transform-geom this srid)))
 
@@ -143,8 +143,8 @@
   (to-h3-point [this] (h3-point this))
 
   org.locationtech.jts.geom.Point
-  (latitude [this] (.getY ^org.locationtech.jts.geom.Point (jts/transform-geom this crs/default-srid)))
-  (longitude [this] (.getX ^org.locationtech.jts.geom.Point (jts/transform-geom this crs/default-srid)))
+  (latitude [this] (.getY ^org.locationtech.jts.geom.Point (jts/transform-geom this crs/gf-wgs84)))
+  (longitude [this] (.getX ^org.locationtech.jts.geom.Point (jts/transform-geom this crs/gf-wgs84)))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
   (to-h3-point [this] (h3-point this))

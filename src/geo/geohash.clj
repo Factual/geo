@@ -30,7 +30,7 @@
 
 (defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
   (jts/set-srid (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash))
-                crs/default-srid))
+                crs/gf-wgs84))
 
 (extend-protocol spatial/Shapelike
   GeoHash

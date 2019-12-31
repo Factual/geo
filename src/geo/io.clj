@@ -112,7 +112,7 @@
        :geometry #object[org.locationtech.jts.geom.Point(...)]}]
   "
   ([^String geojson]
-   (read-geojson geojson crs/default-srid))
+   (read-geojson geojson crs/gf-wgs84))
   ([^String geojson srid]
    (->> geojson
         parse-geojson
@@ -122,18 +122,18 @@
 (defn read-geojson-geometry
   "Parse a GeoJSON string representing a single Geometry into a JTS Geometry."
   ([^String geojson]
-   (read-geojson-geometry geojson crs/default-srid))
+   (read-geojson-geometry geojson crs/gf-wgs84))
   ([^String geojson srid]
    (-> geojson
        parse-geojson
        read-geometry
        (jts/set-srid srid))))
 
-(defn to-geojson [shapelike] (.toString (.write (GeoJSONWriter.) (to-jts shapelike crs/default-srid))))
+(defn to-geojson [shapelike] (.toString (.write (GeoJSONWriter.) (to-jts shapelike crs/gf-wgs84))))
 
 (defn- ^Feature gj-feature
   [{shapelike :geometry properties :properties}]
-  (let [gj-geom (.write (GeoJSONWriter.) (to-jts shapelike crs/default-srid))]
+  (let [gj-geom (.write (GeoJSONWriter.) (to-jts shapelike crs/gf-wgs84))]
     (Feature. gj-geom (stringify-keys properties))))
 
 (defn to-geojson-feature

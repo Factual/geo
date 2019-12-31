@@ -60,7 +60,7 @@
   ([^Coordinate coordinate]
    (.createPoint crs/gf-wgs84 coordinate))
   ([lat long]
-   (point long lat crs/default-srid))
+   (point long lat crs/gf-wgs84))
   ([x y srid]
    (.createPoint (crs/get-geometry-factory srid) ^Coordinate (coordinate x y))))
 
@@ -204,7 +204,7 @@
 
    Allows an optional SRID argument at end."
   ([rings]
-   (polygon-wkt rings crs/default-srid))
+   (polygon-wkt rings crs/gf-wgs84))
   ([rings srid]
    (let [rings (map #(linear-ring-wkt % srid) rings)]
      (polygon (first rings) (into-array LinearRing (rest rings))))))

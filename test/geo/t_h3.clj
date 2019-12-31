@@ -11,7 +11,7 @@
 
 (def geohash-with-hole (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
                                                   (spatial/to-jts (geohash/geohash "u4pruyk")))
-                                     crs/default-srid))
+                                     crs/gf-wgs84))
 (def h3-example-str "871f24ac5ffffff")
 (def h3-example-long 608533827635118079)
 (def h3-example-latitude 57.64911063015461)

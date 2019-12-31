@@ -427,7 +427,7 @@
   "Common logic used to polyfill a shapelike made of a single polygon.
   Used for both the string and long methods."
   [s]
-  (let [s (to-polygon s crs/default-srid)
+  (let [s (to-polygon s crs/gf-wgs84)
         num-interior-rings (.getNumInteriorRing ^Polygon s)
         ext-ring (.getExteriorRing ^Polygon s)
         int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
