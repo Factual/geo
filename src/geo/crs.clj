@@ -143,7 +143,9 @@
    - a long (which will be interpreted as that EPSG)
    - an integer (which will be interpreted as that EPSG)
    - a string identifier for types EPSG:XXXX, ESRI:XXXX, WORLD:XXXX, NAD83:XXXX, or NAD27:XXXX
-   - a proj4 string, or
-   - a proj4j CoordinateReferenceSystem"
+   - a proj4 string
+   - a proj4j CoordinateReferenceSystem
+   - a JTS Geometry (using its SRID), or
+   - a JTS GeometryFactory"
   (.createTransform ctf-factory (create-crs c1) (create-crs c2)))
 
