@@ -66,6 +66,16 @@
   [^CoordinateReferenceSystem c]
   (.getName c))
 
+(defn get-parameters
+  "Get the proj parameters from an existing coordinate reference system."
+  [^CoordinateReferenceSystem c]
+  (.getParameters c))
+
+(defn get-parameter-string
+  "Get the proj string from an existing coordinate reference system."
+  [^CoordinateReferenceSystem c]
+  (.getParameterString c))
+
 (defn get-source-crs
   "Get the source coordinate reference system of a transform."
   [^CoordinateTransform t]

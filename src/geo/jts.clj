@@ -21,17 +21,19 @@
                                       PrecisionModel)
            (org.locationtech.proj4j CoordinateTransform ProjCoordinate)))
 
-(def ^PrecisionModel pm crs/pm) ; Deprecated as of 3.0.2
-(def ^GeometryFactory gf crs/get-geometry-factory) ; Deprecated as of 3.0.2
-(def default-srid crs/default-srid) ; Deprecated as of 3.0.2
-(def ^GeometryFactory gf-wgs84 crs/gf-wgs84); Deprecated as of 3.0.2
-(def ^GeometryFactory get-factory crs/get-geometry-factory) ; Deprecated as of 3.0.2
-(def get-srid crs/get-srid) ; Deprecated as of 3.0.2
+(def ^PrecisionModel pm crs/pm) ; Deprecated as of 3.1.0
+(def ^GeometryFactory gf crs/get-geometry-factory) ; Deprecated as of 3.1.0
+(def default-srid crs/default-srid) ; Deprecated as of 3.1.0
+(def ^GeometryFactory gf-wgs84 crs/gf-wgs84); Deprecated as of 3.1.0
+(def ^GeometryFactory get-factory crs/get-geometry-factory) ; Deprecated as of 3.1.0
+(def get-srid crs/get-srid) ; Deprecated as of 3.1.0
 
 (defn set-srid
   "Sets a geometry's SRID to a new value, and returns that geometry."
   [^Geometry geom srid]
-  (.createGeometry (crs/get-geometry-factory srid) geom))
+  (if (= (crs/get-srid geom) (crs/get-srid srid))
+      geom
+      (.createGeometry (crs/get-geometry-factory srid) geom)))
 
 (defn coordinate
   "Creates a Coordinate."
@@ -202,7 +204,7 @@
   (.createMultiPolygon (crs/get-geometry-factory (first polygons))
                        (polygon-array polygons)))
 
-; Deprecated since 3.0.2.
+; Deprecated since 3.1.0.
 (defn polygons
   "Given a MultiPolygon, generate a sequence of Polygons.
   Deprecated in favor of more general geometries function."

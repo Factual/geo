@@ -217,4 +217,31 @@
                (crs/get-srid p4) => 3586
                (same-geom? p2 p3) => true
                (same-geom? p2 p4) => true
-               (same-geom? p3 p4) => true)))
+               (same-geom? p3 p4) => true))
+       (fact "When passing two CRSs and a GeometryFactory, the factory's SRID will be used."
+             (let [c1 4326
+                   c2 3586
+                   s1 (crs/create-crs c1)
+                   s2 (crs/create-crs c2)
+                   f1 (crs/get-geometry-factory 3586)
+                   f_false (crs/get-geometry-factory 9999)
+                   t1 (crs/create-transform 4326 3586)
+                   p1 (point 42.3601 -71.0589)
+                   p2 (transform-geom p1 c1 c2 f1)
+                   p3 (transform-geom p1 s1 s2 f1)
+                   p4 (transform-geom p1 t1 f1)
+                   p2_false (transform-geom p1 c1 c2 f_false)
+                   p3_false (transform-geom p1 s1 s2 f_false)
+                   p4_false (transform-geom p1 t1 f_false)]
+               (same-geom? p2 p3) => true
+               (same-geom? p2 p4) => true
+               (same-geom? p3 p4) => true
+               (crs/get-srid p2_false) => 9999
+               (crs/get-srid p3_false) => 9999
+               (crs/get-srid p4_false) => 9999
+               (same-geom? p2 p2_false) => false
+               (same-geom? p3 p3_false) => false
+               (same-geom? p4 p4_false) => false
+               (same-geom? p2_false p3_false) => true
+               (same-geom? p2_false p4_false) => true
+               (same-geom? p3_false p4_false) => true)))

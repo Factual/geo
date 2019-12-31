@@ -42,8 +42,10 @@
                                                    "+proj=longlat +a=6376896 +b=6355834.846687363 +no_defs")
                    src (sut/get-source-crs transform)
                    target (sut/get-target-crs transform)]
-               (into [] (.getParameters src)) => ["+proj=longlat" "+a=6378270" "+b=6356794.343434343" "+no_defs"]
-               (into [] (.getParameters target)) => ["+proj=longlat" "+a=6376896" "+b=6355834.846687363" "+no_defs"]
+               (into [] (sut/get-parameters src)) => ["+proj=longlat" "+a=6378270" "+b=6356794.343434343" "+no_defs"]
+               (into [] (sut/get-parameters target)) => ["+proj=longlat" "+a=6376896" "+b=6355834.846687363" "+no_defs"]
+               (sut/get-parameter-string src) => "+proj=longlat +a=6378270 +b=6356794.343434343 +no_defs "
+               (sut/get-parameter-string target) => "+proj=longlat +a=6376896 +b=6355834.846687363 +no_defs "
                (sut/get-name src) => ""
                (sut/get-name target) => "")))
 
