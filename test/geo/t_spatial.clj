@@ -110,7 +110,7 @@
          (fact (s/to-jts cir1) => throws)
 
          ; Attempt to convert GeoCircle to projected JTS.
-         (fact (s/to-jts cir1 crs/default-srid) => throws)))
+         (fact (s/to-jts cir1 crs/gf-wgs84) => throws)))
 
 ; Have some airports
 (let [lhr (s/spatial4j-point 51.477500 -0.461388)
