@@ -1,5 +1,6 @@
 (ns geo.t-crs
   (:require [geo.crs :as sut]
+            [geo.jts :as jts]
             [midje.sweet :as m :refer [fact facts]]))
 
 (facts "Identifying and converting EPSG and SRID identifiers"
@@ -45,3 +46,19 @@
                (into [] (.getParameters target)) => ["+proj=longlat" "+a=6376896" "+b=6355834.846687363" "+no_defs"]
                (sut/get-name src) => ""
                (sut/get-name target) => "")))
+
+(facts "Transformable"
+       (fact "Testing geometry factories"
+             (let [transform (sut/create-transform 4326 2000)
+                   src (sut/get-source-crs transform)
+                   target (sut/get-target-crs transform)
+                   gf1 (sut/get-geometry-factory src)
+                   gf2 (sut/get-geometry-factory target)
+                   g1 (jts/point 0 0 gf1)
+                   g2 (jts/point 0 0 gf2)]
+               (sut/get-srid gf1) => 4326
+               (sut/get-srid gf2) => 2000
+               (sut/get-srid g1) => 4326
+               (sut/get-srid g2) => 2000
+               (sut/get-srid (sut/get-geometry-factory g1)) => 4326
+               (sut/get-srid (sut/get-geometry-factory g2)) => 2000)))

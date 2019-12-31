@@ -1,5 +1,6 @@
 (ns geo.t-spatial
-  (:require [geo.jts :as jts]
+  (:require [geo.crs :as crs]
+            [geo.jts :as jts]
             [geo.spatial :as s]
             [geo.geohash :refer :all]
             [midje.sweet :refer [fact facts falsey future-fact n-of roughly throws truthy]])
@@ -109,7 +110,7 @@
          (fact (s/to-jts cir1) => throws)
 
          ; Attempt to convert GeoCircle to projected JTS.
-         (fact (s/to-jts cir1 jts/default-srid) => throws)))
+         (fact (s/to-jts cir1 crs/default-srid) => throws)))
 
 ; Have some airports
 (let [lhr (s/spatial4j-point 51.477500 -0.461388)

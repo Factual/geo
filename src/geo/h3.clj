@@ -1,6 +1,7 @@
 (ns geo.h3
   "Working with H3."
-  (:require [geo.spatial :as spatial]
+  (:require [geo.crs :as crs]
+            [geo.spatial :as spatial]
             [geo.jts :as jts]
             [clojure.string :as string]
             [clojure.walk :as walk]
@@ -426,7 +427,7 @@
   "Common logic used to polyfill a shapelike made of a single polygon.
   Used for both the string and long methods."
   [s]
-  (let [s (to-polygon s jts/default-srid)
+  (let [s (to-polygon s crs/default-srid)
         num-interior-rings (.getNumInteriorRing ^Polygon s)
         ext-ring (.getExteriorRing ^Polygon s)
         int-rings (map #(.getInteriorRingN ^Polygon s %) (range num-interior-rings))]
@@ -502,7 +503,7 @@
               (recur good-geoms (rest remaining-geoms))
               (instance? MultiPolygon current-poly)
               ; If a subdivided quadrant became a multipolygon, split that into its polygons and recur
-              (recur good-geoms (concat (jts/polygons current-poly) (rest remaining-geoms)))
+              (recur good-geoms (concat (jts/geometries current-poly) (rest remaining-geoms)))
               (< max-hexagons safe-polyfill-hexagon-maximum)
               ; If less than the safe maximum, the geometry is good to be polyfilled
               (recur (conj good-geoms current-poly) (rest remaining-geoms))
@@ -529,7 +530,7 @@
   [mp ^Integer res]
   (let [pf-polys (fn [p] (mapcat #(polyfill-address-check [%] res) p))]
     (into [] (-> mp
-                 jts/polygons
+                 jts/geometries
                  pf-polys
                  flatten))))
 
@@ -539,7 +540,7 @@
   [mp ^Integer res]
   (let [pf-polys (fn [p] (mapcat #(polyfill-check [%] res) p))]
     (into [] (-> mp
-                 jts/polygons
+                 jts/geometries
                  pf-polys
                  flatten))))
 

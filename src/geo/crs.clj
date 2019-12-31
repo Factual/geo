@@ -3,7 +3,10 @@
   (:import (org.locationtech.proj4j CoordinateReferenceSystem
                                     CoordinateTransform
                                     CoordinateTransformFactory
-                                    CRSFactory)))
+                                    CRSFactory)
+           (org.locationtech.jts.geom Geometry
+                                      GeometryFactory
+                                      PrecisionModel)))
 
 (defn starts-with? [^String string prefix]
   (.startsWith string prefix))
@@ -21,6 +24,8 @@
   (let [match (epsg-str? epsg)]
     (assert match "Must be a valid EPSG string")
     (Integer/parseInt (last match))))
+
+(def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
 
 (def ^CoordinateTransformFactory ctf-factory
   (CoordinateTransformFactory.))
@@ -72,18 +77,24 @@
   (.getTargetCRS t))
 
 (defprotocol Transformable
-  (create-crs [this] "Create a CRS system. If given an integer or long, assume it is an EPSG code.
-                      If given a valid CRS name or proj4 string, use that as the CRS identifier.
-                      If given a proj4j CoordinateReferenceSystem, return that.")
-  (get-srid [this]   "Attempt to get the SRID for a CRS identifier. If unable, return 0."))
+  (^CoordinateReferenceSystem create-crs [this]
+   "Create a CRS system. If given an integer or long, assume it is an EPSG code.
+    If given a valid CRS name or proj4 string, use that as the CRS identifier.
+    If given a proj4j CoordinateReferenceSystem, return that.")
+  (^GeometryFactory get-geometry-factory [this]
+   "Creates a CoordinateFactory or a GeometryFactory.")
+  (^Integer get-srid [this]
+   "Attempt to get the SRID for a CRS identifier. If unable, return 0."))
 
 (extend-protocol Transformable
   Long
   (create-crs [this] (create-crs-number this))
-  (get-srid [this] this)
+  (get-geometry-factory [this] (get-geometry-factory (get-srid this)))
+  (get-srid [this] (int this))
 
   Integer
   (create-crs [this] (create-crs-number this))
+  (get-geometry-factory [this] (GeometryFactory. pm this))
   (get-srid [this] this)
 
   String
@@ -91,6 +102,7 @@
                            (create-crs-name this)
                            (proj4-str? this)
                            (create-crs-parameters this)))
+  (get-geometry-factory [this] (get-geometry-factory (get-srid this)))
   (get-srid [this] (let [epsg? (epsg-str? this)]
                      (if epsg?
                        (read-string (last epsg?))
@@ -98,7 +110,21 @@
 
   CoordinateReferenceSystem
   (create-crs [this] this)
-  (get-srid [this] (get-srid (get-name this))))
+  (get-geometry-factory [this] (get-geometry-factory (get-srid this)))
+  (get-srid [this] (get-srid (get-name this)))
+
+  Geometry
+  (create-crs [this] (create-crs (get-srid this)))
+  (get-geometry-factory [this] (.getFactory this))
+  (get-srid [this] (.getSRID this))
+
+  GeometryFactory
+  (create-crs [this] (create-crs (get-srid this)))
+  (get-geometry-factory [this] this)
+  (get-srid [this] (.getSRID this)))
+
+(def default-srid (int 4326))
+(def ^GeometryFactory gf-wgs84 (get-geometry-factory default-srid))
 
 (defn create-transform
   [c1 c2]

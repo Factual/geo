@@ -58,7 +58,7 @@
 
 (facts "polygons <-> multipolygon"
        (fact "multipolygon to polygons"
-             (str (first (polygons (multi-polygon-wkt [[[-1 -1 11 -1 11 11 -1 -1]],
+             (str (first (geometries (multi-polygon-wkt [[[-1 -1 11 -1 11 11 -1 -1]],
                                                        [[0 0 10 0 10 10 0 0]]]))))
              => "POLYGON ((-1 -1, 11 -1, 11 11, -1 -1))")
        (fact "polygons to multipolygon"
@@ -68,12 +68,12 @@
        (fact "multipolygon SRIDs"
              (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                  (spatial/to-jts (geohash/geohash "u4pruu"))])
-                 get-srid) => 4326
+                 crs/get-srid) => 4326
              (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                  (spatial/to-jts (geohash/geohash "u4pruu"))])
-                 polygons
+                 geometries
                  first
-                 get-srid) => 4326))
+                 crs/get-srid) => 4326))
 
 (facts "geometries <-> geometrycollection"
        (fact "points"
@@ -81,7 +81,7 @@
                                                            (point 1 1)]))))
              => "POINT (0 0)")
        (fact "srids"
-             (get-srid (first (geometries (geometry-collection [(point 0 0 2229)
+             (crs/get-srid (first (geometries (geometry-collection [(point 0 0 2229)
                                                                 (point 0 0 2229)]))))
              => 2229))
 
@@ -121,14 +121,14 @@
        (let [g1 (linestring-wkt [0 0 0 1 0 2])
              g2 (linestring-wkt [1 1 2 2 3 3])
              g3 (linestring-wkt [1 1 2 2 3 3] 1234)]
-         (get-srid g1) => 4326
+         (crs/get-srid g1) => 4326
          (same-srid? g1 g2) => true
          (same-srid? (set-srid g1 0) (set-srid g2 0)) => true
          (same-srid? g1 g3) => false))
 
 (fact "setting SRID for a geom"
-      (get-srid (point 0 0)) => 4326
-      (get-srid (set-srid (point 0 0) 23031)) => 23031)
+      (crs/get-srid (point 0 0)) => 4326
+      (crs/get-srid (set-srid (point 0 0) 23031)) => 23031)
 
 (facts "proj4j"
        (fact "point: 3 param transform"
@@ -177,11 +177,11 @@
                => truthy
                (same-geom? (transform-geom p1 "EPSG:23031") p2)
                => truthy
-               (get-srid (transform-geom p1 23031))
+               (crs/get-srid (transform-geom p1 23031))
                => 23031
-               (get-srid (transform-geom p1 "EPSG:23031"))
+               (crs/get-srid (transform-geom p1 "EPSG:23031"))
                => 23031
-               (get-srid (transform-geom p1 (crs/create-crs 23031)))
+               (crs/get-srid (transform-geom p1 (crs/create-crs 23031)))
                => 23031))
        (fact "If using a different CRS name or proj4 string, SRID is not automatically set"
              (let [p1 (point 3.8142776 51.285914 4326)
@@ -192,9 +192,9 @@
                => truthy))
        (fact "crs/set-srid can take any Transformable"
              (let [p1 (point 10 10 0)]
-               (get-srid (set-srid p1 (crs/create-crs 23031)))
+               (crs/get-srid (set-srid p1 (crs/create-crs 23031)))
                => 23031
-               (get-srid (set-srid p1 (crs/create-crs "EPSG:23031")))
+               (crs/get-srid (set-srid p1 (crs/create-crs "EPSG:23031")))
                => 23031))
        (fact "CRS systems with different names"
              (let [p1 (point 42.3601 -71.0589)

@@ -1,6 +1,7 @@
 (ns geo.geohash
   "Working with geohashes."
-  (:require [geo.spatial :as spatial]
+  (:require [geo.crs :as crs]
+            [geo.spatial :as spatial]
             [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point GeoHash)
            (org.locationtech.spatial4j.shape Shape)
@@ -29,7 +30,7 @@
 
 (defn bbox-geom ^org.locationtech.jts.geom.Polygon [^GeoHash geohash]
   (jts/set-srid (.getGeometryFrom JtsSpatialContext/GEO (bbox geohash))
-                jts/default-srid))
+                crs/default-srid))
 
 (extend-protocol spatial/Shapelike
   GeoHash

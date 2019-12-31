@@ -1,5 +1,6 @@
 (ns geo.t-h3
-  (:require [geo.h3 :as sut]
+  (:require [geo.crs :as crs]
+            [geo.h3 :as sut]
             [geo.geohash :as geohash]
             [geo.io :as io]
             [geo.jts :as jts]
@@ -10,7 +11,7 @@
 
 (def geohash-with-hole (jts/set-srid (.difference (spatial/to-jts (geohash/geohash "u4pruy"))
                                                   (spatial/to-jts (geohash/geohash "u4pruyk")))
-                                     jts/default-srid))
+                                     crs/default-srid))
 (def h3-example-str "871f24ac5ffffff")
 (def h3-example-long 608533827635118079)
 (def h3-example-latitude 57.64911063015461)
