@@ -21,12 +21,23 @@
                                       PrecisionModel)
            (org.locationtech.proj4j CoordinateTransform ProjCoordinate)))
 
-(def ^PrecisionModel pm crs/pm) ; Deprecated as of 3.1.0
-(def ^GeometryFactory gf crs/get-geometry-factory) ; Deprecated as of 3.1.0
-(def default-srid crs/default-srid) ; Deprecated as of 3.1.0
-(def ^GeometryFactory gf-wgs84 crs/gf-wgs84); Deprecated as of 3.1.0
-(def ^GeometryFactory get-factory crs/get-geometry-factory) ; Deprecated as of 3.1.0
-(def get-srid crs/get-srid) ; Deprecated as of 3.1.0
+(def ^PrecisionModel pm ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/pm." crs/pm)
+(def ^GeometryFactory gf ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/get-geometry-factory."
+  crs/get-geometry-factory)
+(def default-srid ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/default-srid."
+  crs/default-srid)
+(def ^GeometryFactory gf-wgs84 ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/gf-wgs84."
+  crs/gf-wgs84)
+(def ^GeometryFactory get-factory ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/get-geometry-factory."
+  crs/get-geometry-factory)
+(def get-srid ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/get-srid."
+  crs/get-srid)
 
 (defn set-srid
   "Sets a geometry's SRID to a new value, and returns that geometry."
@@ -207,7 +218,7 @@
 ; Deprecated since 3.1.0.
 (defn polygons
   "Given a MultiPolygon, generate a sequence of Polygons.
-  Deprecated in favor of more general geometries function."
+  Deprecated since 3.1.0, in favor of geo.jts/geometries."
   [^MultiPolygon m]
   (geometries m))
 
