@@ -293,7 +293,7 @@
          (transform-geom g t (crs/get-geometry-factory t))))
   ([g c1 c2]
    (cond (instance? CoordinateTransform c1)
-         (transform-geom g c1 c2 (crs/get-geometry-factory c2))
+         (tf g c1 (crs/get-geometry-factory c2))
          (and (satisfies? Transformable c1)
               (instance? GeometryFactory c2))
          (let [geom-srid (crs/get-srid g)]
@@ -303,9 +303,9 @@
              g
              (transform-geom g geom-srid c1 c2)))
          :else
-         (tf g (crs/create-transform c1 c2))))
+         (transform-geom g (crs/create-transform c1 c2))))
   ([g c1 c2 geometry-factory]
-   (tf g (crs/create-transform c1 c2) geometry-factory)))
+   (transform-geom g (crs/create-transform c1 c2) geometry-factory)))
 
 (defn ^Point centroid
   "Get the centroid of a JTS object."
