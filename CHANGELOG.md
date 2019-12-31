@@ -15,6 +15,7 @@
 * Add `get-geometry-factory` to `Transformable`, and extend `Transformable` to `Geometry` and `GeometryFactory`
 * Use improved `set-srid` and `Transformable` to streamline functionality
 * Allow `transform-geom` to accept `GeometryFactory` as a final argument
+* Allow `to-jts` to accept all of the argument arities of `transform-geom`
 * Add `get-parameters` and `get-parameter-string` functions to `geo.crs`
 
 ## 3.0.0 to 3.0.1
