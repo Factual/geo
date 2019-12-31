@@ -283,42 +283,80 @@
     (isGeometryChanged [_]
       true)))
 
+(defn- geom-srid?
+  "Check if a Geometry has a valid SRID."
+  [g]
+  (let [geom-srid (crs/get-srid g)]
+    (and (not= 0 geom-srid)
+         (not (nil? geom-srid)))))
+
 (defn- tf
   "Transform a Geometry by applying CoordinateTransform to the Geometry.
   When the target CRS has an SRID, set the geometry's SRID to that."
-  ([^Geometry g ^CoordinateTransform transform]
-   (tf g transform (crs/get-target-crs transform)))
-  ([^Geometry g ^CoordinateTransform transform ^GeometryFactory gf]
-   (let [g (.copy g)]
-     (.apply g (transform-coord-seq-filter transform))
-     (set-srid g gf))))
+  [^Geometry g ^CoordinateTransform transform ^GeometryFactory gf]
+  (let [g (.copy g)]
+    (.apply g (transform-coord-seq-filter transform))
+    (set-srid g gf)))
 
 (defn transform-geom
   "Transform a Geometry.
-  When a single CoordinateTransform is passed, apply that transform to the Geometry. When the target CRS
-  has an SRID, set the geometry's SRID to that. When a single Transformable target is passed, attempt to
-  find the geometry's CRS to generate and apply a CoordinateTransform. When two CRSs are passed as
-  arguments, generate a CoordinateTransform and apply accordingly. If the final argument is a
-  GeometryFactory, use that in the transformation."
+  When a Geometry and CoordinateTransform is passed, apply that transform to the Geometry.
+
+  When a Geometry and Transformable is passed, attempt to transform the Geometry to that target.
+
+  When a Geometry, CoordinateTransform, and Transformable are passed, apply the CoordinateTransform
+  and get a GeometryFactory from the transformable.
+
+  When a Geometry, Transformable, and GeometryFactory are passed, and the Geometry has an SRID,
+  take the Transformable as a target CRS, create a CoordinateTransform,
+  and use the GeometryFactory for a target SRID.
+
+  When a Geometry, Transformable, and GeometryFactory are passed, and the Geometry has no SRID,
+  take the Transformable as a source CRS and the GeometryFactory as a target CRS,
+  create a corresponding Transform, and use the GeometryFactory for a target SRID.
+
+  When a Geometry, Transformable, and Transformable are passed, create a CoordinateTransform and
+  get a GeometryFactory from the target Transformable.
+
+  When a Geometry, Transformable, Transformable, and GeometryFactory are all passed, create a
+  CoordinateTransform from the two Transformables and use the supplied GeometryFactory for the
+  target SRID."
   ([g t]
+   ;; t is either a Transform or a Transformable
    (if (instance? CoordinateTransform t)
-         (tf g t)
-         (transform-geom g t (crs/get-geometry-factory t))))
+         ; If t is CoordinateTransform
+         (tf g t (crs/get-target-crs t))
+         ; If t is Transformable, make sure that g has a source CRS
+         (do
+           (assert (geom-srid? g)
+                   "Geometry must have a valid source SRID to generate a transform to a target.")
+           (transform-geom g t (crs/get-geometry-factory t)))))
   ([g c1 c2]
-   (cond (instance? CoordinateTransform c1)
-         (tf g c1 (crs/get-geometry-factory c2))
-         (and (satisfies? Transformable c1)
-              (instance? GeometryFactory c2))
-         (let [geom-srid (crs/get-srid g)]
-           (assert (not= 0 geom-srid)
-                   "Geometry must have a valid SRID to be transformed")
-           (if (= (crs/get-srid c1) geom-srid)
-             g
-             (transform-geom g geom-srid c1 c2)))
-         :else
-         (transform-geom g (crs/create-transform c1 c2))))
+   ;; c1 is either a CoordinateTransform or Transformable
+   ;; c2 is either a Transformable or a GeometryFactory
+   (cond
+     ;; If c1 is a CoordinateTransform, assume c2 acts as a GeometryFactory
+     (instance? CoordinateTransform c1)
+     (tf g c1 (crs/get-geometry-factory c2))
+     ;; If c1 is Transformable, c2 is GeometryFactory, and g has SRID,
+     ;; take c1 as a target CRS, create the relevant Transform, and apply the Factory
+     ;; as the target SRID.
+     ;; If c1 is Transformable, c2 is GeometryFactory, and g does not have SRID,
+     ;; then take c1 as the source CRS and get the target CRS from the factory.
+     (and (satisfies? Transformable c1)
+          (instance? GeometryFactory c2))
+       (if (geom-srid? g)
+         (transform-geom g (crs/get-srid g) c1 c2)
+         (transform-geom g c1 (crs/get-srid c2) c2))
+   ;; Otherwise, c1 and c2 are both Transformable, and create transform
+   :else
+   (transform-geom g (crs/create-transform c1 c2) (crs/get-geometry-factory c2))))
   ([g c1 c2 geometry-factory]
-   (transform-geom g (crs/create-transform c1 c2) geometry-factory)))
+   ;; When c1, c2, and geometry-factory are all provided,
+   ;; create a transform and use the supplied factory
+   (if (= (crs/get-srid c1) (crs/get-srid c2))
+     (set-srid g geometry-factory)
+     (transform-geom g (crs/create-transform c1 c2) geometry-factory))))
 
 (defn ^Point centroid
   "Get the centroid of a JTS object."
