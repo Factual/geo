@@ -206,4 +206,15 @@
                (.getX (transform-geom p1 "NAD83:2001"))
                => (.getX p2)
                (.getX (transform-geom p1 "+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +datum=NAD83 +units=m +no_defs"))
-               => (.getX p2))))
+               => (.getX p2)))
+       (fact "An external GeometryFactory can be passed"
+             (let [p1 (point 42.3601 -71.0589)
+                   p2 (transform-geom p1 3586)
+                   p3 (transform-geom p1 3586 (crs/get-geometry-factory 3586))
+                   p4 (transform-geom p1 3586 (crs/get-geometry-factory p2))]
+               (crs/get-srid p2) => 3586
+               (crs/get-srid p3) => 3586
+               (crs/get-srid p4) => 3586
+               (same-geom? p2 p3) => true
+               (same-geom? p2 p4) => true
+               (same-geom? p3 p4) => true)))
