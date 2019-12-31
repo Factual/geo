@@ -92,7 +92,7 @@
     If given a valid CRS name or proj4 string, use that as the CRS identifier.
     If given a proj4j CoordinateReferenceSystem, return that.")
   (^GeometryFactory get-geometry-factory [this]
-   "Creates a CoordinateFactory or a GeometryFactory.")
+   "Creates a JTS GeometryFactory from a given CRS identifier.")
   (^Integer get-srid [this]
    "Attempt to get the SRID for a CRS identifier. If unable, return 0."))
 
