@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-* *Deprecation*: Move `jts/pm`, `jts/default-srid`, and `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation
-* *Deprecation*: Deprecate `jts/gf` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation
-* *Deprecation*: Deprecate `jts/get-factory` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation
-* *Deprecation*: Deprecate `jts/get-srid` in favor of `crs/get-srid`, leaving alias in `geo.jts` during deprecation
-* *Deprecation*: Deprecate `jts/polygons` in favor of `jts/geometries`, leaving alias in place during deprecation.
+* **Deprecation**: Move `jts/pm`, `jts/default-srid`, and `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation
+* **Deprecation**: Deprecate `jts/gf` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation
+* **Deprecation**: Deprecate `jts/get-factory` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation
+* **Deprecation**: Deprecate `jts/get-srid` in favor of `crs/get-srid`, leaving alias in `geo.jts` during deprecation
+* **Deprecation**: Deprecate `jts/polygons` in favor of `jts/geometries`, leaving alias in place during deprecation.
 * Bump `geohash` to 1.4.0, which can use bounding boxes over the meridian
 * For development, bump `lein-midje` to 3.2.2 and `jackson` to 2.10.2
 * Bump `h3` to 3.6.3
