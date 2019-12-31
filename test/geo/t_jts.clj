@@ -245,6 +245,18 @@
                (same-geom? p2_false p3_false) => true
                (same-geom? p2_false p4_false) => true
                (same-geom? p3_false p4_false) => true))
+       (fact "When passing one Transformable and one GeometryFactory, determine whether
+              Transformable is target or source depending on if Geometry has SRID."
+             (let [g1 (point 42.3601 -71.0589)
+                   g2 (point -71.0589 42.3601 0)
+                   g3 (transform-geom g1 3586)
+                   f1 (crs/get-geometry-factory 4326)
+                   f2 (crs/get-geometry-factory 3586)]
+               (same-geom? (transform-geom g1 3586 f2) g3) => true
+               (same-geom? (transform-geom g2 3586 f2) g3) => false
+               (same-geom? (transform-geom (set-srid g2 4326) 3586 f2) g3) => true
+               (same-geom? (transform-geom g2 3586 f2) g1) => false
+               (same-geom? (set-srid (transform-geom g2 3586 f2) 4326) g1) => true))
        (fact "When passing a CoordinateTransform and a GeometryFactory, the GeometryFactory's SRID will be used."
              (let [c1 4326
                    c2 3586
