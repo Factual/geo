@@ -102,45 +102,53 @@
 
   RectangleImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom ^JtsGeometry this) crs/gf-wgs84))
-          ([this srid] (to-jts (to-jts this) srid))
-          ([this c1 c2] (to-jts (to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
+  (to-jts
+    ([this] (jts/set-srid (.getGeom ^JtsGeometry this) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory]
+     (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   PointImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
-          ([this srid] (to-jts (to-jts this) srid))
-          ([this c1 c2] (to-jts (to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
+  (to-jts
+    ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   JtsGeometry
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom this) crs/gf-wgs84))
-          ([this srid] (to-jts (to-jts this) srid))
-          ([this c1 c2] (to-jts (to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
+  (to-jts
+    ([this] (jts/set-srid (.getGeom this) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   JtsPoint
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
-          ([this srid] (to-jts (to-jts this) srid))
-          ([this c1 c2] (to-jts (to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
+  (to-jts
+    ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   Geometry
   (to-shape [this] (JtsGeometry. (jts/transform-geom this crs/gf-wgs84) earth true true))
-  (to-jts ([this] this)
-          ([this srid] (jts/transform-geom this srid))
-          ([this c1 c2] (jts/transform-geom this c1 c2))
-          ([this c1 c2 geometry-factory] (jts/transform-geom this c1 c2)))
+  (to-jts
+    ([this] this)
+    ([this srid] (jts/transform-geom this srid))
+    ([this c1 c2] (jts/transform-geom this c1 c2))
+    ([this c1 c2 geometry-factory]
+     (jts/transform-geom this c1 c2 geometry-factory)))
 
   GeoCoord
   (to-shape [this] (spatial4j-point this))
-  (to-jts ([this] (jts-point this))
-          ([this srid] (jts/transform-geom (to-jts this) srid))
-          ([this c1 c2] (to-jts (to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory))))
+  (to-jts
+    ([this] (jts-point this))
+    ([this srid] (jts/transform-geom (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory))))
 
 (defprotocol Point
   (latitude [this])

@@ -53,38 +53,67 @@
              s->j (comp s/to-jts s/to-spatial4j-point)
              j->g (comp s/to-geohash-point s/to-jts)
              g->j (comp s/to-jts s/to-geohash-point)
+             g->t (comp #(s/to-jts % 3586) s/to-geohash-point)
+             t->g (comp s/to-geohash-point #(s/to-jts % 3586))
+             s->t (comp #(s/to-jts % 3586) s/to-spatial4j-point)
+             t->s (comp s/to-spatial4j-point #(s/to-jts % 3586))
+             j->t (comp #(s/to-jts % 3586) #(s/to-jts % 4326))
+             t->j (comp #(s/to-jts % 4326) #(s/to-jts % 3586))
              g1 (s/geohash-point 0 0)
              g2 (s/geohash-point 12.456 -98.765)
              s1 (s/spatial4j-point 0 0)
              s2 (s/spatial4j-point 12.456 -98.765)
              j1 (s/jts-point 0 0)
-             j2 (s/jts-point 12.456 -98.765)]
+             j2 (s/jts-point 12.456 -98.765)
+             t1 (jts/transform-geom j1 3586)
+             t2 (jts/transform-geom j2 3586)]
          ; Identity conversions
          (fact (s/to-geohash-point g2) => g2)
          (fact (s/to-spatial4j-point g2) => s2)
          (fact (s/to-jts j2) => j2)
+         (fact (s/latitude (s/to-jts t2 3586)) =>
+               (roughly (s/latitude t2)))
 
          ; Direct conversions
          (fact (s/to-spatial4j-point g2) => s2)
          (fact (s/to-spatial4j-point j2) => s2)
+         (fact (s/latitude (s/to-spatial4j-point t2)) =>
+               (roughly (s/latitude s2)))
          (fact (s/to-geohash-point s2) => g2)
-         (fact (s/to-geohash-point j2) => g2)
+         (fact (s/latitude (s/to-geohash-point j2)) =>
+               (s/latitude g2))
          (fact (s/to-jts s2) => j2)
          (fact (s/to-jts g2) => j2)
+         (fact (s/to-jts t2) => t2)
+         (fact (s/to-jts g2 3586) => t2)
+         (fact (s/to-jts s2 3586) => t2)
+         (fact (s/to-jts j2 3586) => t2)
 
          ; Two-way conversions
          (fact (s->g g1) => g1)
          (fact (s->g g2) => g2)
          (fact (j->g g1) => g1)
          (fact (j->g g2) => g2)
+         (fact (s/latitude (t->g g1)) =>
+               (roughly (s/latitude g1)))
+         (fact (s/latitude (t->g g2)) =>
+               (roughly (s/latitude g2)))
          (fact (g->s s1) => s1)
          (fact (g->s s2) => s2)
          (fact (j->s s1) => s1)
          (fact (j->s s2) => s2)
+         (fact (s/latitude (t->s s1)) =>
+               (roughly (s/latitude s1)))
+         (fact (s/latitude (t->s s2)) =>
+               (roughly (s/latitude s2)))
          (fact (s->j j1) => j1)
          (fact (s->j j2) => j2)
          (fact (g->j j1) => j1)
-         (fact (g->j j2) => j2)))
+         (fact (g->j j2) => j2)
+         (fact (s/longitude (t->j j1)) =>
+               (roughly (s/longitude j1)))
+         (fact (s/longitude (t->j j2)) =>
+               (roughly (s/longitude j2)))))
 
 (facts "interchangeable polygons"
        (let [s->j (comp s/to-jts s/to-shape)

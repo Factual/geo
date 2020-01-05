@@ -35,19 +35,23 @@
 (extend-protocol spatial/Shapelike
   GeoHash
   (to-shape [^GeoHash geohash] (bbox geohash))
-  (to-jts ([^GeoHash geohash] (bbox-geom geohash))
-          ([^GeoHash geohash srid] (jts/set-srid (spatial/to-jts geohash) srid))
-          ([this c1 c2] (spatial/to-jts (spatial/to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (spatial/to-jts (spatial/to-jts this)
-                                                         c1 c2 geometry-factory)))
+  (to-jts
+    ([^GeoHash geohash] (bbox-geom geohash))
+    ([^GeoHash geohash srid]
+     (spatial/to-jts (bbox-geom geohash) srid))
+    ([^GeoHash geohash c1 c2]
+     (spatial/to-jts (bbox-geom geohash) c1 c2))
+    ([^GeoHash geohash c1 c2 geometry-factory]
+     (spatial/to-jts (bbox-geom geohash) c1 c2 geometry-factory)))
 
   WGS84Point
   (to-shape [this] (spatial/spatial4j-point this))
-  (to-jts ([this] (spatial/jts-point this))
-          ([this srid] (spatial/to-jts (spatial/to-jts this) srid))
-          ([this c1 c2] (spatial/to-jts (spatial/to-jts this) c1 c2))
-          ([this c1 c2 geometry-factory] (spatial/to-jts (spatial/to-jts this)
-                                                         c1 c2 geometry-factory))))
+  (to-jts
+    ([this] (spatial/jts-point this))
+    ([this srid] (spatial/to-jts (spatial/jts-point this) srid))
+    ([this c1 c2] (spatial/to-jts (spatial/jts-point this) c1 c2))
+    ([this c1 c2 geometry-factory]
+     (spatial/to-jts (spatial/jts-point this) c1 c2 geometry-factory))))
 
 (defn northern-neighbor [^GeoHash h] (.getNorthernNeighbour h))
 (defn eastern-neighbor [^GeoHash h] (.getEasternNeighbour h))

@@ -210,7 +210,7 @@
          (bbox-geom gh) => (jts/polygon-wkt points)
          (crs/get-srid (bbox-geom gh)) => 4326
          (crs/get-srid (spatial/to-jts gh)) => 4326
-         (crs/get-srid (spatial/to-jts gh 1234)) => 1234))
+         (crs/get-srid (spatial/to-jts gh 3586)) => 3586))
 
 (facts "Getting bounding Shapes for geohashes"
        (let [gh (geohash "9q5")]
