@@ -124,16 +124,14 @@
       sfo-oak 17734]
   ; See http://www.gcmap.com/dist?P=LHR-SYD%2CSYD-LAX%2CLHR-LAX%0D%0A&DU=m&DM=&SG=&SU=mph
   (facts "distance in meters"
-         ; This breaks VincentyGeodesy from the geohash library; there's a
-         ; singularity at the poles.
-         (future-fact (s/distance (geohash-point 89.999, 0)
-                         (geohash-point 90.0, 0))
-               => 1.234567)
+         (fact (s/distance (s/geohash-point 89.99999, 0)
+                           (s/geohash-point 90.0, 0))
+               => (roughly 1.112))
          (fact (s/distance lhr syd) => (roughly lhr-syd))
          (fact (s/distance syd lax) => (roughly syd-lax))
          (fact (s/distance lax lhr) => (roughly lax-lhr))
          (fact (s/distance (s/geohash-point sfo)
-                         (s/geohash-point oak)) => (roughly sfo-oak)))
+                           (s/geohash-point oak)) => (roughly sfo-oak)))
 
   (facts "intersections"
          (fact "A circle around a point intersects that point."

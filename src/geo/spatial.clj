@@ -50,6 +50,8 @@
     "distCalculator" "vincentySphere"}
    (.getClassLoader JtsSpatialContext)))
 
+(def ^DistanceCalculator vincenty-distance-calculator (.getDistCalc earth))
+
 (def earth-mean-radius
   "Earth's mean radius, in meters."
   (* 1000 DistanceUtils/EARTH_MEAN_RADIUS_KM))
@@ -276,24 +278,28 @@
          degrees (radians->degrees radians)]
      (GeoCircle. point degrees earth))))
 
+(defn distance-in-degrees
+  "Distance between two points, in degrees."
+  [a b]
+  (-> vincenty-distance-calculator
+      (.distance (to-spatial4j-point a)
+                 (to-spatial4j-point b))))
+
 (defn distance
   "Distance between two points, in meters"
   [a b]
   ; There's a singularity in the geohash library's distance calculation
-  ; algorithm, used here, which causes distances near the poles to return NaN.
-  (assert (not= 90.0 (abs (latitude a))))
-  (assert (not= 90.0 (abs (latitude b))))
-  (VincentyGeodesy/distanceInMeters
-   (to-geohash-point a)
-   (to-geohash-point b)))
-
-(defn distance-in-degrees
-  "Distance between two points, in degrees."
-  [a b]
-  (-> earth
-    .getDistCalc
-    (.distance (to-spatial4j-point a)
-               (to-spatial4j-point b))))
+  ; algorithm, which causes distances at the poles to return
+  ; bad results. In these cases, use spatial4j's spherical vincenty
+  ; distance calculator.
+ (if (and (not= (double (abs (latitude a))) 90.0)
+          (not= (double (abs (latitude b))) 90.0))
+    (VincentyGeodesy/distanceInMeters
+     (to-geohash-point a)
+     (to-geohash-point b))
+    (-> (distance-in-degrees a b)
+        degrees->radians
+        radians->distance)))
 
 (defn bounding-box
   "Returns the bounding box of any shape."
@@ -323,7 +329,7 @@
 (defn area-in-square-degrees
   "The area of a rectangle in square degrees."
   [rect]
-  (.area (.getDistCalc earth)
+  (.area vincenty-distance-calculator
          ^Rectangle (to-shape rect)))
 
 (defn area

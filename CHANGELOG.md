@@ -5,6 +5,7 @@
 * Bump `geohash` to 1.4.0, which can use bounding boxes over the meridian
 * For development, bump `lein-midje` to 3.2.2 and `jackson` to 2.10.2
 * Bump `h3` to 3.6.3
+* Remove singularity error with `distance` by using spheroidal `spatial4j` Vincenty calculation when input point is at a pole, but otherwise using the `geohash` ellipsoidal Vincenty calculation.
 
 ## 3.0.0 to 3.0.1
 

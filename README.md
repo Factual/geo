@@ -25,10 +25,7 @@ In addition, we provide common scales and translation functions for unit
 conversion: converting between steradians and surface areas; finding the radius
 along the geoid, and some basic properties.
 
-This library is incomplete; in particular, it is not as fast as it could be,
-encounters bounded errors when translating between various geoid
-representations, and is subject to singularities at the poles. Nonetheless, we
-hope that it can be a canonical resource for geospatial computation in Clojure.
+We hope that it can be a canonical resource for geospatial computation in Clojure.
 
 # Installation
 
