@@ -124,9 +124,15 @@
       sfo-oak 17734]
   ; See http://www.gcmap.com/dist?P=LHR-SYD%2CSYD-LAX%2CLHR-LAX%0D%0A&DU=m&DM=&SG=&SU=mph
   (facts "distance in meters"
-         (fact (s/distance (s/geohash-point 89.99999, 0)
-                           (s/geohash-point 90.0, 0))
-               => (roughly 1.112))
+         (fact (s/distance (s/geohash-point 89.999999999999990 0)
+                           (s/geohash-point 89.999999999999978 0))
+               => (roughly 1.4E-9 1E-10))
+         (fact (s/distance (s/geohash-point 89.9999999999999999 0)
+                           (s/geohash-point 89.9999999999999920 0))
+               => (roughly 1.4E-9 1E-10))
+         (fact (s/distance (s/geohash-point 89.99999999999999999 0)
+                           (s/geohash-point 89.99999999999999289 0))
+               => (roughly 1.4E-9 1E-10))
          (fact (s/distance lhr syd) => (roughly lhr-syd))
          (fact (s/distance syd lax) => (roughly syd-lax))
          (fact (s/distance lax lhr) => (roughly lax-lhr))

@@ -292,8 +292,8 @@
   ; algorithm, which causes distances at the poles to return
   ; bad results. In these cases, use spatial4j's spherical vincenty
   ; distance calculator.
- (if (and (not= (double (abs (latitude a))) 90.0)
-          (not= (double (abs (latitude b))) 90.0))
+ (if (and (<= (abs (latitude a)) 89.99999999999999)
+          (<= (abs (latitude b)) 89.99999999999999))
     (VincentyGeodesy/distanceInMeters
      (to-geohash-point a)
      (to-geohash-point b))
