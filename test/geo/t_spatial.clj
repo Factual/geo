@@ -111,7 +111,7 @@
          (fact (g->j j1) => j1)
          (fact (g->j j2) => j2)
          (fact (s/longitude (t->j j1)) =>
-               (roughly (s/longitude j1)))
+               (roughly (s/longitude j1) 0.0001))
          (fact (s/longitude (t->j j2)) =>
                (roughly (s/longitude j2)))))
 
