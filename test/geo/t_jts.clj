@@ -12,7 +12,7 @@
              (.getX (coordinate 1 2)) => 1.0
              (.getY (coordinate 1 2)) => 2.0
              (Double/isNaN (.getZ (coordinate 1 2))) => true)
-       (fact "XYZ coordinate"n
+       (fact "XYZ coordinate"
              (coordinate 1 2 3) => (Coordinate. 1 2 3)
              (.getX (coordinate 1 2 3)) => 1.0
              (.getY (coordinate 1 2 3)) => 2.0
