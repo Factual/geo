@@ -2,19 +2,21 @@
 
 ## Unreleased
 
-* **Deprecation**: Move `jts/pm`, `jts/default-srid`, and `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation
-* **Deprecation**: Deprecate `jts/gf` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation
-* **Deprecation**: Deprecate `jts/get-factory` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation
-* **Deprecation**: Deprecate `jts/get-srid` in favor of `crs/get-srid`, leaving alias in `geo.jts` during deprecation
+* **Deprecation**: Move `jts/pm`, `jts/default-srid`, and `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation.
+* **Deprecation**: Deprecate `jts/gf` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation.
+* **Deprecation**: Deprecate `jts/get-factory` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation.
+* **Deprecation**: Deprecate `jts/get-srid` in favor of `crs/get-srid`, leaving alias in `geo.jts` during deprecation.
+* **Deprecation**: Deprecate `jts/set-srid` in favor of `crs/set-srid`, leaving alias in `geo.jts` during deprecation.
+* **Deprecation**: Deprecate `jts/transform-geom` in favor of `crs/transform-geom`, leaving alias in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/polygons` in favor of `jts/geometries`, leaving alias in place during deprecation.
 * Bump `geohash` to 1.4.0, which can use bounding boxes over the meridian
-* For development, bump `lein-midje` to 3.2.2 and `jackson` to 2.10.2
+* For development, bump `lein-midje` to 3.2.2 and `cheshire` to 5.10.0, removing extra `jackson` dependencies
 * Bump `h3` to 3.6.3
 * Remove singularity error with `distance` by using spheroidal `spatial4j` Vincenty calculation when input point is at a pole, but otherwise using the `geohash` ellipsoidal Vincenty calculation.
 * Modify `set-srid` to use `.createGeometry` instead of `.setSRID`, improving passthrough of projections within geometries and reducing need to manually set projections after operations
 * Add `get-geometry-factory` to `Transformable`, and extend `Transformable` to `Geometry` and `GeometryFactory`
-* Use improved `set-srid` and `Transformable` to streamline functionality
-* Allow `transform-geom` to accept `GeometryFactory` as a final argument
+* Add `transform-helper` and `create-transform` to `Transformable`, and extend `Transformable` to `CoordinateTransform`
+* Allow `transform-geom` to accept `GeometryFactory` as a final argument, passing `transform-geom` to protocol-based `transform-helper` to improve dispatch
 * Allow `to-jts` to accept all of the argument arities of `transform-geom`
 * Add `get-parameters` and `get-parameter-string` functions to `geo.crs`
 

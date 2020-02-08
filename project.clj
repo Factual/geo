@@ -23,11 +23,7 @@
                    :dependencies [[org.clojure/clojure "1.10.1"]
                                   [codox-theme-rdash "0.1.2"]
                                   [criterium "0.4.5"]
-                                  [cheshire "5.9.0"]
-                                  ;; Can remove jackson dependency once cheshire cuts release
-                                  [com.fasterxml.jackson.core/jackson-core "2.10.2"]
-                                  [com.fasterxml.jackson.dataformat/jackson-dataformat-cbor "2.10.2"]
-                                  [com.fasterxml.jackson.dataformat/jackson-dataformat-smile "2.10.2"]
+                                  [cheshire "5.10.0"]
                                   [midje "1.9.9"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}

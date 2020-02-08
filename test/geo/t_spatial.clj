@@ -244,7 +244,7 @@
        (fact "Splitting complex linestring over max length"
              (let [ls (jts/linestring-wkt long-sample)
                    rs (s/resegment ls 100000)]
-               (s/length ls) => 1316265.356651721
+               (s/length ls) => (roughly 1316265.356651721)
                (->> rs (map s/length) (reduce +)) => (roughly 1316265)
                (->> rs
                     (drop-last 1) ;; last segment just has remaining distance
