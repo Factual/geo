@@ -258,14 +258,13 @@
     ([this g]
      (transform-helper this g (create-transform g this)))
     ([this g t]
-     (cond (instance? CoordinateTransform t)
-           ;; Base case: geometryfactory, geometry, coordinatetransform
-           (if (.equals (get-source-crs t)
-                        (get-target-crs t))
-             (set-srid g this)
-             (tf g t this))
-           :else
-           (transform-helper t g this)))
+     (if (instance? CoordinateTransform t)
+       ;; Base case: GeometryFactory, Geometry, CoordinateTransform
+       (if (.equals (get-source-crs t)
+                    (get-target-crs t))
+         (set-srid g this)
+         (tf g t this))
+       (transform-helper t g this)))
     ([this g c1 c2]
      (transform-helper this g (create-transform c1 c2)))))
 
@@ -273,6 +272,18 @@
 (def ^GeometryFactory gf-wgs84 (get-geometry-factory default-srid))
 
 (defn transform-geom
+  "Transforms a Geometry to a different Coordinate Reference System.
+   Takes a Geometry as a first argument, and either one, two, or three
+   Transformables as additional arguments. When the final argument is
+   a GeometryFactory, use that factory to construct the new Geometry.
+   When only a target CRS is provided, use the Geometry's internal
+   SRID as the source CRS.
+
+   The most efficient way to call this is with its base case of
+   (transform-geom Geometry GeometryFactory CoordinateTransform).
+
+   All other argument calls to this function ultimately reduce
+   down to that base case."
   ([g t]
    (transform-helper t g))
   ([g c1 c2]
