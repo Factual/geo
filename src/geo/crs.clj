@@ -184,7 +184,7 @@
     (create-transform (create-crs this) (create-crs tgt)))
   (transform-helper
     ([this g]
-     (transform-helper (create-transform g this) g (get-geometry-factory this)))
+     (transform-helper (get-geometry-factory this) g (create-transform g this)))
     ([this g c]
      (if (geom-srid? g)
        (transform-helper (get-geometry-factory c) g (create-transform g c))
@@ -218,12 +218,12 @@
   (transform-helper
     ([this g]
      (transform-helper
-      (create-transform (create-crs g) this) g (get-geometry-factory this)))
+      (get-geometry-factory this) g (create-transform (create-crs g) this)))
     ([this g c2]
      (transform-helper
-      (create-transform this (create-crs c2)) g (get-geometry-factory c2)))
+      (get-geometry-factory c2) g (create-transform this (create-crs c2))))
     ([this g c2 f]
-     (transform-helper (create-transform this c2) g f)))
+     (transform-helper (get-geometry-factory f) g (create-transform this c2))))
 
   Geometry
   (create-crs [this] (create-crs (get-srid this)))
@@ -235,9 +235,10 @@
     ([this t]
      (do (assert (geom-srid? this)
                  "Geometry must have a valid SRID to generate a transform.")
-         (transform-helper this t (get-geometry-factory t))))
+         (transform-helper (get-geometry-factory t) this t)))
     ([this c1 c2 gf]
-     (transform-helper gf this (create-transform c1 c2))))
+     (transform-helper
+      (get-geometry-factory gf) this (create-transform c1 c2))))
 
   CoordinateTransform
   (create-transform [this] this)
@@ -274,7 +275,7 @@
 (defn transform-geom
   "Transforms a Geometry to a different Coordinate Reference System.
    Takes a Geometry as a first argument, and either one, two, or three
-   Transformables as additional arguments. When the final argument is
+   Transformables as additional arguments. When the second argument is
    a GeometryFactory, use that factory to construct the new Geometry.
    When only a target CRS is provided, use the Geometry's internal
    SRID as the source CRS.
