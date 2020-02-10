@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* **Deprecation**: Move `jts/transform-geom`, `jts/get-srid`, `jts/set-srid`, `jts/pm`, `jts/default-srid`, `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation.
+* **Deprecation**: Move `jts/transform-geom`, `jts/get-srid`, `jts/set-srid`, `jts/pm`, `jts/default-srid`, and `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/gf` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/get-factory` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/polygons` in favor of `jts/geometries`, leaving alias in place during deprecation.
@@ -13,7 +13,7 @@
 * Modify `set-srid` to use `.createGeometry` instead of `.setSRID`, improving passthrough of projections within geometries and reducing need to manually set projections after operations
 * Add `get-geometry-factory` to `Transformable`, and extend `Transformable` to `Geometry` and `GeometryFactory`
 * Add `transform-helper` and `create-transform` to `Transformable`, and extend `Transformable` to `CoordinateTransform`
-* Allow `transform-geom` to accept `GeometryFactory` as a final argument, passing `transform-geom` to protocol-based `transform-helper` to improve dispatch
+* Allow `transform-geom` to accept `GeometryFactory` as a second argument, passing `transform-geom` to protocol-based `transform-helper` to improve dispatch
 * Allow `to-jts` to accept all of the argument arities of `transform-geom`
 * Add `get-parameters` and `get-parameter-string` functions to `geo.crs`
 
