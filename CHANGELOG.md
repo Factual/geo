@@ -2,12 +2,9 @@
 
 ## Unreleased
 
-* **Deprecation**: Move `jts/pm`, `jts/default-srid`, and `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation.
+* **Deprecation**: Move `jts/transform-geom`, `jts/get-srid`, `jts/set-srid`, `jts/pm`, `jts/default-srid`, `jts/gf-wgs84` to `geo.crs`, leaving aliases in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/gf` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/get-factory` in favor of `crs/get-geometry-factory`, leaving alias in `geo.jts` during deprecation.
-* **Deprecation**: Deprecate `jts/get-srid` in favor of `crs/get-srid`, leaving alias in `geo.jts` during deprecation.
-* **Deprecation**: Deprecate `jts/set-srid` in favor of `crs/set-srid`, leaving alias in `geo.jts` during deprecation.
-* **Deprecation**: Deprecate `jts/transform-geom` in favor of `crs/transform-geom`, leaving alias in `geo.jts` during deprecation.
 * **Deprecation**: Deprecate `jts/polygons` in favor of `jts/geometries`, leaving alias in place during deprecation.
 * Bump `geohash` to 1.4.0, which can use bounding boxes over the meridian
 * For development, bump `lein-midje` to 3.2.2 and `cheshire` to 5.10.0, removing extra `jackson` dependencies
