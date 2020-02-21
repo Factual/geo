@@ -16,7 +16,8 @@
   compute relationships between shapes: their intersections, contains, disjoint
   statuses, etc."
   (:use [clojure.math.numeric-tower :only [abs]])
-  (:require [geo.jts :as jts])
+  (:require [geo.crs :as crs]
+            [geo.jts :as jts])
   (:import (ch.hsr.geohash WGS84Point)
            (ch.hsr.geohash.util VincentyGeodesy)
            (com.uber.h3core.util GeoCoord)
@@ -88,43 +89,66 @@
 
 (defprotocol Shapelike
   (^Shape to-shape [this] "Convert anything to a Shape.")
-  (^Geometry to-jts [this] [this srid] "Convert anything to a projected JTS Geometry."))
+  (^Geometry to-jts [this] [this srid] [this c1 c2] [this c1 c2 geometry-factory]
+   "Convert anything to a projected JTS Geometry. See geo.jts/transform-geom for argument information."))
 
 (extend-protocol Shapelike
   GeoCircle
   (to-shape [this] this)
   (to-jts ([_] (throw (Exception. "Cannot cast GeoCircle to JTS.")))
-          ([_ _] (throw (Exception. "Cannot cast GeoCircle to JTS."))))
+          ([_ _] (throw (Exception. "Cannot cast GeoCircle to JTS.")))
+          ([_ _ _] (throw (Exception. "Cannot cast GeoCircle to JTS.")))
+          ([_ _ _ _] (throw (Exception. "Cannot cast GeoCircle to JTS."))))
 
   RectangleImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom ^JtsGeometry this) jts/default-srid))
-          ([this srid] (to-jts (to-jts this) srid)))
+  (to-jts
+    ([this] (crs/set-srid (.getGeom ^JtsGeometry this) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory]
+     (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   PointImpl
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) jts/default-srid))
-          ([this srid] (to-jts (to-jts this) srid)))
+  (to-jts
+    ([this] (crs/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   JtsGeometry
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (.getGeom this) jts/default-srid))
-          ([this srid] (to-jts (to-jts this) srid)))
+  (to-jts
+    ([this] (crs/set-srid (.getGeom this) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   JtsPoint
   (to-shape [this] this)
-  (to-jts ([this] (jts/set-srid (jts-point (.getY this) (.getX this)) jts/default-srid))
-          ([this srid] (to-jts (to-jts this) srid)))
+  (to-jts
+    ([this] (crs/set-srid (jts-point (.getY this) (.getX this)) crs/gf-wgs84))
+    ([this srid] (to-jts (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory)))
 
   Geometry
-  (to-shape [this] (JtsGeometry. (jts/transform-geom this jts/default-srid) earth true true))
-  (to-jts ([this] this)
-          ([this srid] (jts/transform-geom this srid)))
+  (to-shape [this] (JtsGeometry. (crs/transform-geom this crs/gf-wgs84) earth true true))
+  (to-jts
+    ([this] this)
+    ([this srid] (crs/transform-geom this srid))
+    ([this c1 c2] (crs/transform-geom this c1 c2))
+    ([this c1 c2 geometry-factory]
+     (crs/transform-geom this c1 c2 geometry-factory)))
 
   GeoCoord
   (to-shape [this] (spatial4j-point this))
-  (to-jts ([this] (jts-point this))
-          ([this srid] (jts/transform-geom (to-jts this) srid))))
+  (to-jts
+    ([this] (jts-point this))
+    ([this srid] (crs/transform-geom (to-jts this) srid))
+    ([this c1 c2] (to-jts (to-jts this) c1 c2))
+    ([this c1 c2 geometry-factory] (to-jts (to-jts this) c1 c2 geometry-factory))))
 
 (defprotocol Point
   (latitude [this])
@@ -142,8 +166,10 @@
   (to-h3-point [this] (h3-point this))
 
   org.locationtech.jts.geom.Point
-  (latitude [this] (.getY ^org.locationtech.jts.geom.Point (jts/transform-geom this jts/default-srid)))
-  (longitude [this] (.getX ^org.locationtech.jts.geom.Point (jts/transform-geom this jts/default-srid)))
+  (latitude [this] (.getY ^org.locationtech.jts.geom.Point
+                          (crs/transform-geom this crs/gf-wgs84)))
+  (longitude [this] (.getX ^org.locationtech.jts.geom.Point
+                           (crs/transform-geom this crs/gf-wgs84)))
   (to-spatial4j-point [this] (spatial4j-point this))
   (to-geohash-point [this] (geohash-point this))
   (to-h3-point [this] (h3-point this))
@@ -427,8 +453,8 @@
    provided length (in meters). Final segment may be less than the requested length.
    Length of individual segments may vary a bit but total length should remain the same."
   [linestring segment-length]
-  (let [srid (jts/get-srid linestring)]
-    (map #(jts/transform-geom % srid) (resegment-wgs84 (jts/transform-geom linestring 4326) segment-length))))
+  (let [srid (crs/get-srid linestring)]
+    (map #(crs/transform-geom % srid) (resegment-wgs84 (crs/transform-geom linestring 4326) segment-length))))
 
 (def ^DistanceCalculator vincenty-distance-calculator (org.locationtech.spatial4j.distance.GeodesicSphereDistCalc$Vincenty.))
 

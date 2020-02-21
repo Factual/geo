@@ -1,7 +1,8 @@
 (ns geo.io
   "Helper functions for converting JTS geometries to and from various
    geospatial IO formats (geojson, wkt, wkb)."
-  (:require [geo.jts :refer [gf-wgs84] :as jts]
+  (:require [geo.crs :as crs]
+            [geo.jts :as jts]
             [geo.spatial :refer [Shapelike to-jts]]
             [clojure.data]
             [clojure.walk :refer [keywordize-keys stringify-keys]])
@@ -18,17 +19,19 @@
 (defn read-wkt
   "Read a WKT string and convert to a Geometry.
    Can optionally pass in SRID. Defaults to WGS84"
-  ([^String wkt] (.read (WKTReader. gf-wgs84) wkt))
-  ([^String wkt srid] (.read (WKTReader. (jts/gf srid)) wkt)))
+  ([^String wkt] (.read (WKTReader. crs/gf-wgs84) wkt))
+  ([^String wkt srid] (.read (WKTReader.
+                              (crs/get-geometry-factory srid)) wkt)))
 
 (defn to-wkt [shapelike] (.write (WKTWriter.) (to-jts shapelike)))
 
 (defn read-wkb
   "Read a WKB byte array and convert to a Geometry.
    Can optionally pass in SRID. Defaults to WGS84"
-  ([^bytes bytes] (.read (WKBReader. gf-wgs84) bytes))
+  ([^bytes bytes] (.read (WKBReader. crs/gf-wgs84) bytes))
   ([^bytes bytes srid]
-   (.read (WKBReader. (jts/gf srid)) bytes)))
+   (.read (WKBReader.
+           (crs/get-geometry-factory srid)) bytes)))
 
 (defn read-wkb-hex
   "Read a WKB hex string and convert to a Geometry"
@@ -109,7 +112,7 @@
        :geometry #object[org.locationtech.jts.geom.Point(...)]}]
   "
   ([^String geojson]
-   (read-geojson geojson jts/default-srid))
+   (read-geojson geojson crs/gf-wgs84))
   ([^String geojson srid]
    (->> geojson
         parse-geojson
@@ -119,18 +122,18 @@
 (defn read-geojson-geometry
   "Parse a GeoJSON string representing a single Geometry into a JTS Geometry."
   ([^String geojson]
-   (read-geojson-geometry geojson jts/default-srid))
+   (read-geojson-geometry geojson crs/gf-wgs84))
   ([^String geojson srid]
    (-> geojson
        parse-geojson
        read-geometry
        (jts/set-srid srid))))
 
-(defn to-geojson [shapelike] (.toString (.write (GeoJSONWriter.) (to-jts shapelike jts/default-srid))))
+(defn to-geojson [shapelike] (.toString (.write (GeoJSONWriter.) (to-jts shapelike crs/gf-wgs84))))
 
 (defn- ^Feature gj-feature
   [{shapelike :geometry properties :properties}]
-  (let [gj-geom (.write (GeoJSONWriter.) (to-jts shapelike jts/default-srid))]
+  (let [gj-geom (.write (GeoJSONWriter.) (to-jts shapelike crs/gf-wgs84))]
     (Feature. gj-geom (stringify-keys properties))))
 
 (defn to-geojson-feature

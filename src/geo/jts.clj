@@ -4,7 +4,6 @@
   (:require [geo.crs :as crs :refer [Transformable]])
   (:import (org.locationtech.jts.geom Coordinate
                                       CoordinateSequence
-                                      CoordinateSequenceFilter
                                       CoordinateXYZM
                                       Envelope
                                       Geometry
@@ -18,34 +17,31 @@
                                       MultiLineString
                                       MultiPolygon
                                       Polygon
-                                      PrecisionModel)
-           (org.locationtech.proj4j CoordinateTransform ProjCoordinate)))
+                                      PrecisionModel)))
 
-(def ^PrecisionModel pm (PrecisionModel. PrecisionModel/FLOATING))
-
-(defn ^GeometryFactory gf
-  "Creates a GeometryFactory for a given SRID."
-  [^Integer srid]
-  (GeometryFactory. pm srid))
-
-(def default-srid 4326)
-
-(def ^GeometryFactory gf-wgs84 (gf default-srid))
-
-(defn get-srid
-  "Gets an integer SRID for a given geometry."
-  [^Geometry geom]
-  (.getSRID geom))
-
-(defn set-srid
-  "Sets a geometry's SRID to a new value, and returns that geometry."
-  [^Geometry geom crs]
-  (doto geom (.setSRID (crs/get-srid crs))))
-
-(defn ^GeometryFactory get-factory
-  "Gets a GeometryFactory for a given geometry."
-  [^Geometry geom]
-  (.getFactory geom))
+(def ^PrecisionModel pm ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/pm." crs/pm)
+(def ^GeometryFactory gf ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/get-geometry-factory."
+  crs/get-geometry-factory)
+(def default-srid ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/default-srid."
+  crs/default-srid)
+(def ^GeometryFactory gf-wgs84 ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/gf-wgs84."
+  crs/gf-wgs84)
+(def ^GeometryFactory get-factory ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/get-geometry-factory."
+  crs/get-geometry-factory)
+(def get-srid ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/get-srid."
+  crs/get-srid)
+(def set-srid ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/set-srid."
+  crs/set-srid)
+(def transform-geom ; Deprecated as of 3.1.0
+  "Deprecated as of 3.1.0, in favor of geo.crs/transform-geom."
+  crs/transform-geom)
 
 (defn coordinate
   "Creates a Coordinate."
@@ -59,11 +55,11 @@
 (defn ^Point point
   "Creates a Point from a Coordinate, a lat/long, or an x,y pair with an SRID."
   ([^Coordinate coordinate]
-   (.createPoint gf-wgs84 coordinate))
+   (.createPoint crs/gf-wgs84 coordinate))
   ([lat long]
-   (point long lat default-srid))
+   (point long lat crs/gf-wgs84))
   ([x y srid]
-   (.createPoint (gf srid) ^Coordinate (coordinate x y))))
+   (.createPoint (crs/get-geometry-factory srid) ^Coordinate (coordinate x y))))
 
 (defn ^"[Lorg.locationtech.jts.geom.Coordinate;" coord-array
   [coordinates]
@@ -92,34 +88,25 @@
 (defn ^MultiPoint multi-point
   "Given a list of points, generates a MultiPoint."
   [points]
-  (let [f (first points)
-        srid (get-srid f)]
-    (-> (.createMultiPoint (get-factory f)
-                           (point-array points))
-        (set-srid srid))))
+  (.createMultiPoint (crs/get-geometry-factory (first points))
+                     (point-array points)))
 
 (defn ^CoordinateSequence coordinate-sequence
   "Given a list of Coordinates, generates a CoordinateSequence."
   [coordinates]
-  (-> (.getCoordinateSequenceFactory gf-wgs84)
+  (-> (.getCoordinateSequenceFactory crs/gf-wgs84)
       (.create (coord-array coordinates))))
 
 (defn ^GeometryCollection geometry-collection
   "Given a list of Geometries, generates a GeometryCollection."
   [geometries]
-  (-> (get-factory (first geometries))
-      (.createGeometryCollection (geom-array geometries))))
+  (.createGeometryCollection (crs/get-geometry-factory (first geometries))
+                             (geom-array geometries)))
 
 (defn geometries
   "Given a GeometryCollection, generate a sequence of Geometries"
   [^GeometryCollection c]
-  (let [n (.getNumGeometries c)
-        srid (get-srid c)
-        geom-n (fn [^GeometryCollection c ^Integer n]
-                 (-> c
-                     (.getGeometryN n)
-                     (set-srid srid)))]
-    (mapv #(geom-n c %) (range n))))
+  (mapv (fn [n] (.getGeometryN c n)) (range (.getNumGeometries c))))
 
 (defn wkt->coords-array
   [flat-coord-list]
@@ -130,18 +117,15 @@
 (defn ^LineString linestring
   "Given a list of Coordinates, creates a LineString. Allows an optional SRID argument at end."
   ([coordinates]
-   (.createLineString gf-wgs84 (coord-array coordinates)))
+   (.createLineString crs/gf-wgs84 (coord-array coordinates)))
   ([coordinates srid]
-   (.createLineString (gf srid) (coord-array coordinates))))
+   (.createLineString (crs/get-geometry-factory srid) (coord-array coordinates))))
 
 (defn ^MultiLineString multi-linestring
   "Given a list of LineStrings, generates a MultiLineString."
   [linestrings]
-  (let [f (first linestrings)
-        srid (get-srid f)]
-    (-> (.createMultiLineString (get-factory f)
-                                (linestring-array linestrings))
-        (set-srid srid))))
+  (.createMultiLineString (crs/get-geometry-factory (first linestrings))
+                          (linestring-array linestrings)))
 
 (defn linestring-wkt
   "Makes a LineString from a WKT-style data structure: a flat sequence of
@@ -186,9 +170,9 @@
 (defn ^LinearRing linear-ring
   "Given a list of Coordinates, creates a LinearRing. Allows an optional SRID argument at end."
   ([coordinates]
-   (.createLinearRing gf-wgs84 (coord-array coordinates)))
+   (.createLinearRing crs/gf-wgs84 (coord-array coordinates)))
   ([coordinates srid]
-   (.createLinearRing (gf srid) (coord-array coordinates))))
+   (.createLinearRing (crs/get-geometry-factory srid) (coord-array coordinates))))
 
 (defn linear-ring-wkt
   "Makes a LinearRing from a WKT-style data structure: a flat sequence of
@@ -204,7 +188,7 @@
   ([shell]
    (polygon shell nil))
   ([^LinearRing shell holes]
-   (.createPolygon (get-factory shell) shell
+   (.createPolygon (crs/get-geometry-factory shell) shell
                    (linear-ring-array holes))))
 
 (defn polygon-wkt
@@ -217,7 +201,7 @@
 
    Allows an optional SRID argument at end."
   ([rings]
-   (polygon-wkt rings default-srid))
+   (polygon-wkt rings crs/gf-wgs84))
   ([rings srid]
    (let [rings (map #(linear-ring-wkt % srid) rings)]
      (polygon (first rings) (into-array LinearRing (rest rings))))))
@@ -225,22 +209,15 @@
 (defn ^MultiPolygon multi-polygon
   "Given a list of polygons, generates a MultiPolygon."
   [polygons]
-  (let [f (first polygons)
-        srid (get-srid f)]
-       (-> (.createMultiPolygon (get-factory f)
-                                (polygon-array polygons))
-           (set-srid srid))))
+  (.createMultiPolygon (crs/get-geometry-factory (first polygons))
+                       (polygon-array polygons)))
 
+; Deprecated since 3.1.0.
 (defn polygons
-  "Given a MultiPolygon, generate a sequence of Polygons"
+  "Given a MultiPolygon, generate a sequence of Polygons.
+  Deprecated since 3.1.0, in favor of geo.jts/geometries."
   [^MultiPolygon m]
-  (let [n (.getNumGeometries m)
-        srid (get-srid m)
-        geom-n (fn [^MultiPolygon m ^Integer n]
-                 (-> m
-                     (.getGeometryN n)
-                     (set-srid srid)))]
-    (mapv #(geom-n m %) (range n))))
+  (geometries m))
 
 (defn multi-polygon-wkt
   "Creates a MultiPolygon from a WKT-style data structure, e.g. [[[0 0 1 0 2 2
@@ -258,7 +235,7 @@
 (defn same-srid?
   "Check if two Geometries have the same SRID. If both geometries have SRIDs of 0, will also return true."
   [^Geometry g1 ^Geometry g2]
-  (= (get-srid g1) (get-srid g2)))
+  (= (crs/get-srid g1) (crs/get-srid g2)))
 
 (defn same-coords?
   "Check if two Coordinates have the same number of dimensions and equal ordinates."
@@ -272,74 +249,15 @@
   (and (same-srid? g1 g2)
        (.equalsTopo g1 g2)))
 
-(defn- ^Coordinate transform-coord
-  "Transforms a coordinate using a proj4j transform.
-  Can either be specified with a transform argument or two projection arguments."
-  ([^Coordinate coord ^CoordinateTransform transform]
-   (-> (.transform transform
-                   (ProjCoordinate. (.x coord) (.y coord) (.z coord))
-                   (ProjCoordinate.))
-       (#(coordinate (.x ^ProjCoordinate %) (.y ^ProjCoordinate %) (.z ^ProjCoordinate %)))))
-  ([coord c1 c2]
-   (if (= c1 c2) coord
-       (transform-coord coord (crs/create-transform c1 c2)))))
-
-(defn- transform-coord-seq-item
-  "Transforms one item in a CoordinateSequence using a proj4j transform."
-  [^CoordinateSequence cseq ^Integer i ^CoordinateTransform transform]
-  (let [coordinate (.getCoordinate cseq i)
-        transformed (transform-coord coordinate transform)]
-    (.setOrdinate cseq i 0 (.x transformed))
-    (.setOrdinate cseq i 1 (.y transformed))))
-
-(defn- ^CoordinateSequenceFilter transform-coord-seq-filter
-  "Implement JTS's CoordinateSequenceFilter, to be applied to a Geometry using tf and transform-geom."
-  [transform]
-  (reify CoordinateSequenceFilter
-    (filter [_ seq i]
-      (transform-coord-seq-item seq i transform))
-    (isDone [_]
-      false)
-    (isGeometryChanged [_]
-      true)))
-
-(defn- tf
-  "Transform a Geometry by applying CoordinateTransform to the Geometry.
-  When the target CRS has an SRID, set the geometry's SRID to that."
-  [^Geometry g ^CoordinateTransform transform]
-  (let [g (.copy g)]
-    (.apply g (transform-coord-seq-filter transform))
-    (set-srid g (crs/get-srid (crs/get-target-crs transform)))))
-
-(defn transform-geom
-  "Transform a Geometry.
-  When a single CoordinateTransform is passed, apply that transform to the Geometry. When the target CRS
-  has an SRID, set the geometry's SRID to that. When a single Transformable target is passed, attempt to
-  find the geometry's CRS to generate and apply a CoordinateTransform. When two CRSs are passed as
-  arguments, generate a CoordinateTransform and apply accordingly."
-  ([g t]
-   (cond (instance? CoordinateTransform t)
-         (tf g t)
-         (satisfies? Transformable t)
-         (let [geom-srid (get-srid g)]
-           (assert (not= 0 geom-srid) "Geometry must have a valid SRID to be transformed")
-           (if (= (crs/get-srid t) geom-srid)
-             g
-             (transform-geom g geom-srid t)))))
-  ([g c1 c2]
-   (transform-geom g (crs/create-transform c1 c2))))
-
 (defn ^Point centroid
   "Get the centroid of a JTS object."
   [^Geometry g]
-  (let [srid (get-srid g)]
-       (set-srid (.getCentroid g) srid)))
+  (.getCentroid g))
 
 (defn intersection
   "Get the intersection of two geometries."
   [^Geometry g1 ^Geometry g2]
-  (let [srid (get-srid g1)]
-    (set-srid (.intersection g1 g2) srid)))
+  (.intersection g1 g2))
 
 (defn ^Envelope get-envelope-internal
   "Get a JTS envelope from a geometry."
@@ -362,7 +280,7 @@
         min-y (.getMinY e)
         max-x (.getMaxX e)
         max-y (.getMaxY e)
-        gf (get-factory g)
+        gf (crs/get-geometry-factory g)
         make-quadrant (fn [c1 c2] (.toGeometry gf (envelope c1 c2)))
         q1 (make-quadrant (coord c) (coordinate max-x max-y))
         q2 (make-quadrant (coordinate min-x c-y) (coordinate c-x max-y))

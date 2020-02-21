@@ -58,7 +58,7 @@
 
 (facts "polygons <-> multipolygon"
        (fact "multipolygon to polygons"
-             (str (first (polygons (multi-polygon-wkt [[[-1 -1 11 -1 11 11 -1 -1]],
+             (str (first (geometries (multi-polygon-wkt [[[-1 -1 11 -1 11 11 -1 -1]],
                                                        [[0 0 10 0 10 10 0 0]]]))))
              => "POLYGON ((-1 -1, 11 -1, 11 11, -1 -1))")
        (fact "polygons to multipolygon"
@@ -68,12 +68,12 @@
        (fact "multipolygon SRIDs"
              (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                  (spatial/to-jts (geohash/geohash "u4pruu"))])
-                 get-srid) => 4326
+                 crs/get-srid) => 4326
              (-> (multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                  (spatial/to-jts (geohash/geohash "u4pruu"))])
-                 polygons
+                 geometries
                  first
-                 get-srid) => 4326))
+                 crs/get-srid) => 4326))
 
 (facts "geometries <-> geometrycollection"
        (fact "points"
@@ -81,7 +81,7 @@
                                                            (point 1 1)]))))
              => "POINT (0 0)")
        (fact "srids"
-             (get-srid (first (geometries (geometry-collection [(point 0 0 2229)
+             (crs/get-srid (first (geometries (geometry-collection [(point 0 0 2229)
                                                                 (point 0 0 2229)]))))
              => 2229))
 
@@ -121,14 +121,14 @@
        (let [g1 (linestring-wkt [0 0 0 1 0 2])
              g2 (linestring-wkt [1 1 2 2 3 3])
              g3 (linestring-wkt [1 1 2 2 3 3] 1234)]
-         (get-srid g1) => 4326
+         (crs/get-srid g1) => 4326
          (same-srid? g1 g2) => true
          (same-srid? (set-srid g1 0) (set-srid g2 0)) => true
          (same-srid? g1 g3) => false))
 
 (fact "setting SRID for a geom"
-      (get-srid (point 0 0)) => 4326
-      (get-srid (set-srid (point 0 0) 23031)) => 23031)
+      (crs/get-srid (point 0 0)) => 4326
+      (crs/get-srid (set-srid (point 0 0) 23031)) => 23031)
 
 (facts "proj4j"
        (fact "point: 3 param transform"
@@ -177,11 +177,11 @@
                => truthy
                (same-geom? (transform-geom p1 "EPSG:23031") p2)
                => truthy
-               (get-srid (transform-geom p1 23031))
+               (crs/get-srid (transform-geom p1 23031))
                => 23031
-               (get-srid (transform-geom p1 "EPSG:23031"))
+               (crs/get-srid (transform-geom p1 "EPSG:23031"))
                => 23031
-               (get-srid (transform-geom p1 (crs/create-crs 23031)))
+               (crs/get-srid (transform-geom p1 (crs/create-crs 23031)))
                => 23031))
        (fact "If using a different CRS name or proj4 string, SRID is not automatically set"
              (let [p1 (point 3.8142776 51.285914 4326)
@@ -192,9 +192,9 @@
                => truthy))
        (fact "crs/set-srid can take any Transformable"
              (let [p1 (point 10 10 0)]
-               (get-srid (set-srid p1 (crs/create-crs 23031)))
+               (crs/get-srid (set-srid p1 (crs/create-crs 23031)))
                => 23031
-               (get-srid (set-srid p1 (crs/create-crs "EPSG:23031")))
+               (crs/get-srid (set-srid p1 (crs/create-crs "EPSG:23031")))
                => 23031))
        (fact "CRS systems with different names"
              (let [p1 (point 42.3601 -71.0589)
@@ -206,4 +206,68 @@
                (.getX (transform-geom p1 "NAD83:2001"))
                => (.getX p2)
                (.getX (transform-geom p1 "+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +datum=NAD83 +units=m +no_defs"))
-               => (.getX p2))))
+               => (.getX p2)))
+       (fact "An external GeometryFactory can be passed"
+             (let [p1 (point 42.3601 -71.0589)
+                   p2 (transform-geom p1 3586)
+                   p3 (transform-geom p1 3586 (crs/get-geometry-factory 3586))
+                   p4 (transform-geom p1 3586 (crs/get-geometry-factory p2))]
+               (crs/get-srid p2) => 3586
+               (crs/get-srid p3) => 3586
+               (crs/get-srid p4) => 3586
+               (same-geom? p2 p3) => true
+               (same-geom? p2 p4) => true
+               (same-geom? p3 p4) => true))
+       (fact "When passing two CRSs and a GeometryFactory, the GeometryFactory's SRID will be used."
+             (let [c1 4326
+                   c2 3586
+                   s1 (crs/create-crs c1)
+                   s2 (crs/create-crs c2)
+                   f1 (crs/get-geometry-factory 3586)
+                   f_false (crs/get-geometry-factory 9999)
+                   t1 (crs/create-transform 4326 3586)
+                   p1 (point 42.3601 -71.0589)
+                   p2 (transform-geom p1 c1 c2 f1)
+                   p3 (transform-geom p1 s1 s2 f1)
+                   p4 (transform-geom p1 t1 f1)
+                   p2_false (transform-geom p1 c1 c2 f_false)
+                   p3_false (transform-geom p1 s1 s2 f_false)
+                   p4_false (transform-geom p1 t1 f_false)]
+               (same-geom? p2 p3) => true
+               (same-geom? p2 p4) => true
+               (same-geom? p3 p4) => true
+               (crs/get-srid p2_false) => 9999
+               (crs/get-srid p3_false) => 9999
+               (crs/get-srid p4_false) => 9999
+               (same-geom? p2 p2_false) => false
+               (same-geom? p3 p3_false) => false
+               (same-geom? p4 p4_false) => false
+               (same-geom? p2_false p3_false) => true
+               (same-geom? p2_false p4_false) => true
+               (same-geom? p3_false p4_false) => true))
+       (fact "When passing one Transformable and one GeometryFactory, determine whether
+              Transformable is target or source depending on if Geometry has SRID."
+             (let [g1 (point 42.3601 -71.0589)
+                   g2 (point -71.0589 42.3601 0)
+                   g3 (transform-geom g1 3586)
+                   f1 (crs/get-geometry-factory 4326)
+                   f2 (crs/get-geometry-factory 3586)]
+               (same-geom? (transform-geom g1 3586 f2) g3) => true
+               (same-geom? (transform-geom g2 3586 f2) g3) => false
+               (same-geom? (transform-geom (set-srid g2 4326) 3586 f2) g3) => true
+               (same-geom? (transform-geom g2 3586 f2) g1) => false
+               (same-geom? (set-srid (transform-geom g2 3586 f2) 4326) g1) => true))
+       (fact "When passing a CoordinateTransform and a GeometryFactory, the GeometryFactory's SRID will be used."
+             (let [c1 4326
+                   c2 3586
+                   f1 (crs/get-geometry-factory 3586)
+                   f2 (crs/get-geometry-factory 4326)
+                   t1 (crs/create-transform 4326 3586)
+                   p1 (point 42.3601 -71.0589)
+                   p2 (transform-geom p1 t1)
+                   p3 (transform-geom p1 t1 f1)
+                   p4 (transform-geom p1 t1 f2)]
+               (crs/get-srid p1) => 4326
+               (crs/get-srid p2) => 3586
+               (crs/get-srid p3) => 3586
+               (crs/get-srid p4) => 4326)))

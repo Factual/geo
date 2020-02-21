@@ -1,5 +1,6 @@
 (ns geo.t-io
   (:require [clojure.string :refer [trim]]
+            [geo.crs :as crs]
             [geo.io :as sut]
             [geo.jts :as jts]
             [cheshire.core :as json]
@@ -72,16 +73,16 @@
              (-> wkt-2 sut/read-wkt (jts/set-srid 3857) sut/to-wkb-hex) => wkb-2-hex))
 
 (fact "understands projection in hex string"
-      (-> wkb-hex sut/read-wkb-hex jts/get-srid) => 4326
-      (-> ewkb-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326
-      (-> wkb-2-hex sut/read-wkb-hex jts/get-srid) => 4326
-      (-> ewkb-2-hex-wgs84 sut/read-wkb-hex jts/get-srid) => 4326)
+      (-> wkb-hex sut/read-wkb-hex crs/get-srid) => 4326
+      (-> ewkb-hex-wgs84 sut/read-wkb-hex crs/get-srid) => 4326
+      (-> wkb-2-hex sut/read-wkb-hex crs/get-srid) => 4326
+      (-> ewkb-2-hex-wgs84 sut/read-wkb-hex crs/get-srid) => 4326)
 
 (fact "reads WKTs and WKBs with custom SRID"
-      (-> wkt sut/read-wkt jts/get-srid) => 4326
-      (-> wkt (sut/read-wkt 2229) jts/get-srid) => 2229
-      (-> wkb-hex sut/read-wkb-hex jts/get-srid) => 4326
-      (-> wkb-hex (sut/read-wkb-hex 2229) jts/get-srid) => 2229)
+      (-> wkt sut/read-wkt crs/get-srid) => 4326
+      (-> wkt (sut/read-wkt 2229) crs/get-srid) => 2229
+      (-> wkb-hex sut/read-wkb-hex crs/get-srid) => 4326
+      (-> wkb-hex (sut/read-wkb-hex 2229) crs/get-srid) => 2229)
 
 (facts "reads and writes ewkb in hex string"
        (fact "ewkb-hex identity"
@@ -153,12 +154,12 @@
         (get (first (fc "features")) "properties") => {"name" "null island"}))
 
 (fact "parsing geojson defaults to EPSG:4326 but SRID can be overridden in option map"
-      (map (comp jts/get-srid :geometry) (sut/read-geojson geometry)) => [4326]
-      (map (comp jts/get-srid :geometry) (sut/read-geojson feature)) => [4326]
-      (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1)) => [4326]
-      (map (comp jts/get-srid :geometry) (sut/read-geojson geometry 2229)) => [2229]
-      (map (comp jts/get-srid :geometry) (sut/read-geojson feature 2229)) => [2229]
-      (map (comp jts/get-srid :geometry) (sut/read-geojson feature-collection-1 2229)) => [2229])
+      (map (comp crs/get-srid :geometry) (sut/read-geojson geometry)) => [4326]
+      (map (comp crs/get-srid :geometry) (sut/read-geojson feature)) => [4326]
+      (map (comp crs/get-srid :geometry) (sut/read-geojson feature-collection-1)) => [4326]
+      (map (comp crs/get-srid :geometry) (sut/read-geojson geometry 2229)) => [2229]
+      (map (comp crs/get-srid :geometry) (sut/read-geojson feature 2229)) => [2229]
+      (map (comp crs/get-srid :geometry) (sut/read-geojson feature-collection-1 2229)) => [2229])
 
 (fact "convert geometrycollection to features"
       (let [gc (jts/geometry-collection [(sut/read-geojson-geometry null-island-geometry)
