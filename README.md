@@ -1,7 +1,5 @@
 # Geo
 
-[![Build Status](https://travis-ci.org/Factual/geo.svg?branch=master)](https://travis-ci.org/Factual/geo)
-
 At Factual, we process a lot of spatial data. We're open-sourcing one of our
 internal libraries for working with geospatial information, especially
 geohashes. We want all Clojure programmers to be able to answer questions about
