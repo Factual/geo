@@ -159,28 +159,26 @@
                                                           "871f24accffffff" "871f24aebffffff" "871f24ae8ffffff"
                                                           "871f24aecffffff" "871f24ae1ffffff" "871f24ae0ffffff"]])
        (fact "polyfill"
-             (sut/polyfill (geohash/geohash "u4pruy") 9) => [617541026878062591
-                                                             617541026799157247
+             (sut/polyfill (geohash/geohash "u4pruy") 9) => [617541026877538303
                                                              617541026800992255
-                                                             617541026877538303
+                                                             617541026878062591
+                                                             617541026799157247
                                                              617541026879111167]
-             (sut/polyfill-address (geohash/geohash "u4pruy") 9) => ["891f24ac54bffff"
-                                                                     "891f24ac097ffff"
+             (sut/polyfill-address (geohash/geohash "u4pruy") 9) => ["891f24ac543ffff"
                                                                      "891f24ac0b3ffff"
-                                                                     "891f24ac543ffff"
+                                                                     "891f24ac54bffff"
+                                                                     "891f24ac097ffff"
                                                                      "891f24ac55bffff"]
              (-> (jts/multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                      (spatial/to-jts (geohash/geohash "u4pruu"))])
                  (sut/polyfill 9))
-             => [617541026878062591 617541026799157247 617541026800992255 617541026877538303
-                 617541026879111167 617541026790244351 617541026789982207 617541026789720063
-                 617541026789457919]
+             => [617541026877538303 617541026800992255 617541026878062591 617541026799157247
+                 617541026879111167 617541026790244351 617541026789457919 617541026789982207 617541026789720063]
              (-> (jts/multi-polygon [(spatial/to-jts (geohash/geohash "u4pruy"))
                                      (spatial/to-jts (geohash/geohash "u4pruu"))])
                  (sut/polyfill-address 9))
-             => ["891f24ac54bffff" "891f24ac097ffff" "891f24ac0b3ffff" "891f24ac543ffff"
-                 "891f24ac55bffff" "891f24ac00fffff" "891f24ac00bffff" "891f24ac007ffff"
-                 "891f24ac003ffff"]
+             => ["891f24ac543ffff" "891f24ac0b3ffff" "891f24ac54bffff" "891f24ac097ffff"
+                 "891f24ac55bffff" "891f24ac00fffff" "891f24ac003ffff" "891f24ac00bffff" "891f24ac007ffff"]
              (count (sut/polyfill geohash-with-hole 12)) => 1648)
        (fact "polyfill works recursively on large shapes"
              (count (sut/polyfill (jts/polygon-wkt [[-70 42 -70 44 -68 44 -68 42 -70 42]]) 7)) => 6769

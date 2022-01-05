@@ -133,12 +133,12 @@
 (facts "proj4j"
        (fact "point: 3 param transform"
          (same-geom? (transform-geom (point 3.8142776 51.285914 4326) 23031)
-                     (point 556878.9016076007 5682145.166264554 23031))
+                     (point 556878.9016075989 5682145.166262922 23031))
          => truthy
          (same-geom? (set-srid (transform-geom (point 3.8142776 51.285914 4326)
                                                "+proj=utm +zone=31 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs")
                                23031)
-                     (point 556878.9016076007 5682145.166264554 23031))
+                     (point 556878.9016075989 5682145.166262922 23031))
          => truthy
          (spatial/latitude (point 556878.9016076007 5682145.166264554 23031))
          => (roughly 51.285914 0.000001)
@@ -167,12 +167,12 @@
        (fact "geometry: projection can happen using an external transform object, though SRID may be set to 0 if it cannot be determined."
              (same-geom?
                (transform-geom (point 3.8142776 51.285914 4326) (crs/create-transform 4326 23031))
-               (point 556878.9016076007 5682145.166264554 23031))
+               (point 556878.9016075989 5682145.166262922 23031))
              => truthy)
        (fact "An EPSG can be specified as a number, an 'EPSG:XXXX' string, as an equivalent proj4 string,
               or a proj4j CRS object."
              (let [p1 (point 3.8142776 51.285914 4326)
-                   p2 (point 556878.9016076007 5682145.166264554 23031)]
+                   p2 (point 556878.9016075989 5682145.166262922 23031)]
                (same-geom? (transform-geom p1 23031) p2)
                => truthy
                (same-geom? (transform-geom p1 "EPSG:23031") p2)
@@ -185,7 +185,7 @@
                => 23031))
        (fact "If using a different CRS name or proj4 string, SRID is not automatically set"
              (let [p1 (point 3.8142776 51.285914 4326)
-                   p2 (point 556878.9016076007 5682145.166264554 23031)]
+                   p2 (point 556878.9016075989 5682145.166262922 23031)]
                (same-geom? (-> (transform-geom p1 "+proj=utm +zone=31 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs")
                                (set-srid 23031))
                            p2)
