@@ -7,24 +7,24 @@
             :comments "same as Clojure"}
   :description "Geospatial operations over points, lines, polys, geohashes, etc."
   :dependencies
-  [[org.clojure/math.numeric-tower "0.0.4"]
+  [[org.clojure/math.numeric-tower "0.0.5"]
    [ch.hsr/geohash "1.4.0"]
-   [com.uber/h3 "3.6.3"]
-   [org.locationtech.proj4j/proj4j "1.1.0"]
-   [org.locationtech.spatial4j/spatial4j "0.7"]
-   [org.locationtech.jts/jts-core "1.16.1"]
-   [org.locationtech.jts.io/jts-io-common "1.16.1"]
-   [org.wololo/jts2geojson "0.14.3"]]
+   [com.uber/h3 "3.7.1"]
+   [org.locationtech.proj4j/proj4j "1.1.4"]
+   [org.locationtech.spatial4j/spatial4j "0.8"]
+   [org.locationtech.jts/jts-core "1.18.2"]
+   [org.locationtech.jts.io/jts-io-common "1.18.2"]
+   [org.wololo/jts2geojson "0.16.1"]]
   :codox {:themes [:rdash]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-midje "3.2.2"]
                              [lein-codox "0.10.7"]
                              [lein-project-version "0.1.0"]]
-                   :dependencies [[org.clojure/clojure "1.10.1"]
+                   :dependencies [[org.clojure/clojure "1.10.3"]
                                   [codox-theme-rdash "0.1.2"]
-                                  [criterium "0.4.5"]
-                                  [cheshire "5.10.0"]
-                                  [midje "1.9.9"]]}
+                                  [criterium "0.4.6"]
+                                  [cheshire "5.10.1"]
+                                  [midje "1.10.5"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}

@@ -256,6 +256,20 @@ update the `deps.edn` from the project root is:
 
 `clj -A:depify | clj -A:zprint > deps.edn.tmp ; mv deps.edn.tmp deps.edn`
 
+# Development environment using nix
+
+For a reproducible development environment, `geo` provides a `flake.nix`.
+
+On a machine with nix installed:
+
+``` bash
+$ nix develop
+...
+
+$ clj -T:build ci
+$ clj -T:build install
+```
+
 # License
 
 This project and many of its dependencies are licensed under the Eclipse Public

@@ -2,21 +2,25 @@
    {:1.7 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.7.0"}}},
     :1.8 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.8.0"}}},
     :1.9 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.9.0"}}},
-    :dev {:extra-deps {cheshire #:mvn{:version "5.9.0"},
+    :dev {:extra-deps {cheshire #:mvn{:version "5.10.1"},
                        codox-theme-rdash #:mvn{:version "0.1.2"},
                        com.fasterxml.jackson.core/jackson-core #:mvn{:version "2.10.2"},
                        com.fasterxml.jackson.dataformat/jackson-dataformat-cbor #:mvn{:version "2.10.2"},
                        com.fasterxml.jackson.dataformat/jackson-dataformat-smile #:mvn{:version "2.10.2"},
-                       criterium #:mvn{:version "0.4.5"},
-                       midje #:mvn{:version "1.9.9"},
-                       org.clojure/clojure #:mvn{:version "1.10.1"}}}},
+                       criterium #:mvn{:version "0.4.6"},
+                       midje #:mvn{:version "1.10.5"},
+                       org.clojure/clojure #:mvn{:version "1.10.3"}}
+           :main-opts ["-m"]}
+    :build {:deps {io.github.seancorfield/build-clj
+                   {:git/tag "v0.6.7" :git/sha "22c2d09"}}
+            :ns-default build}}
  :deps {ch.hsr/geohash #:mvn{:version "1.4.0"},
-        com.uber/h3 #:mvn{:version "3.6.3"},
-        org.clojure/math.numeric-tower #:mvn{:version "0.0.4"},
-        org.locationtech.jts.io/jts-io-common #:mvn{:version "1.16.1"},
-        org.locationtech.jts/jts-core #:mvn{:version "1.16.1"},
-        org.locationtech.proj4j/proj4j #:mvn{:version "1.1.0"},
-        org.locationtech.spatial4j/spatial4j #:mvn{:version "0.7"},
-        org.wololo/jts2geojson #:mvn{:version "0.14.3"}},
+        com.uber/h3 #:mvn{:version "3.7.1"},
+        org.clojure/math.numeric-tower #:mvn{:version "0.0.5"},
+        org.locationtech.jts.io/jts-io-common #:mvn{:version "1.18.2"},
+        org.locationtech.jts/jts-core #:mvn{:version "1.18.2"},
+        org.locationtech.proj4j/proj4j #:mvn{:version "1.1.4"},
+        org.locationtech.spatial4j/spatial4j #:mvn{:version "0.8"},
+        org.wololo/jts2geojson #:mvn{:version "0.16.1"}},
  :mvn/repos {"releases" {:url "https://clojars.org/repo"},
              "snapshots" {:url "https://clojars.org/repo"}}}
