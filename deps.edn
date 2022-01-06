@@ -9,7 +9,11 @@
                        com.fasterxml.jackson.dataformat/jackson-dataformat-smile #:mvn{:version "2.10.2"},
                        criterium #:mvn{:version "0.4.6"},
                        midje #:mvn{:version "1.10.5"},
-                       org.clojure/clojure #:mvn{:version "1.10.3"}}}},
+                       org.clojure/clojure #:mvn{:version "1.10.3"}}
+           :main-opts ["-m"]}
+    :build {:deps {io.github.seancorfield/build-clj
+                   {:git/tag "v0.6.7" :git/sha "22c2d09"}}
+            :ns-default build}}
  :deps {ch.hsr/geohash #:mvn{:version "1.4.0"},
         com.uber/h3 #:mvn{:version "3.7.1"},
         org.clojure/math.numeric-tower #:mvn{:version "0.0.5"},
